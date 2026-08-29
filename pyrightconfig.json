@@ -1,0 +1,21 @@
+{
+  "venvPath": "backend",
+  "venv": "venv",
+  "extraPaths": [
+    "backend",
+    "scripts"
+  ],
+  "reportMissingImports": "warning",
+  "reportAttributeAccessIssue": "none",
+  "reportArgumentType": "none",
+  "pythonVersion": "3.9",
+  "include": [
+    "backend/**",
+    "scripts/**"
+  ],
+  "exclude": [
+    "backend/venv",
+    "**/node_modules",
+    "**/.next"
+  ]
+}

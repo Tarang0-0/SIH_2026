@@ -1,0 +1,101 @@
+[
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T06:10:00Z",
+    "latitude": 28.6415,
+    "longitude": 77.2197,
+    "speed_kmph": 0.0,
+    "delay_minutes": 0,
+    "current_station": "NDLS",
+    "next_station": "GZB",
+    "source": "SIMULATED"
+  },
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T06:25:00Z",
+    "latitude": 28.6536,
+    "longitude": 77.3295,
+    "speed_kmph": 78.5,
+    "delay_minutes": 2,
+    "current_station": "NDLS",
+    "next_station": "GZB",
+    "source": "SIMULATED"
+  },
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T06:50:00Z",
+    "latitude": 28.6657,
+    "longitude": 77.4393,
+    "speed_kmph": 45.0,
+    "delay_minutes": 2,
+    "current_station": "GZB",
+    "next_station": "ALJN",
+    "source": "SIMULATED"
+  },
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T07:15:00Z",
+    "latitude": 28.2815,
+    "longitude": 77.7585,
+    "speed_kmph": 110.0,
+    "delay_minutes": 5,
+    "current_station": "GZB",
+    "next_station": "ALJN",
+    "source": "SIMULATED"
+  },
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T07:57:00Z",
+    "latitude": 27.8974,
+    "longitude": 78.0777,
+    "speed_kmph": 84.5,
+    "delay_minutes": 8,
+    "current_station": "ALJN",
+    "next_station": "CNB",
+    "source": "SIMULATED"
+  },
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T09:30:00Z",
+    "latitude": 27.1767,
+    "longitude": 79.2150,
+    "speed_kmph": 105.0,
+    "delay_minutes": 12,
+    "current_station": "ALJN",
+    "next_station": "CNB",
+    "source": "SIMULATED"
+  },
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T11:34:00Z",
+    "latitude": 26.4547,
+    "longitude": 80.3512,
+    "speed_kmph": 30.0,
+    "delay_minutes": 14,
+    "current_station": "CNB",
+    "next_station": "LKO",
+    "source": "SIMULATED"
+  },
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T12:15:00Z",
+    "latitude": 26.6432,
+    "longitude": 80.6373,
+    "speed_kmph": 65.0,
+    "delay_minutes": 10,
+    "current_station": "CNB",
+    "next_station": "LKO",
+    "source": "SIMULATED"
+  },
+  {
+    "journey_id": "J1001",
+    "timestamp": "2026-08-27T12:50:00Z",
+    "latitude": 26.8317,
+    "longitude": 80.9234,
+    "speed_kmph": 0.0,
+    "delay_minutes": 10,
+    "current_station": "LKO",
+    "next_station": "LKO",
+    "source": "SIMULATED"
+  }
+]

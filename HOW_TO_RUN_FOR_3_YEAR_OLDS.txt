@@ -1,0 +1,102 @@
+==============================================================================
+   🚂 CHOO-CHOO! HOW TO RUN RAILETA (EVEN A 3-YEAR-OLD CAN DO IT!) 🚂
+==============================================================================
+
+Hello little buddy! 👶
+Today we are going to run a super cool magic train computer called RailETA!
+It tells us when the shiny fast trains (like the Shatabdi and Rajdhani!) 
+will reach their toy stations!
+
+Follow these 3 easy baby steps. No stress, just copy and paste! 🎉
+
+------------------------------------------------------------------------------
+  🛠️ THINGS YOU NEED BEFORE WE START (Ask mommy/daddy or big bro/sis):
+------------------------------------------------------------------------------
+1. Your computer is turned on. 💻
+2. You opened the "Terminal" window (the black box where you type magic words).
+3. You are inside the project folder:
+   cd /Users/tarang/Desktop/HACKATHON/SIH_2026
+
+
+------------------------------------------------------------------------------
+  🚂 STEP 1: WAKE UP THE TRAIN BRAIN (The Backend Engine)
+------------------------------------------------------------------------------
+Open a brand new Terminal window and copy-paste this magic spell:
+
+   cd backend
+   source venv/bin/activate
+   uvicorn app.main:app --port 8000
+
+✨ What happens:
+You will see friendly text saying "Application startup complete".
+The brain is now awake and listening on http://localhost:8000! 🧠
+
+
+------------------------------------------------------------------------------
+  🎨 STEP 2: TURN ON THE SHINY TRAIN SCREEN (The Frontend Dashboard)
+------------------------------------------------------------------------------
+Open a SECOND new Terminal window and copy-paste this magic spell:
+
+   cd frontend
+   npm run dev
+
+✨ What happens:
+You will see "Ready in 100ms" and a magical link: http://localhost:3000.
+Open your browser (Chrome/Safari) and go to:
+👉 http://localhost:3000
+
+WOW! Look at the pretty dark dashboard, the shiny train cards, and the live
+AI arrival times! 🌟
+
+
+------------------------------------------------------------------------------
+  🎮 STEP 3 (BONUS): MAKE THE TRAINS MOVE! (The Replay Simulator)
+------------------------------------------------------------------------------
+Want to see the trains move station to station in real time?
+Open a THIRD Terminal window and copy-paste this magic spell:
+
+   ./backend/venv/bin/python scripts/replay_simulator.py --speed-multiplier 2.0
+
+✨ What happens:
+The train will send live updates like "NDLS -> GZB -> ALJN -> CNB -> LKO".
+Watch the screen update live! ⏱️
+
+
+------------------------------------------------------------------------------
+  🧠 STEP 4 (EXTRA SMART): RETRAIN THE AI BRAIN & CHECK SCORES
+------------------------------------------------------------------------------
+If you want to train the AI brain or check its test scorecard:
+
+1. To generate 5,000 new train practice runs:
+   ./backend/venv/bin/python scripts/generate_training_data.py
+
+2. To teach the AI brain (GBDT model):
+   ./backend/venv/bin/python scripts/train_model.py
+
+3. To see how much smarter the AI is than regular clocks (62% better!):
+   ./backend/venv/bin/python scripts/evaluate_model.py
+
+4. To run all 25 automated safety tests:
+   cd backend && PYTHONPATH=. ./venv/bin/pytest tests/
+
+
+------------------------------------------------------------------------------
+  ⚠️ 3 IMPORTANT GOLDEN RULES TO TAKE CARE OF (Baby Safety Guide!):
+------------------------------------------------------------------------------
+1. 🛑 DON'T CLOSE THE TERMINAL WINDOWS!
+   If you close the black box with the backend or frontend, the train stops!
+   Keep them open while playing.
+
+2. 🛑 DON'T FORGET THE PORT NUMBERS!
+   - Backend Brain = Port 8000 (http://localhost:8000)
+   - Frontend Dashboard = Port 3000 (http://localhost:3000)
+   Make sure nothing else is using these ports.
+
+3. 🛑 NO FAKE/HALLUCINATED DATA ALLOWED!
+   Every piece of train data is tagged as REAL or SIMULATED.
+   We tell the truth only — no make-believe hallucinations!
+
+------------------------------------------------------------------------------
+  🎉 YAY! YOU DID IT!
+  Now sit back, sip some apple juice 🧃, and watch the smart trains roll!
+==============================================================================

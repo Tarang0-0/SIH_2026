@@ -1,0 +1,254 @@
+{
+  "evaluation_dataset": {
+    "total_test_samples": 1652,
+    "unseen_trips": 320
+  },
+  "overall_metrics": {
+    "schedule_baseline": {
+      "MAE": 6.848547215496369,
+      "RMSE": 9.053260097994372,
+      "within_3m": 29.055690072639223,
+      "within_5m": 46.06537530266343,
+      "within_10m": 77.60290556900726
+    },
+    "delay_adjusted_baseline": {
+      "MAE": 6.608214285714286,
+      "RMSE": 9.240213247515673,
+      "within_3m": 32.92978208232446,
+      "within_5m": 50.0,
+      "within_10m": 79.53995157384988
+    },
+    "ml_model": {
+      "MAE": 2.4417901627231746,
+      "RMSE": 3.0700699569079273,
+      "within_3m": 67.13075060532687,
+      "within_5m": 89.70944309927361,
+      "within_10m": 99.87893462469734
+    },
+    "mae_reduction_pct": 64.3,
+    "rmse_reduction_pct": 66.1
+  },
+  "delay_tier_breakdown": [
+    {
+      "category": "1. On-Time / Minor (0-5m)",
+      "samples": 668,
+      "sched_mae": 6.89,
+      "ml_mae": 2.44,
+      "improvement_pct": 64.7
+    },
+    {
+      "category": "2. Moderate Delay (5-20m)",
+      "samples": 695,
+      "sched_mae": 6.34,
+      "ml_mae": 2.41,
+      "improvement_pct": 62.1
+    },
+    {
+      "category": "3. Significant Delay (20-45m)",
+      "samples": 165,
+      "sched_mae": 7.45,
+      "ml_mae": 2.58,
+      "improvement_pct": 65.3
+    },
+    {
+      "category": "4. Severe Delay (>45m)",
+      "samples": 124,
+      "sched_mae": 8.65,
+      "ml_mae": 2.48,
+      "improvement_pct": 71.3
+    }
+  ],
+  "time_of_day_breakdown": [
+    {
+      "time_window": "Daytime Standard (12:00-16:00, 22:00-00:00)",
+      "samples": 667,
+      "sched_mae": 4.75,
+      "ml_mae": 2.45,
+      "improvement_pct": 48.4
+    },
+    {
+      "time_window": "Evening Peak (17:00-21:00)",
+      "samples": 328,
+      "sched_mae": 7.63,
+      "ml_mae": 2.38,
+      "improvement_pct": 68.9
+    },
+    {
+      "time_window": "Late Night Clear (01:00-05:00)",
+      "samples": 389,
+      "sched_mae": 9.41,
+      "ml_mae": 2.43,
+      "improvement_pct": 74.2
+    },
+    {
+      "time_window": "Morning Peak (08:00-11:00)",
+      "samples": 268,
+      "sched_mae": 7.39,
+      "ml_mae": 2.52,
+      "improvement_pct": 65.9
+    }
+  ],
+  "weather_breakdown": [
+    {
+      "weather_state": "Clear Conditions (Flag=0)",
+      "samples": 1652,
+      "sched_mae": 6.85,
+      "ml_mae": 2.44,
+      "improvement_pct": 64.3
+    }
+  ],
+  "section_breakdown": [
+    {
+      "section": "CNB -> PRYJ",
+      "samples": 192,
+      "distance_km": 194.5,
+      "sched_mae": 6.03,
+      "ml_mae": 2.55,
+      "improvement_pct": 57.6
+    },
+    {
+      "section": "NDLS -> CNB",
+      "samples": 192,
+      "distance_km": 440.0,
+      "sched_mae": 10.93,
+      "ml_mae": 2.62,
+      "improvement_pct": 76.1
+    },
+    {
+      "section": "PRYJ -> DDU",
+      "samples": 192,
+      "distance_km": 153.0,
+      "sched_mae": 5.26,
+      "ml_mae": 2.5,
+      "improvement_pct": 52.5
+    },
+    {
+      "section": "DDU -> GAYA",
+      "samples": 125,
+      "distance_km": 205.0,
+      "sched_mae": 5.52,
+      "ml_mae": 2.1,
+      "improvement_pct": 61.9
+    },
+    {
+      "section": "DHN -> HWH",
+      "samples": 70,
+      "distance_km": 259.0,
+      "sched_mae": 7.71,
+      "ml_mae": 2.48,
+      "improvement_pct": 67.9
+    },
+    {
+      "section": "GAYA -> DHN",
+      "samples": 70,
+      "distance_km": 201.0,
+      "sched_mae": 6.04,
+      "ml_mae": 2.0,
+      "improvement_pct": 67.0
+    },
+    {
+      "section": "ALJN -> CNB",
+      "samples": 67,
+      "distance_km": 308.6,
+      "sched_mae": 9.39,
+      "ml_mae": 2.39,
+      "improvement_pct": 74.6
+    },
+    {
+      "section": "CNB -> LKO",
+      "samples": 67,
+      "distance_km": 71.6,
+      "sched_mae": 5.18,
+      "ml_mae": 2.31,
+      "improvement_pct": 55.4
+    },
+    {
+      "section": "DDU -> BSB",
+      "samples": 67,
+      "distance_km": 18.0,
+      "sched_mae": 3.86,
+      "ml_mae": 2.62,
+      "improvement_pct": 32.2
+    },
+    {
+      "section": "GZB -> ALJN",
+      "samples": 67,
+      "distance_km": 106.3,
+      "sched_mae": 4.78,
+      "ml_mae": 2.23,
+      "improvement_pct": 53.3
+    },
+    {
+      "section": "NDLS -> GZB",
+      "samples": 67,
+      "distance_km": 24.5,
+      "sched_mae": 4.31,
+      "ml_mae": 2.61,
+      "improvement_pct": 39.4
+    },
+    {
+      "section": "BCT -> ST",
+      "samples": 61,
+      "distance_km": 263.0,
+      "sched_mae": 5.89,
+      "ml_mae": 2.7,
+      "improvement_pct": 54.2
+    },
+    {
+      "section": "BRC -> RTM",
+      "samples": 61,
+      "distance_km": 261.0,
+      "sched_mae": 7.72,
+      "ml_mae": 2.07,
+      "improvement_pct": 73.2
+    },
+    {
+      "section": "KOTA -> MTJ",
+      "samples": 61,
+      "distance_km": 324.0,
+      "sched_mae": 7.47,
+      "ml_mae": 2.82,
+      "improvement_pct": 62.3
+    },
+    {
+      "section": "MTJ -> NDLS",
+      "samples": 61,
+      "distance_km": 143.0,
+      "sched_mae": 5.43,
+      "ml_mae": 2.73,
+      "improvement_pct": 49.8
+    },
+    {
+      "section": "RTM -> KOTA",
+      "samples": 61,
+      "distance_km": 266.0,
+      "sched_mae": 5.97,
+      "ml_mae": 2.58,
+      "improvement_pct": 56.8
+    },
+    {
+      "section": "ST -> BRC",
+      "samples": 61,
+      "distance_km": 129.0,
+      "sched_mae": 4.43,
+      "ml_mae": 2.55,
+      "improvement_pct": 42.3
+    },
+    {
+      "section": "BKSC -> PURI",
+      "samples": 55,
+      "distance_km": 612.0,
+      "sched_mae": 17.95,
+      "ml_mae": 2.04,
+      "improvement_pct": 88.6
+    },
+    {
+      "section": "GAYA -> BKSC",
+      "samples": 55,
+      "distance_km": 149.0,
+      "sched_mae": 5.69,
+      "ml_mae": 2.11,
+      "improvement_pct": 62.8
+    }
+  ]
+}

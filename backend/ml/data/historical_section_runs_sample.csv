@@ -1,0 +1,26 @@
+trip_id,train_number,train_name,train_type,from_station_code,to_station_code,distance_km,scheduled_run_time_min,departure_hour,day_of_week,departure_delay_min,section_congestion_level,weather_impact_flag,actual_run_time_min
+TRIP-1001,22436,Vande Bharat Express,VB,NDLS,CNB,440.0,240.0,8,3,0.0,0.85,1,321.08
+TRIP-1001,22436,Vande Bharat Express,VB,CNB,PRYJ,194.5,100.0,13,3,82.2,0.61,0,107.28
+TRIP-1001,22436,Vande Bharat Express,VB,PRYJ,DDU,153.0,90.0,15,3,89.0,0.69,0,94.86
+TRIP-1001,22436,Vande Bharat Express,VB,DDU,BSB,18.0,25.0,16,3,93.8,0.78,0,29.91
+TRIP-1002,12951,Mumbai Rajdhani Express,RAJ,BCT,ST,263.0,160.0,11,3,0.0,0.95,0,169.13
+TRIP-1002,12951,Mumbai Rajdhani Express,RAJ,ST,BRC,129.0,80.0,13,3,8.6,0.62,0,74.56
+TRIP-1002,12951,Mumbai Rajdhani Express,RAJ,BRC,RTM,261.0,195.0,15,3,4.6,0.69,0,188.09
+TRIP-1002,12951,Mumbai Rajdhani Express,RAJ,RTM,KOTA,266.0,155.0,18,3,0.0,0.95,0,165.17
+TRIP-1002,12951,Mumbai Rajdhani Express,RAJ,KOTA,MTJ,324.0,195.0,21,3,11.9,0.88,0,207.25
+TRIP-1002,12951,Mumbai Rajdhani Express,RAJ,MTJ,NDLS,143.0,110.0,0,3,23.7,0.89,0,115.26
+TRIP-1003,12302,Howrah Rajdhani Express,RAJ,NDLS,CNB,440.0,285.0,14,3,18.2,0.88,0,274.67
+TRIP-1003,12302,Howrah Rajdhani Express,RAJ,CNB,PRYJ,194.5,120.0,18,3,8.1,0.88,0,123.98
+TRIP-1003,12302,Howrah Rajdhani Express,RAJ,PRYJ,DDU,153.0,105.0,20,3,11.9,0.96,0,103.24
+TRIP-1003,12302,Howrah Rajdhani Express,RAJ,DDU,GAYA,205.0,130.0,22,3,9.1,0.84,0,127.37
+TRIP-1003,12302,Howrah Rajdhani Express,RAJ,GAYA,DHN,201.0,140.0,0,3,5.7,0.46,0,132.59
+TRIP-1003,12302,Howrah Rajdhani Express,RAJ,DHN,HWH,259.0,200.0,3,3,0.0,0.37,0,184.84
+TRIP-1004,22436,Vande Bharat Express,VB,NDLS,CNB,440.0,240.0,16,3,5.3,0.87,0,237.08
+TRIP-1004,22436,Vande Bharat Express,VB,CNB,PRYJ,194.5,100.0,20,3,3.5,0.98,0,107.62
+TRIP-1004,22436,Vande Bharat Express,VB,PRYJ,DDU,153.0,90.0,21,3,11.7,0.93,1,123.25
+TRIP-1004,22436,Vande Bharat Express,VB,DDU,BSB,18.0,25.0,0,3,44.9,0.75,0,29.7
+TRIP-1005,12802,Purushottam Express,EXP,NDLS,CNB,440.0,350.0,22,3,5.0,0.65,0,343.56
+TRIP-1005,12802,Purushottam Express,EXP,CNB,PRYJ,194.5,150.0,3,3,0.0,0.66,0,141.08
+TRIP-1005,12802,Purushottam Express,EXP,PRYJ,DDU,153.0,135.0,6,3,0.0,0.87,1,166.54
+TRIP-1005,12802,Purushottam Express,EXP,DDU,GAYA,205.0,165.0,9,3,33.1,0.8,0,174.75
+TRIP-1005,12802,Purushottam Express,EXP,GAYA,BKSC,149.0,135.0,12,3,42.2,0.45,0,139.19

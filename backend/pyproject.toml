@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "raileta-backend"
+version = "0.1.0"
+description = "FastAPI backend engine for RailETA dynamic train ETA forecasting"
+authors = ["RailETA Team <sih2026@raileta.in>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.28.0"}
+pydantic = "^2.6.0"
+pydantic-settings = "^2.2.0"
+supabase = "^2.4.0"
+pandas = "^2.2.0"
+numpy = "^1.26.0"
+scikit-learn = "^1.4.0"
+xgboost = "^2.0.0"
+lightgbm = "^4.3.0"
+shap = "^0.45.0"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.0"
+pytest-asyncio = "^0.23.0"
+httpx = "^0.27.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
