@@ -9,42 +9,56 @@
 
 To start both the FastAPI backend and Next.js frontend with one command:
 
+### 🍎 Mac / Linux Users
 ```bash
-cd /Users/tarang/Desktop/HACKATHON/SIH_2026
 ./start.sh
 ```
 
-This script will:
-1. Activate the Python virtualenv and install dependencies if missing.
-2. Ensure frontend npm modules are installed.
-3. Automatically free ports `8000` and `3000`.
-4. Launch the **FastAPI Backend** on `http://127.0.0.1:8000`.
-5. Launch the **Next.js Frontend** on `http://localhost:3000`.
+### 🪟 Windows Users
+Double-click `start.bat` in the project folder, or run in Command Prompt:
+```cmd
+start.bat
+```
+
+The script will automatically:
+1. Create the Python virtualenv and install dependencies if missing.
+2. Install frontend `npm` modules if missing.
+3. Launch the **FastAPI Backend** on `http://127.0.0.1:8000`.
+4. Launch the **Next.js Frontend** on `http://localhost:3000`.
 
 ---
 
 ## 🛠️ 2. Manual Step-by-Step Startup
 
-If you prefer running the servers in separate terminal tabs:
+If you prefer running the servers in separate terminal tabs manually:
 
 ### Terminal 1: FastAPI Backend
+
+**Mac/Linux:**
 ```bash
-cd /Users/tarang/Desktop/HACKATHON/SIH_2026
 source backend/venv/bin/activate
 export PYTHONPATH=backend
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**Windows (Command Prompt / PowerShell):**
+```cmd
+backend\venv\Scripts\activate
+set PYTHONPATH=backend
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 *Endpoints:*
 - **Interactive OpenAPI Documentation**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **Service Health**: [http://127.0.0.1:8000/api/v1/health](http://127.0.0.1:8000/api/v1/health)
-- **Active Trains List**: [http://127.0.0.1:8000/api/v1/trains](http://127.0.0.1:8000/api/v1/trains)
 
 ---
 
 ### Terminal 2: Next.js Frontend
+
+**All Platforms:**
 ```bash
-cd /Users/tarang/Desktop/HACKATHON/SIH_2026/frontend
+cd frontend
 npm run dev
 ```
 
@@ -55,21 +69,31 @@ npm run dev
 
 ## 🧪 3. Automated Verification & Testing
 
-### Run Backend Pytest Suite (53 / 53 Tests)
+### Run Backend Pytest Suite
+**Mac/Linux:**
 ```bash
-cd /Users/tarang/Desktop/HACKATHON/SIH_2026
 PYTHONPATH=backend backend/venv/bin/pytest
+```
+**Windows:**
+```cmd
+set PYTHONPATH=backend
+backend\venv\Scripts\pytest
 ```
 
 ### Run SIH 5-Stage Live Demonstration Runner
+**Mac/Linux:**
 ```bash
-cd /Users/tarang/Desktop/HACKATHON/SIH_2026
 PYTHONPATH=backend backend/venv/bin/python scripts/sih_demo_runner.py
+```
+**Windows:**
+```cmd
+set PYTHONPATH=backend
+backend\venv\Scripts\python scripts\sih_demo_runner.py
 ```
 
 ### Verify Production Frontend Build
 ```bash
-cd /Users/tarang/Desktop/HACKATHON/SIH_2026/frontend
+cd frontend
 npm run build
 ```
 
@@ -93,10 +117,16 @@ All verified API keys are pre-configured in `.env`, `backend/.env`, and `fronten
 
 If port `8000` or `3000` is already in use by another process:
 
+**Mac/Linux:**
 ```bash
-# Free ports 8000 and 3000
 lsof -ti :8000 | xargs kill -9 2>/dev/null || true
 lsof -ti :3000 | xargs kill -9 2>/dev/null || true
+```
+
+**Windows:**
+```cmd
+FOR /F "tokens=5" %T IN ('netstat -a -n -o ^| findstr :8000') DO TaskKill.exe /PID %T /F
+FOR /F "tokens=5" %T IN ('netstat -a -n -o ^| findstr :3000') DO TaskKill.exe /PID %T /F
 ```
 
 Admin credentials for the Controller Session:
