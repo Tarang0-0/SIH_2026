@@ -1,0 +1,13 @@
+# Keep text files consistent across macOS, Linux, and Windows.
+* text=auto
+*.py text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+
+# These are binary artifacts and must not be diffed as text.
+*.docx binary
+*.png binary
+*.pkl binary
+*.sqlite3 binary

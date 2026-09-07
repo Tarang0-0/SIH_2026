@@ -8,8 +8,18 @@
 set -e
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PYTHON_EXEC="$PROJECT_ROOT/ml/venv/bin/python"
-UVICORN_EXEC="$PROJECT_ROOT/ml/venv/bin/uvicorn"
+if [ -x "$PROJECT_ROOT/.venv/bin/python" ]; then
+  PYTHON_EXEC="$PROJECT_ROOT/.venv/bin/python"
+  UVICORN_EXEC="$PROJECT_ROOT/.venv/bin/uvicorn"
+elif [ -x "$PROJECT_ROOT/ml/venv/bin/python" ]; then
+  # Backward-compatible fallback for existing local installations.
+  PYTHON_EXEC="$PROJECT_ROOT/ml/venv/bin/python"
+  UVICORN_EXEC="$PROJECT_ROOT/ml/venv/bin/uvicorn"
+else
+  echo "Python environment not found. Create it with:" >&2
+  echo "  python3 -m venv .venv && .venv/bin/python -m pip install -r ml/requirements.txt" >&2
+  exit 1
+fi
 
 echo "========================================================"
 echo "  🚂 STARTING RAILPULSE AI OPERATIONS & TELEMETRY ENGINE  "

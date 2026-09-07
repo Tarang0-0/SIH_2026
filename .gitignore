@@ -1,19 +1,67 @@
-node_modules/
-.next/
-__pycache__/
-*.pyc
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/*.log
+*.swp
+
+# Secrets and local configuration. Keep only the templates in Git.
 .env
-.env.local
-.venv
+.env.*
+!.env.example
+frontend/.env.local
+frontend/.env.*.local
+
+# Python environments and generated files
+.venv/
 venv/
+ml/venv/
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Node/Next.js dependencies and build output
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+out/
+frontend/out/
+.turbo/
+dist/
+build/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+
+# Local logs and runtime state
+*.log
 *.sqlite3
+*.sqlite3-*
+data/alerts_registry.json
+data/official_route_cache.json
 data/online_completed_journeys.csv
 data/station_level_training.csv
 data/phase3_movement_training.csv
-data/official_route_cache.json
-dist/
-build/
-.DS_Store
-*.log
-.matplotlib/
+
+# Reproducible training intermediates and local exports
+data/*.parquet
+data/splits/*.csv
 data/splits/*.parquet
+data/*_training_data.csv
+data/*_training_data.parquet
+data/*_features.parquet
+
+# Raw/oversized training inputs. GitHub rejects files over 100 MB, and these
+# datasets are not required to run the checked-in API/demo model.
+data/ir_train.csv
+data/ir_test.csv
+data/ir_sample_submission.csv
+data/Train_details_22122017.csv
+data/combined_delay_*.csv
