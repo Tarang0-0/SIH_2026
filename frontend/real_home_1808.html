@@ -1,0 +1,402 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RailETA - ML Forecasting for Indian Railways</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "on-primary-container": "#768dad",
+                            "status-info": "#3B82F6",
+                            "primary-fixed-dim": "#b0c8eb",
+                            "surface-container": "#eceef0",
+                            "secondary-fixed-dim": "#b7c8e1",
+                            "on-tertiary-fixed-variant": "#613f1c",
+                            "secondary-container": "#d0e1fb",
+                            "on-error-container": "#93000a",
+                            "surface-elevated": "#FFFFFF",
+                            "on-surface-variant": "#43474d",
+                            "primary-container": "#0a2540",
+                            "status-success": "#10B981",
+                            "on-tertiary-container": "#ae835a",
+                            "surface-tint": "#49607e",
+                            "primary-fixed": "#d2e4ff",
+                            "primary": "#000f22",
+                            "on-primary-fixed-variant": "#314865",
+                            "secondary-fixed": "#d3e4fe",
+                            "surface": "#f7f9fb",
+                            "status-error": "#EF4444",
+                            "on-secondary-fixed-variant": "#38485d",
+                            "tertiary-fixed": "#ffdcbe",
+                            "on-secondary": "#ffffff",
+                            "surface-dim": "#d8dadc",
+                            "tertiary-fixed-dim": "#eebd90",
+                            "error-container": "#ffdad6",
+                            "on-primary-fixed": "#001c37",
+                            "on-secondary-fixed": "#0b1c30",
+                            "outline-variant": "#c4c6ce",
+                            "error": "#ba1a1a",
+                            "on-secondary-container": "#54647a",
+                            "inverse-primary": "#b0c8eb",
+                            "outline": "#74777e",
+                            "surface-container-lowest": "#ffffff",
+                            "on-error": "#ffffff",
+                            "status-warning": "#F59E0B",
+                            "tertiary": "#1a0b00",
+                            "surface-container-low": "#f2f4f6",
+                            "on-background": "#191c1e",
+                            "surface-container-high": "#e6e8ea",
+                            "surface-variant": "#e0e3e5",
+                            "surface-container-highest": "#e0e3e5",
+                            "on-tertiary": "#ffffff",
+                            "on-tertiary-fixed": "#2d1600",
+                            "tertiary-container": "#381d00",
+                            "inverse-on-surface": "#eff1f3",
+                            "surface-bright": "#f7f9fb",
+                            "on-surface": "#191c1e",
+                            "surface-border": "#E2E8F0",
+                            "background": "#f7f9fb",
+                            "inverse-surface": "#2d3133",
+                            "secondary": "#505f76",
+                            "on-primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.125rem",
+                            "lg": "0.25rem",
+                            "xl": "0.5rem",
+                            "full": "0.75rem"
+                    },
+                    "spacing": {
+                            "gutter": "16px",
+                            "base": "4px",
+                            "margin-mobile": "16px",
+                            "margin-desktop": "32px",
+                            "container-max": "1140px"
+                    },
+                    "fontFamily": {
+                            "headline-md": [
+                                    "Inter"
+                            ],
+                            "display-eta": [
+                                    "Inter"
+                            ],
+                            "label-caps": [
+                                    "Inter"
+                            ],
+                            "body-lg": [
+                                    "Inter"
+                            ],
+                            "data-mono": [
+                                    "JetBrains Mono"
+                            ],
+                            "headline-lg": [
+                                    "Inter"
+                            ],
+                            "body-sm": [
+                                    "Inter"
+                            ]
+                    },
+                    "fontSize": {
+                            "headline-md": [
+                                    "18px",
+                                    {
+                                            "lineHeight": "24px",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "display-eta": [
+                                    "48px",
+                                    {
+                                            "lineHeight": "48px",
+                                            "letterSpacing": "-0.02em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "label-caps": [
+                                    "11px",
+                                    {
+                                            "lineHeight": "12px",
+                                            "letterSpacing": "0.05em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "body-lg": [
+                                    "16px",
+                                    {
+                                            "lineHeight": "24px",
+                                            "fontWeight": "400"
+                                    }
+                            ],
+                            "data-mono": [
+                                    "13px",
+                                    {
+                                            "lineHeight": "16px",
+                                            "fontWeight": "500"
+                                    }
+                            ],
+                            "headline-lg": [
+                                    "24px",
+                                    {
+                                            "lineHeight": "32px",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "body-sm": [
+                                    "14px",
+                                    {
+                                            "lineHeight": "20px",
+                                            "fontWeight": "400"
+                                    }
+                            ]
+                    }
+            },
+                },
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .data-mono { font-family: 'JetBrains Mono', monospace; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ping {
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col antialiased">
+<!-- TopNavBar -->
+<header class="bg-primary dark:bg-primary-container border-b border-outline-variant dark:border-outline">
+<div class="flex justify-between items-center w-full px-margin-desktop max-w-container-max mx-auto h-16">
+<div class="flex items-center gap-8">
+<a class="text-headline-lg font-headline-lg font-bold text-on-primary dark:text-primary-fixed-dim" href="#">RailETA</a>
+<nav class="hidden md:flex gap-6">
+<a class="text-on-primary border-b-2 border-on-primary pb-1 font-bold text-label-caps font-label-caps uppercase tracking-wider transition-colors duration-200" href="#">Home</a>
+<a class="text-on-primary-container dark:text-on-primary-fixed-variant hover:text-on-primary hover:bg-primary-container/50 text-label-caps font-label-caps uppercase tracking-wider transition-colors duration-200 py-1 px-2 rounded-DEFAULT" href="#">Live Trains</a>
+<a class="text-on-primary-container dark:text-on-primary-fixed-variant hover:text-on-primary hover:bg-primary-container/50 text-label-caps font-label-caps uppercase tracking-wider transition-colors duration-200 py-1 px-2 rounded-DEFAULT" href="#">Simulation</a>
+<a class="text-on-primary-container dark:text-on-primary-fixed-variant hover:text-on-primary hover:bg-primary-container/50 text-label-caps font-label-caps uppercase tracking-wider transition-colors duration-200 py-1 px-2 rounded-DEFAULT" href="#">Model Performance</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:flex items-center gap-2 bg-primary-container text-on-primary hover:opacity-80 scale-95 transition-all duration-200 px-4 py-2 rounded-DEFAULT text-label-caps font-label-caps uppercase">
+                    Live System
+                    <span class="material-symbols-outlined text-sm" data-icon="train">train</span>
+</button>
+<button class="md:hidden text-on-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow">
+<!-- Hero & Search Section -->
+<section class="w-full px-margin-desktop max-w-container-max mx-auto py-16 md:py-24">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div class="flex flex-col gap-6">
+<h1 class="text-display-eta font-display-eta text-primary">Know when your train will actually arrive.</h1>
+<p class="text-body-lg font-body-lg text-secondary max-w-lg">Dynamic, explainable ETA forecasts for Indian Railways trains using high-integrity machine learning models.</p>
+<div class="mt-4 bg-surface-elevated border border-surface-border rounded-lg p-6 shadow-sm">
+<label class="block text-label-caps font-label-caps text-secondary uppercase mb-2" for="train-search">Track Train</label>
+<div class="flex gap-4">
+<input class="flex-grow bg-surface-container-lowest border border-outline-variant rounded-DEFAULT px-4 py-3 text-body-lg font-body-lg text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="train-search" placeholder="Enter train number (e.g. 12951)" type="text">
+<button class="bg-primary text-on-primary px-6 py-3 rounded-DEFAULT text-label-caps font-label-caps uppercase font-bold hover:bg-primary-container transition-colors flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-sm">search</span>
+                                Track
+                            </button>
+</div>
+</div>
+</div>
+<div class="hidden lg:block relative h-[400px] rounded-xl overflow-hidden border border-surface-border">
+<div class="bg-cover bg-center w-full h-full grayscale opacity-80 mix-blend-multiply" data-alt="A highly detailed, technical visualization of a modern high-speed train speeding through an Indian landscape at dawn. The image has a clean, professional, light-mode aesthetic dominated by deep navy blue, pristine white, and subtle silver accents. Glowing digital data overlays and holographic ETA predictions hover around the train, emphasizing precision, machine learning, and advanced logistics." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCrt0aHnPVWoV-6BAHCzn4XSKlp67eysrPGeBxUimWivlCQ6hICrD1TN13O5zJ1lAscGVmCJjxU14ujgNnkZ45WTmTyGtDayImg0Wa-ql1MpEL9HwPK_mX7kGGdmeQ6anT-wG_tZgD_YIJb9O5MiovpG5MCPzD2UXopSw6_uXDNcK_OQEoSr4BVCNRNpDr41CDvxFrBemVaH3FAK2kNmi-ABJwuUBi-_Y2zKnB1Qy14Jy9jeyXhyZKCuQ')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-8">
+<div class="text-on-primary">
+<div class="text-label-caps font-label-caps text-secondary-fixed-dim uppercase mb-1">Model Accuracy</div>
+<div class="text-headline-lg font-headline-lg">94.8% ± 5 mins</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Live Network Summary -->
+<section class="bg-surface-container-lowest border-y border-surface-border py-8">
+<div class="w-full px-margin-desktop max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-success opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-status-success"></span>
+</div>
+<span class="text-label-caps font-label-caps text-secondary uppercase font-bold tracking-widest">Live Network Status</span>
+</div>
+<div class="flex flex-wrap justify-center gap-8 md:gap-16">
+<div class="flex flex-col items-center">
+<span class="text-headline-lg font-headline-lg text-primary">1,327</span>
+<span class="text-label-caps font-label-caps text-secondary uppercase">Active Trains</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-headline-lg font-headline-lg text-status-success">494</span>
+<span class="text-label-caps font-label-caps text-secondary uppercase">On Time</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-headline-lg font-headline-lg text-status-error">833</span>
+<span class="text-label-caps font-label-caps text-secondary uppercase">Delayed</span>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works & Popular Trains Bento -->
+<section class="w-full px-margin-desktop max-w-container-max mx-auto py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- How It Works -->
+<div class="lg:col-span-5 bg-surface-elevated border border-surface-border rounded-xl p-8 flex flex-col gap-6">
+<h2 class="text-headline-md font-headline-md text-primary">How RailETA Works</h2>
+<div class="flex flex-col gap-6 relative">
+<div class="absolute left-[11px] top-4 bottom-4 w-[2px] bg-surface-border"></div>
+<div class="flex gap-4 relative z-10">
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0">
+<span class="text-[10px] font-bold text-on-primary">1</span>
+</div>
+<div>
+<h3 class="text-body-sm font-body-sm font-bold text-primary mb-1">Current State Analysis</h3>
+<p class="text-body-sm font-body-sm text-secondary">Ingesting real-time NTES API data for exact train location and velocity.</p>
+</div>
+</div>
+<div class="flex gap-4 relative z-10">
+<div class="w-6 h-6 rounded-full bg-surface-container border-2 border-primary flex items-center justify-center shrink-0">
+<span class="text-[10px] font-bold text-primary">2</span>
+</div>
+<div>
+<h3 class="text-body-sm font-body-sm font-bold text-primary mb-1">Historical Behavior</h3>
+<p class="text-body-sm font-body-sm text-secondary">Correlating current delays with 5+ years of seasonal sector performance.</p>
+</div>
+</div>
+<div class="flex gap-4 relative z-10">
+<div class="w-6 h-6 rounded-full bg-surface-container border-2 border-primary flex items-center justify-center shrink-0">
+<span class="text-[10px] font-bold text-primary">3</span>
+</div>
+<div>
+<h3 class="text-body-sm font-body-sm font-bold text-primary mb-1">ML Prediction</h3>
+<p class="text-body-sm font-body-sm text-secondary">Applying gradient boosting to model complex cascading delay networks.</p>
+</div>
+</div>
+<div class="flex gap-4 relative z-10">
+<div class="w-6 h-6 rounded-full bg-surface-container border-2 border-primary flex items-center justify-center shrink-0">
+<span class="text-[10px] font-bold text-primary">4</span>
+</div>
+<div>
+<h3 class="text-body-sm font-body-sm font-bold text-primary mb-1">Dynamic ETA</h3>
+<p class="text-body-sm font-body-sm text-secondary">Outputting high-confidence, minute-level arrival forecasts.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Popular Live Trains -->
+<div class="lg:col-span-7 bg-surface-elevated border border-surface-border rounded-xl p-0 overflow-hidden flex flex-col">
+<div class="p-6 border-b border-surface-border bg-surface-container-lowest">
+<h2 class="text-headline-md font-headline-md text-primary">Popular Live Trains</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-bright border-b border-surface-border">
+<th class="px-6 py-4 text-label-caps font-label-caps text-secondary uppercase font-bold">Train</th>
+<th class="px-6 py-4 text-label-caps font-label-caps text-secondary uppercase font-bold">Current Station</th>
+<th class="px-6 py-4 text-label-caps font-label-caps text-secondary uppercase font-bold">Status</th>
+<th class="px-6 py-4 text-label-caps font-label-caps text-secondary uppercase font-bold text-right">ETA (Next)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-border">
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md text-primary">12951</span>
+<span class="text-label-caps font-label-caps text-secondary">Mumbai Rajdhani</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-sm font-body-sm text-on-surface">Surat (ST)</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2 py-1 rounded bg-status-error/10 text-status-error text-[11px] font-bold uppercase tracking-wider">
+                                        +14m Late
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right text-data-mono font-data-mono text-primary font-medium">19:42</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md text-primary">12004</span>
+<span class="text-label-caps font-label-caps text-secondary">Shatabdi Exp</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-sm font-body-sm text-on-surface">Kanpur (CNB)</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2 py-1 rounded bg-status-success/10 text-status-success text-[11px] font-bold uppercase tracking-wider">
+                                        On Time
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right text-data-mono font-data-mono text-primary font-medium">08:15</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md text-primary">12627</span>
+<span class="text-label-caps font-label-caps text-secondary">Karnataka Exp</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-sm font-body-sm text-on-surface">Itarsi (ET)</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2 py-1 rounded bg-status-warning/10 text-status-warning text-[11px] font-bold uppercase tracking-wider">
+                                        +4m Late
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right text-data-mono font-data-mono text-primary font-medium">14:30</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md text-primary">12809</span>
+<span class="text-label-caps font-label-caps text-secondary">Howrah Mail</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-sm font-body-sm text-on-surface">Nagpur (NGP)</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2 py-1 rounded bg-status-error/10 text-status-error text-[11px] font-bold uppercase tracking-wider">
+                                        +42m Late
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right text-data-mono font-data-mono text-primary font-medium">21:15</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-surface-container-highest border-t border-surface-border dark:border-outline-variant mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-8 max-w-container-max mx-auto gap-4">
+<div class="flex items-center gap-2">
+<span class="text-label-caps font-label-caps font-bold text-primary uppercase">RailETA</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant dark:text-surface-variant">© 2024 RailETA ML Forecasting. Built for High-Integrity Logistics.</span>
+</div>
+<nav class="flex gap-6">
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary text-label-caps font-label-caps hover:underline decoration-primary transition-all uppercase focus:outline-none focus:ring-1 focus:ring-primary rounded-sm px-1" href="#">About</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary text-label-caps font-label-caps hover:underline decoration-primary transition-all uppercase focus:outline-none focus:ring-1 focus:ring-primary rounded-sm px-1" href="#">How It Works</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary text-label-caps font-label-caps hover:underline decoration-primary transition-all uppercase focus:outline-none focus:ring-1 focus:ring-primary rounded-sm px-1" href="#">Hackathon Attribution</a>
+</nav>
+</div>
+</footer>
+</body></html>

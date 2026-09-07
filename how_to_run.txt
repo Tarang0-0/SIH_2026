@@ -1,0 +1,76 @@
+RailPulse: local development
+============================
+
+1. Configure the backend
+------------------------
+
+Copy the provider values into the root `.env` file. The live train and live
+station endpoints require an IndianRailAPI key:
+
+    INDIAN_RAIL_API_KEY=your_key_here
+
+The backend reads this file at startup. Do not put provider secrets in
+`NEXT_PUBLIC_*` variables.
+
+2. Start the backend
+--------------------
+
+From the project root:
+
+    ./ml/venv/bin/uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+
+Verify it:
+
+    curl http://127.0.0.1:8000/health
+
+3. Start the frontend
+---------------------
+
+In a second terminal:
+
+    cd frontend
+    npm run dev
+
+Open `http://127.0.0.1:3000`. The frontend reads `NEXT_PUBLIC_API_URL` from
+`frontend/.env.local` and uses it for health, search, live ETA, and SSE calls.
+
+4. Run both services together
+-----------------------------
+
+From the project root:
+
+    ./run_demo.sh
+
+Press Ctrl+C to stop both services.
+
+5. Useful API requests
+----------------------
+
+    curl http://127.0.0.1:8000/api/v1/trains/${TRAIN_NUMBER}/live-eta?date=${YYYY_MM_DD}
+    curl http://127.0.0.1:8000/api/v1/stations/${STATION_CODE}/live?hours=2
+    curl -N http://127.0.0.1:8000/api/v1/trains/${TRAIN_NUMBER}/live-stream
+    curl http://127.0.0.1:8000/api/v1/trains/${TRAIN_NUMBER}/history?date=${YYYY_MM_DD}
+
+Live feedback and retraining
+----------------------------
+
+Every successful live-eta or live-stream poll is stored in the local SQLite
+feedback store (`data/railpulse_feedback.sqlite3`). A later observation of the
+same station resolves the earlier forecast and records the observed delay and
+forecast error. Predictions are never used as labels.
+
+After completed journeys have been observed, export terminal observations and
+retrain explicitly:
+
+    ./ml/venv/bin/python scripts/export_feedback_history.py
+    ./ml/venv/bin/python scripts/12_train_ir_production.py
+
+Live status is intentionally reported as unavailable when the provider key
+is missing. The application does not substitute demo speed, GPS, platform, or
+station data.
+
+6. Verification
+---------------
+
+    ./ml/venv/bin/python -m unittest discover -s tests -p 'test_*.py'
+    cd frontend && npm run lint && npm run build

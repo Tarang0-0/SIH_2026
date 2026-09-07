@@ -1,0 +1,142 @@
+{
+  "11077": [
+    {
+      "date": "2024-04-03",
+      "arrival_delay_min": 90.0
+    },
+    {
+      "date": "2024-04-10",
+      "arrival_delay_min": 180.0
+    },
+    {
+      "date": "2024-04-18",
+      "arrival_delay_min": 1.0
+    }
+  ],
+  "12009": [
+    {
+      "date": "2024-03-01",
+      "arrival_delay_min": 5.0
+    },
+    {
+      "date": "2024-03-08",
+      "arrival_delay_min": 50.0
+    },
+    {
+      "date": "2024-03-15",
+      "arrival_delay_min": 1.0
+    }
+  ],
+  "12303": [
+    {
+      "date": "2024-01-03",
+      "arrival_delay_min": 10.0
+    },
+    {
+      "date": "2024-01-10",
+      "arrival_delay_min": 80.0
+    },
+    {
+      "date": "2024-01-18",
+      "arrival_delay_min": 1.0
+    }
+  ],
+  "12423": [
+    {
+      "date": "2024-06-01",
+      "arrival_delay_min": 35.0
+    },
+    {
+      "date": "2024-06-09",
+      "arrival_delay_min": 140.0
+    },
+    {
+      "date": "2024-06-18",
+      "arrival_delay_min": 1.0
+    }
+  ],
+  "12627": [
+    {
+      "date": "2024-02-01",
+      "arrival_delay_min": 50.0
+    },
+    {
+      "date": "2024-02-06",
+      "arrival_delay_min": 120.0
+    },
+    {
+      "date": "2024-02-14",
+      "arrival_delay_min": 0.0
+    }
+  ],
+  "12860": [
+    {
+      "date": "2024-02-02",
+      "arrival_delay_min": 30.0
+    },
+    {
+      "date": "2024-02-09",
+      "arrival_delay_min": 90.0
+    },
+    {
+      "date": "2024-02-20",
+      "arrival_delay_min": 1.0
+    }
+  ],
+  "12951": [
+    {
+      "date": "2024-01-01",
+      "arrival_delay_min": 15.0
+    },
+    {
+      "date": "2024-01-05",
+      "arrival_delay_min": 55.0
+    },
+    {
+      "date": "2024-01-12",
+      "arrival_delay_min": 1.0
+    }
+  ],
+  "15624": [
+    {
+      "date": "2024-05-01",
+      "arrival_delay_min": 50.0
+    },
+    {
+      "date": "2024-05-08",
+      "arrival_delay_min": 90.0
+    },
+    {
+      "date": "2024-05-16",
+      "arrival_delay_min": 1.0
+    }
+  ],
+  "19019": [
+    {
+      "date": "2024-03-02",
+      "arrival_delay_min": 80.0
+    },
+    {
+      "date": "2024-03-09",
+      "arrival_delay_min": 50.0
+    },
+    {
+      "date": "2024-03-16",
+      "arrival_delay_min": 1.0
+    }
+  ],
+  "22436": [
+    {
+      "date": "2024-04-01",
+      "arrival_delay_min": 5.0
+    },
+    {
+      "date": "2024-04-07",
+      "arrival_delay_min": 50.0
+    },
+    {
+      "date": "2024-04-14",
+      "arrival_delay_min": 1.0
+    }
+  ]
+}

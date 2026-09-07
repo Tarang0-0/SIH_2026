@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: railpulse-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Supply this at deploy time; do not commit the secret.
+      - INDIAN_RAIL_API_KEY=${INDIAN_RAIL_API_KEY:-}
+      - INDIAN_RAIL_API_BASE_URL=${INDIAN_RAIL_API_BASE_URL:-https://indianrailapi.com/api/v2}
+      - RAILRADAR_API_KEY=${RAILRADAR_API_KEY:-}
+      - RAILRADAR_API_BASE_URL=${RAILRADAR_API_BASE_URL:-https://api.railradar.in/v1}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
+      - RAIL_NETWORK_SIGNALS_URL=${RAIL_NETWORK_SIGNALS_URL:-}
+      - RAIL_NETWORK_SIGNALS_PROVIDER=${RAIL_NETWORK_SIGNALS_PROVIDER:-}
+      - RAIL_NETWORK_SIGNALS_TOKEN=${RAIL_NETWORK_SIGNALS_TOKEN:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: railpulse-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # This value is consumed by browser-side code, where the Docker service
+      # hostname is not resolvable. Override it for a remote deployment.
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped

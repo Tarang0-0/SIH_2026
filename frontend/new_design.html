@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RailPulse - Precision Transit Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f3f3f3",
+                    "error": "#ba1a1a",
+                    "surface-container-high": "#e8e8e8",
+                    "on-secondary-fixed-variant": "#6d3a00",
+                    "on-tertiary-container": "#5aa958",
+                    "on-background": "#1a1c1c",
+                    "tertiary-container": "#003909",
+                    "inverse-on-surface": "#f0f1f1",
+                    "on-tertiary-fixed-variant": "#005312",
+                    "surface-variant": "#e2e2e2",
+                    "inverse-surface": "#2f3131",
+                    "on-tertiary-fixed": "#002204",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "primary-fixed": "#e0e0ff",
+                    "secondary-fixed-dim": "#ffb77a",
+                    "surface": "#f9f9f9",
+                    "surface-container-highest": "#e2e2e2",
+                    "inverse-primary": "#bdc2ff",
+                    "surface-dim": "#dadada",
+                    "on-surface": "#1a1c1c",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed": "#2e1500",
+                    "primary": "#000666",
+                    "secondary-fixed": "#ffdcc2",
+                    "surface-tint": "#4c56af",
+                    "surface-container": "#eeeeee",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#000767",
+                    "outline": "#767683",
+                    "surface-bright": "#f9f9f9",
+                    "secondary": "#8f4e00",
+                    "tertiary": "#002103",
+                    "on-primary-container": "#8690ee",
+                    "secondary-container": "#fe9832",
+                    "tertiary-fixed-dim": "#88d982",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed-variant": "#343d96",
+                    "tertiary-fixed": "#a3f69c",
+                    "outline-variant": "#c6c5d4",
+                    "on-error": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#1a237e",
+                    "error-container": "#ffdad6",
+                    "on-surface-variant": "#454652",
+                    "background": "#f9f9f9",
+                    "on-secondary-container": "#683700"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-margin": "20px",
+                    "card-padding": "16px",
+                    "unit": "4px",
+                    "stack-gap": "12px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "headline-lg-mobile": [
+                            "Montserrat"
+                    ],
+                    "headline-md": [
+                            "Montserrat"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "headline-lg": [
+                            "Montserrat"
+                    ]
+            },
+            "fontSize": {
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-md": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(26, 28, 28, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.5);
+        }
+        
+        .hero-bg {
+            background-image: linear-gradient(to bottom, rgba(26, 35, 126, 0.8), rgba(0, 6, 102, 0.9)), url('https://lh3.googleusercontent.com/aida/AEtjO1XkKJLtutxIMb3rxmfUKL2qEcE4lONblxvbBqnXO8ZMm_eL5OEQ4IB_BWwN5dV7ka3C924Yv9uBi0VSScJW1P56hBOZzQFJv4V84XTaCmg0bp9-KBP1TPLjxrXYVGb5PAKn3OAeMLcwkhVHm6TBb-qy3GvpKvACWMT_UcuslnBADGuyjAVKX0cboylH0bmaHlGu0W0OTWo152JQN-qn414KPmyqeCORcmR5YXIUa5BXrUKsq8ipKg3Nhhs');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .cyan-btn {
+            background-color: #00e5ff;
+            color: #000666;
+            transition: all 0.2s ease;
+        }
+        .cyan-btn:hover {
+            background-color: #00b8d4;
+            transform: translateY(-1px);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #00e5ff;
+            transition: width 0.2s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .dark-map-aesthetic {
+            filter: invert(1) hue-rotate(180deg) contrast(1.2) brightness(0.8);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col">
+<!-- Top Navigation Container -->
+<header class="fixed top-0 w-full z-50 bg-transparent transition-colors duration-300 dark:bg-transparent" id="main-header">
+<nav class="flex justify-between items-center w-full px-container-margin py-4 max-w-7xl mx-auto">
+<!-- Brand -->
+<div class="font-headline-md text-headline-md font-bold text-on-primary">
+                RailPulse
+            </div>
+<!-- Links (Desktop) -->
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-on-primary font-label-md nav-link transition-colors duration-200" href="#">Features</a>
+<a class="text-on-primary font-label-md nav-link transition-colors duration-200" href="#">Live Map</a>
+<a class="text-on-primary font-label-md nav-link transition-colors duration-200" href="#">About</a>
+<button class="cyan-btn font-label-md px-6 py-2 rounded-full font-semibold shadow-md">
+                    Download App
+                </button>
+</div>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden text-on-primary p-2 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+</nav>
+</header>
+<!-- Hero Section -->
+<section class="hero-bg relative min-h-[800px] flex items-center justify-center pt-24 pb-16 px-container-margin overflow-hidden">
+<div class="relative z-10 w-full max-w-5xl mx-auto text-center flex flex-col items-center">
+<h1 class="text-on-primary font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-4xl lg:text-5xl mb-6 leading-tight tracking-tight font-bold">
+                Know exactly when your train arrives.<br class="hidden md:block"/> Not just when it should.
+            </h1>
+<p class="text-primary-fixed-dim font-body-lg text-body-lg mb-12 max-w-3xl mx-auto opacity-90 text-xl">
+                Precision transit intelligence powered by real-time data science. Experience the future of Indian Railways.
+            </p>
+<!-- Main Search Interface -->
+<div class="w-full max-w-3xl glass-card rounded-2xl p-card-padding shadow-2xl transform transition-transform hover:scale-[1.01] duration-300">
+<div class="flex flex-col md:flex-row gap-4">
+<div class="relative flex-grow">
+<span class="material-symbols-outlined absolute left-4 top-1/2 transform -translate-y-1/2 text-outline" style="font-variation-settings: 'FILL' 0;">train</span>
+<input class="w-full pl-12 pr-4 py-4 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface font-body-md focus:outline-none focus:ring-2 focus:ring-[#00e5ff] focus:border-[#00e5ff] transition-all shadow-sm" placeholder="Enter Train Number or Station Name" type="text"/>
+</div>
+<button class="cyan-btn px-8 py-4 rounded-xl font-label-md text-label-md font-bold flex items-center justify-center gap-2 whitespace-nowrap shadow-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">my_location</span>
+                        Track Live
+                    </button>
+</div>
+</div>
+<!-- Quick Links -->
+<div class="flex flex-wrap justify-center gap-8 mt-10">
+<button class="flex items-center gap-2 text-primary-fixed hover:text-[#00e5ff] transition-colors group">
+<span class="material-symbols-outlined text-[20px] opacity-70 group-hover:opacity-100 transition-opacity" style="font-variation-settings: 'FILL' 0;">confirmation_number</span>
+<span class="font-label-md text-label-md font-medium tracking-wide">PNR Status</span>
+</button>
+<button class="flex items-center gap-2 text-primary-fixed hover:text-[#00e5ff] transition-colors group">
+<span class="material-symbols-outlined text-[20px] opacity-70 group-hover:opacity-100 transition-opacity" style="font-variation-settings: 'FILL' 0;">location_on</span>
+<span class="font-label-md text-label-md font-medium tracking-wide">Live Station</span>
+</button>
+<button class="flex items-center gap-2 text-primary-fixed hover:text-[#00e5ff] transition-colors group">
+<span class="material-symbols-outlined text-[20px] opacity-70 group-hover:opacity-100 transition-opacity" style="font-variation-settings: 'FILL' 0;">calendar_month</span>
+<span class="font-label-md text-label-md font-medium tracking-wide">Schedule</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Map Visualization Section (Visualize the Network) -->
+<section class="py-20 bg-inverse-surface px-container-margin">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-12">
+<h2 class="text-on-primary font-headline-md text-3xl mb-4 font-bold">Visualize the Network</h2>
+<p class="text-surface-variant font-body-md text-lg max-w-2xl mx-auto">High-performance geographic interface tracking thousands of trains in real-time.</p>
+</div>
+<div class="rounded-3xl overflow-hidden relative h-[600px] shadow-2xl border border-outline-variant bg-[#0a192f]">
+<!-- Simulated Map Image Placeholder (Stylized Dark) -->
+<div class="absolute inset-0 bg-surface-container-low dark-map-aesthetic opacity-60 mix-blend-luminosity" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCD_HNKRzHo60cASIBm4SgQHKYYrkB0DhhkaDw7YWRXiK1X31nJrMjF3gBDpzY1uefRqplNuTg68tlqcBx3Y-ur6aATPfHxy8uf7tAWyZw98VKgeFblUQnK1MLCIYkb75p7ESt2N_MwVIyjD88I9z6jRbaERrgpJ8hXcUR2MvBuQvwymRlmiULa9jcf06O2zmefxZVkMphdKG5PkEBUTuQ3iTYQRHCEUlyl8Uzs1q4mWQfIhnMhkbJoa7aeH44t4SkQXVE77qyp6hc')">
+</div>
+<!-- Dark Map Overlay UI -->
+<div class="absolute bottom-8 left-8 bg-[#112240] p-6 rounded-2xl shadow-2xl border border-[#233554] max-w-sm">
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-sm text-label-sm bg-[#0a192f] px-3 py-1 rounded-full text-[#64ffda] border border-[#64ffda]">Live Tracking</span>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#00e5ff] animate-pulse shadow-[0_0_8px_#00e5ff]"></div>
+<span class="font-label-sm text-label-sm text-[#00e5ff] font-semibold">Updating</span>
+</div>
+</div>
+<h4 class="font-headline-md text-headline-md text-white mb-1">Train 12345 Exp</h4>
+<p class="font-body-md text-body-md text-slate-300 mb-4 text-sm">Approaching Station XYZ</p>
+<div class="w-full bg-[#0a192f] h-2 rounded-full overflow-hidden">
+<div class="bg-[#00e5ff] h-full w-[85%] rounded-full shadow-[0_0_10px_#00e5ff]"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works Section (Intelligence in 3 Steps) -->
+<section class="py-24 px-container-margin bg-surface relative">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-primary font-headline-md text-3xl mb-4 font-bold">Intelligence in 3 Steps</h2>
+<p class="text-on-surface-variant font-body-md text-lg max-w-2xl mx-auto">No complex forms or PNR required. Just pure intelligence.</p>
+</div>
+<div class="flex flex-col md:flex-row items-center justify-between relative max-w-4xl mx-auto gap-12 md:gap-0">
+<!-- Connecting Line (Desktop) -->
+<div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-[#e0e0ff] -z-10 transform -translate-y-1/2"></div>
+<!-- Connecting Line (Mobile) -->
+<div class="md:hidden absolute top-0 left-1/2 w-0.5 h-full bg-[#e0e0ff] -z-10 transform -translate-x-1/2"></div>
+<!-- Step 1 -->
+<div class="flex flex-col items-center text-center group bg-surface p-4 rounded-xl">
+<div class="w-20 h-20 rounded-full bg-white flex items-center justify-center mb-6 group-hover:bg-primary-fixed transition-colors duration-300 shadow-lg border-2 border-primary-fixed">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 0;">search</span>
+</div>
+<h3 class="font-label-md text-xl text-primary mb-2 font-bold">1. Search</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[220px]">Enter train number or station.</p>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center text-center group bg-surface p-4 rounded-xl">
+<div class="w-20 h-20 rounded-full bg-white flex items-center justify-center mb-6 group-hover:bg-primary-fixed transition-colors duration-300 shadow-lg border-2 border-primary-fixed">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 0;">hub</span>
+</div>
+<h3 class="font-label-md text-xl text-primary mb-2 font-bold">2. AI Analyzes</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[220px]">Our system processes geospatial and operational data.</p>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center text-center group bg-surface p-4 rounded-xl">
+<div class="w-20 h-20 rounded-full bg-white flex items-center justify-center mb-6 group-hover:bg-[#e0f7fa] transition-colors duration-300 shadow-lg border-2 border-[#00e5ff]">
+<span class="material-symbols-outlined text-[#00b8d4] text-4xl" style="font-variation-settings: 'FILL' 1;">update</span>
+</div>
+<h3 class="font-label-md text-xl text-primary mb-2 font-bold">3. Get Precise ETA</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[220px]">Receive minute-by-minute updates.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Section (Why RailPulse) -->
+<section class="py-24 px-container-margin bg-surface-bright">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-primary font-headline-md text-3xl mb-4 font-bold">Why RailPulse</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Feature 1 -->
+<div class="bg-white rounded-2xl p-8 border border-outline-variant shadow-lg hover:-translate-y-2 hover:shadow-xl transition-all duration-300 flex flex-col h-full border-t-4 border-t-primary">
+<div class="w-14 h-14 rounded-xl bg-primary-fixed flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 0;">psychology</span>
+</div>
+<h3 class="font-headline-md text-xl text-primary mb-4 font-bold">AI-Powered ETA</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow leading-relaxed">
+                        Beyond standard schedules using ML. We analyze historical data, current network congestion, and average delay patterns to predict your actual arrival time with unprecedented accuracy.
+                    </p>
+</div>
+<!-- Feature 2 -->
+<div class="bg-white rounded-2xl p-8 border border-outline-variant shadow-lg hover:-translate-y-2 hover:shadow-xl transition-all duration-300 flex flex-col h-full border-t-4 border-t-secondary-container relative overflow-hidden">
+<div class="w-14 h-14 rounded-xl bg-secondary-fixed flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-secondary text-3xl" style="font-variation-settings: 'FILL' 0;">troubleshoot</span>
+</div>
+<h3 class="font-headline-md text-xl text-primary mb-4 font-bold">Explainable Delays</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow leading-relaxed">
+                        Root-cause insights. Stop guessing why your train is late. RailPulse provides clear, contextual reasons for delays—whether it's weather, signaling, or network congestion. 
+                    </p>
+</div>
+<!-- Feature 3 -->
+<div class="bg-white rounded-2xl p-8 border border-outline-variant shadow-lg hover:-translate-y-2 hover:shadow-xl transition-all duration-300 flex flex-col h-full border-t-4 border-t-[#00e5ff]">
+<div class="w-14 h-14 rounded-xl bg-[#e0f7fa] flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-[#00b8d4] text-3xl" style="font-variation-settings: 'FILL' 0;">public</span>
+</div>
+<h3 class="font-headline-md text-xl text-primary mb-4 font-bold">Real-Time Map</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow leading-relaxed">
+                        High-performance geographic interface. Visualize your journey exactly as it happens. Watch your train move along its route on a live, interactive map that updates every few seconds based on precise GPS data.
+                    </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Spacer to push footer down if content is short -->
+<div class="flex-grow"></div>
+<!-- Footer Component -->
+<footer class="bg-surface-container-highest dark:bg-surface-container-low border-t border-outline-variant dark:border-outline-variant mt-auto w-full">
+<div class="flex flex-col md:flex-row justify-between items-center px-container-margin py-8 max-w-7xl mx-auto">
+<!-- Brand & Copyright -->
+<div class="flex flex-col items-center md:items-start mb-6 md:mb-0">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed mb-2">
+                    RailPulse
+                </div>
+<div class="font-body-md text-body-md text-on-surface dark:text-on-surface text-sm">
+                    © 2024 RailPulse Transit Intelligence. All rights reserved.
+                </div>
+</div>
+<!-- Links -->
+<div class="flex flex-wrap justify-center gap-6">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Privacy</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Terms</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">API</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200" href="#">Support</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple script to handle header background on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            if (window.scrollY > 50) {
+                header.classList.remove('bg-transparent', 'dark:bg-transparent');
+                header.classList.add('bg-surface-container-lowest', 'shadow-md', 'dark:bg-inverse-surface');
+                
+                // Change text color for dark text on light bg
+                const brand = header.querySelector('.text-on-primary');
+                if(brand) {
+                    brand.classList.remove('text-on-primary');
+                    brand.classList.add('text-primary', 'dark:text-primary-fixed');
+                }
+                
+                const links = header.querySelectorAll('a.text-on-primary');
+                links.forEach(link => {
+                    link.classList.remove('text-on-primary');
+                    link.classList.add('text-on-surface-variant', 'dark:text-on-surface-variant');
+                });
+                
+                const menuBtn = header.querySelector('button.text-on-primary');
+                if(menuBtn) {
+                     menuBtn.classList.remove('text-on-primary');
+                     menuBtn.classList.add('text-on-surface-variant', 'dark:text-on-surface-variant');
+                }
+
+            } else {
+                header.classList.add('bg-transparent', 'dark:bg-transparent');
+                header.classList.remove('bg-surface-container-lowest', 'shadow-md', 'dark:bg-inverse-surface');
+                
+                // Revert text color
+                const brand = header.querySelector('.text-primary');
+                if(brand) {
+                    brand.classList.remove('text-primary', 'dark:text-primary-fixed');
+                    brand.classList.add('text-on-primary');
+                }
+                
+                const links = header.querySelectorAll('a.text-on-surface-variant');
+                links.forEach(link => {
+                    link.classList.remove('text-on-surface-variant', 'dark:text-on-surface-variant');
+                    link.classList.add('text-on-primary');
+                });
+                
+                const menuBtn = header.querySelector('button.text-on-surface-variant');
+                if(menuBtn) {
+                     menuBtn.classList.remove('text-on-surface-variant', 'dark:text-on-surface-variant');
+                     menuBtn.classList.add('text-on-primary');
+                }
+            }
+        });
+    </script>
+</body></html>

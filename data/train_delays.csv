@@ -1,0 +1,31 @@
+train_number,train_name,train_type,source_station,destination_station,journey_date,scheduled_departure,actual_departure,departure_delay_min,scheduled_arrival,actual_arrival,arrival_delay_min,cancellation_status,cancellation_reason,delay_reason,zone,weather_condition
+12951,Mumbai Rajdhani,Superfast,MUM,NDLS,2024-01-01,16:35,16:40,5,08:35,08:50,15,0,,Signal Issue,Western,Fog
+12951,Mumbai Rajdhani,Superfast,MUM,NDLS,2024-01-05,16:35,17:10,35,08:35,09:30,55,0,,Congestion,Western,Clear
+12951,Mumbai Rajdhani,Superfast,MUM,NDLS,2024-01-12,16:35,,0,,0,1,Operational Issue,,Western,Fog
+12303,Poorva Express,Express,HWH,NDLS,2024-01-03,08:20,08:25,5,06:10,06:20,10,0,,Minor Delay,Eastern,Clear
+12303,Poorva Express,Express,HWH,NDLS,2024-01-10,08:20,09:00,40,06:10,07:30,80,0,,Late Incoming Train,Eastern,Fog
+12303,Poorva Express,Express,HWH,NDLS,2024-01-18,08:20,,0,,0,1,Weather Disruption,,Eastern,Fog
+12627,Karnataka Express,Superfast,SBC,NDLS,2024-02-01,19:20,19:45,25,10:30,11:20,50,0,,Technical Issue,South Western,Rain
+12627,Karnataka Express,Superfast,SBC,NDLS,2024-02-06,19:20,20:30,70,10:30,12:30,120,0,,Track Maintenance,South Western,Rain
+12627,Karnataka Express,Superfast,SBC,NDLS,2024-02-14,19:20,19:20,0,10:30,10:30,0,0,,On Time,South Western,Clear
+12860,Gitanjali Express,Express,CSMT,HWH,2024-02-02,06:00,06:15,15,13:30,14:00,30,0,,Congestion,Central,Clear
+12860,Gitanjali Express,Express,CSMT,HWH,2024-02-09,06:00,07:05,65,13:30,15:00,90,0,,Signal Failure,Central,Rain
+12860,Gitanjali Express,Express,CSMT,HWH,2024-02-20,06:00,,0,,0,1,Operational Issue,,Central,Clear
+12009,Shatabdi Express,Superfast,MMCT,ADI,2024-03-01,06:25,06:30,5,12:55,13:00,5,0,,Minor Delay,Western,Clear
+12009,Shatabdi Express,Superfast,MMCT,ADI,2024-03-08,06:25,07:00,35,12:55,13:45,50,0,,Congestion,Western,Clear
+12009,Shatabdi Express,Superfast,MMCT,ADI,2024-03-15,06:25,,0,,0,1,Technical Issue,,Western,Rain
+19019,Dehradun Express,Mail,BDTS,DDN,2024-03-02,00:05,01:00,55,22:10,23:30,80,0,,Late Incoming Train,Western,Rain
+19019,Dehradun Express,Mail,BDTS,DDN,2024-03-09,00:05,00:40,35,22:10,23:00,50,0,,Track Maintenance,Western,Clear
+19019,Dehradun Express,Mail,BDTS,DDN,2024-03-16,00:05,,0,,0,1,Weather Disruption,,Western,Storm
+22436,Vande Bharat,Superfast,NDLS,BPL,2024-04-01,06:00,06:05,5,13:50,13:55,5,0,,Minor Delay,Northern,Clear
+22436,Vande Bharat,Superfast,NDLS,BPL,2024-04-07,06:00,06:45,45,13:50,14:40,50,0,,Signal Issue,Northern,Clear
+22436,Vande Bharat,Superfast,NDLS,BPL,2024-04-14,06:00,,0,,0,1,Operational Issue,,Northern,Clear
+11077,Jhelum Express,Express,PUNE,JAT,2024-04-03,17:30,18:15,45,20:30,22:00,90,0,,Congestion,Central,Clear
+11077,Jhelum Express,Express,PUNE,JAT,2024-04-10,17:30,19:00,90,20:30,23:30,180,0,,Signal Failure,Central,Rain
+11077,Jhelum Express,Express,PUNE,JAT,2024-04-18,17:30,,0,,0,1,Technical Issue,,Central,Clear
+15624,Kamakhya Express,Express,NDLS,GHY,2024-05-01,07:10,07:40,30,16:30,17:20,50,0,,Track Maintenance,Northern,Rain
+15624,Kamakhya Express,Express,NDLS,GHY,2024-05-08,07:10,08:20,70,16:30,18:00,90,0,,Congestion,Northern,Clear
+15624,Kamakhya Express,Express,NDLS,GHY,2024-05-16,07:10,,0,,0,1,Weather Disruption,,Northern,Storm
+12423,Dibrugarh Rajdhani,Superfast,NDLS,DBRG,2024-06-01,21:50,22:10,20,20:10,20:45,35,0,,Signal Issue,Northern,Rain
+12423,Dibrugarh Rajdhani,Superfast,NDLS,DBRG,2024-06-09,21:50,23:00,70,20:10,22:30,140,0,,Congestion,Northern,Rain
+12423,Dibrugarh Rajdhani,Superfast,NDLS,DBRG,2024-06-18,21:50,,0,,0,1,Flooding,,Northern,Storm

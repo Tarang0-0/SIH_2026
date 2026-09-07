@@ -1,0 +1,9 @@
+{
+  "current_model_version": "time-safe-eta-v2-all-compatible-data",
+  "history": [
+    {
+      "model_version": "time-safe-eta-v2-all-compatible-data",
+      "status": "existing-baseline"
+    }
+  ]
+}

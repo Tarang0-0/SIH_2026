@@ -1,0 +1,700 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RailETA - ML Forecasting for Indian Railways</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "on-primary-container": "#768dad",
+                            "status-info": "#3B82F6",
+                            "primary-fixed-dim": "#b0c8eb",
+                            "surface-container": "#eceef0",
+                            "secondary-fixed-dim": "#b7c8e1",
+                            "on-tertiary-fixed-variant": "#613f1c",
+                            "secondary-container": "#d0e1fb",
+                            "on-error-container": "#93000a",
+                            "surface-elevated": "#FFFFFF",
+                            "on-surface-variant": "#43474d",
+                            "primary-container": "#0a2540",
+                            "status-success": "#10B981",
+                            "on-tertiary-container": "#ae835a",
+                            "surface-tint": "#49607e",
+                            "primary-fixed": "#d2e4ff",
+                            "primary": "#000f22",
+                            "on-primary-fixed-variant": "#314865",
+                            "secondary-fixed": "#d3e4fe",
+                            "surface": "#f7f9fb",
+                            "status-error": "#EF4444",
+                            "on-secondary-fixed-variant": "#38485d",
+                            "tertiary-fixed": "#ffdcbe",
+                            "on-secondary": "#ffffff",
+                            "surface-dim": "#d8dadc",
+                            "tertiary-fixed-dim": "#eebd90",
+                            "error-container": "#ffdad6",
+                            "on-primary-fixed": "#001c37",
+                            "on-secondary-fixed": "#0b1c30",
+                            "outline-variant": "#c4c6ce",
+                            "error": "#ba1a1a",
+                            "on-secondary-container": "#54647a",
+                            "inverse-primary": "#b0c8eb",
+                            "outline": "#74777e",
+                            "surface-container-lowest": "#ffffff",
+                            "on-error": "#ffffff",
+                            "status-warning": "#F59E0B",
+                            "tertiary": "#1a0b00",
+                            "surface-container-low": "#f2f4f6",
+                            "on-background": "#191c1e",
+                            "surface-container-high": "#e6e8ea",
+                            "surface-variant": "#e0e3e5",
+                            "surface-container-highest": "#e0e3e5",
+                            "on-tertiary": "#ffffff",
+                            "on-tertiary-fixed": "#2d1600",
+                            "tertiary-container": "#381d00",
+                            "inverse-on-surface": "#eff1f3",
+                            "surface-bright": "#f7f9fb",
+                            "on-surface": "#191c1e",
+                            "surface-border": "#E2E8F0",
+                            "background": "#f7f9fb",
+                            "inverse-surface": "#2d3133",
+                            "secondary": "#505f76",
+                            "on-primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.125rem",
+                            "lg": "0.25rem",
+                            "xl": "0.5rem",
+                            "full": "0.75rem"
+                    },
+                    "spacing": {
+                            "gutter": "16px",
+                            "base": "4px",
+                            "margin-mobile": "16px",
+                            "margin-desktop": "32px",
+                            "container-max": "1140px"
+                    },
+                    "fontFamily": {
+                            "headline-md": [
+                                    "Inter"
+                            ],
+                            "display-eta": [
+                                    "Inter"
+                            ],
+                            "label-caps": [
+                                    "Inter"
+                            ],
+                            "body-lg": [
+                                    "Inter"
+                            ],
+                            "data-mono": [
+                                    "JetBrains Mono"
+                            ],
+                            "headline-lg": [
+                                    "Inter"
+                            ],
+                            "body-sm": [
+                                    "Inter"
+                            ]
+                    },
+                    "fontSize": {
+                            "headline-md": [
+                                    "18px",
+                                    {
+                                            "lineHeight": "24px",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "display-eta": [
+                                    "48px",
+                                    {
+                                            "lineHeight": "48px",
+                                            "letterSpacing": "-0.02em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "label-caps": [
+                                    "11px",
+                                    {
+                                            "lineHeight": "12px",
+                                            "letterSpacing": "0.05em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "body-lg": [
+                                    "16px",
+                                    {
+                                            "lineHeight": "24px",
+                                            "fontWeight": "400"
+                                    }
+                            ],
+                            "data-mono": [
+                                    "13px",
+                                    {
+                                            "lineHeight": "16px",
+                                            "fontWeight": "500"
+                                    }
+                            ],
+                            "headline-lg": [
+                                    "24px",
+                                    {
+                                            "lineHeight": "32px",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "body-sm": [
+                                    "14px",
+                                    {
+                                            "lineHeight": "20px",
+                                            "fontWeight": "400"
+                                    }
+                            ]
+                    }
+            },
+                },
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .data-mono { font-family: 'JetBrains Mono', monospace; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ping {
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        @keyframes trainMotion {
+            0% {
+                transform: scale(1.05) translate(0, 0);
+            }
+            50% {
+                transform: scale(1.12) translate(-15px, -3px);
+            }
+            100% {
+                transform: scale(1.05) translate(0, 0);
+            }
+        }
+        .animate-train-motion {
+            animation: trainMotion 12s ease-in-out infinite;
+        }
+        @keyframes speedLines {
+            0% {
+                transform: translateX(100%) skewX(-25deg);
+                opacity: 0;
+            }
+            30% {
+                opacity: 0.6;
+            }
+            70% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateX(-100%) skewX(-25deg);
+                opacity: 0;
+            }
+        }
+        .animate-speed-lines {
+            animation: speedLines 3.5s linear infinite;
+        }
+        .animate-speed-lines-delayed {
+            animation: speedLines 3.5s linear 1.75s infinite;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col antialiased">
+<!-- TopNavBar -->
+<header class="bg-primary dark:bg-primary-container border-b border-outline-variant dark:border-outline z-20 relative">
+<div class="flex justify-between items-center w-full px-margin-desktop max-w-container-max mx-auto h-16">
+<div class="flex items-center gap-8">
+<a class="text-headline-lg font-headline-lg font-bold text-on-primary dark:text-primary-fixed-dim" href="#">RailETA</a>
+<nav class="hidden md:flex gap-6">
+<a class="text-on-primary border-b-2 border-on-primary pb-1 font-bold text-label-caps font-label-caps uppercase tracking-wider transition-colors duration-200" href="#">Home</a>
+<a class="text-on-primary-container dark:text-on-primary-fixed-variant hover:text-on-primary hover:bg-primary-container/50 text-label-caps font-label-caps uppercase tracking-wider transition-colors duration-200 py-1 px-2 rounded-DEFAULT" href="#">Live Trains</a>
+<a class="text-on-primary-container dark:text-on-primary-fixed-variant hover:text-on-primary hover:bg-primary-container/50 text-label-caps font-label-caps uppercase tracking-wider transition-colors duration-200 py-1 px-2 rounded-DEFAULT" href="#">Simulation</a>
+<a class="text-on-primary-container dark:text-on-primary-fixed-variant hover:text-on-primary hover:bg-primary-container/50 text-label-caps font-label-caps uppercase tracking-wider transition-colors duration-200 py-1 px-2 rounded-DEFAULT" href="#">Model Performance</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:flex items-center gap-2 bg-primary-container text-on-primary hover:opacity-80 scale-95 transition-all duration-200 px-4 py-2 rounded-DEFAULT text-label-caps font-label-caps uppercase">
+                    Live System
+                    <span class="material-symbols-outlined text-sm" data-icon="train">train</span>
+</button>
+<button class="md:hidden text-on-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow">
+<!-- Hero & Search Section -->
+<section class="relative w-full overflow-hidden min-h-[580px] lg:min-h-[640px] flex items-center justify-center py-16 md:py-24 border-b border-surface-border">
+<!-- Animated Background Layer -->
+<div class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+<img alt="Vande Bharat Express Train speeding along tracks" class="w-full h-full object-cover object-center animate-train-motion will-change-transform brightness-105 contrast-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ1KCXfrnSFgBQxSklbGlDJ_YznB9VFHzRTaQVngk0n5VKtnDzkIkFlYCgga2vIAXP8yt0D2YKYwiIUtOh1UPhVjrBRzs1y52_1RlW4lMz3x6ko8jH_qe_rN2CHJSsFIRWNVxuFg4g1ZQ6iuGjJXWgu0_mLQIWJgdhNxdTphPwXHii2iBT_hhyhYalb10E5U_tdf5LVhfM7u4G3fn3YFmezioGvSpaWI3dBLUz2sSliVWxiSI37B1o">
+<!-- Subtle Speed Motion Blur Overlays -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+<div class="absolute -inset-x-20 top-1/4 h-2 bg-gradient-to-r from-transparent via-white to-transparent animate-speed-lines"></div>
+<div class="absolute -inset-x-20 top-2/3 h-1 bg-gradient-to-r from-transparent via-sky-300 to-transparent animate-speed-lines-delayed"></div>
+<div class="absolute -inset-x-20 top-1/2 h-1.5 bg-gradient-to-r from-transparent via-white to-transparent animate-speed-lines"></div>
+</div>
+<!-- Dynamic Luminous Daylight Gradient Overlay (Clear, high-key, luminous with subtle dark tone at center bottom for text readability) -->
+<div class="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/45 to-transparent"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-primary/70 via-transparent to-primary/40"></div>
+<div class="absolute inset-0 bg-sky-950/20 mix-blend-color"></div>
+</div>
+<!-- Hero Content (Centered with glassmorphism search) -->
+<div class="relative z-10 w-full px-margin-desktop max-w-container-max mx-auto flex flex-col items-center text-center">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-label-caps font-label-caps uppercase tracking-wider mb-6 shadow-sm">
+<span class="inline-block w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
+            Real-Time AI Train Intelligence
+        </div>
+<h1 class="text-display-eta font-display-eta text-white max-w-3xl drop-shadow-md text-3xl sm:text-4xl md:text-5xl lg:text-display-eta leading-tight">
+            Know when your train will actually arrive.
+        </h1>
+<p class="text-body-lg font-body-lg text-slate-100 max-w-xl mt-4 drop-shadow">
+            Dynamic, explainable ETA forecasts for Indian Railways trains using high-integrity machine learning models.
+        </p>
+<!-- Centered High-Contrast Glass Search Form -->
+<div class="w-full max-w-3xl mt-8 bg-surface-elevated/95 backdrop-blur-xl border border-white/70 shadow-2xl rounded-xl p-6 sm:p-7 text-left transition-all relative z-20">
+  <!-- Search Type Filter Tabs & Telemetry Precision Tag -->
+  <div class="flex flex-wrap items-center justify-between pb-3 mb-4 border-b border-surface-border/70 gap-3">
+    <div class="inline-flex p-1 bg-surface-container rounded-lg gap-1 text-xs font-medium">
+      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-DEFAULT bg-surface-elevated text-primary shadow-sm font-bold tracking-wide transition-all">
+        <span class="material-symbols-outlined text-sm text-status-info">directions_transit</span>
+        Train No. / Name
+      </button>
+      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-DEFAULT text-secondary hover:text-primary transition-all">
+        <span class="material-symbols-outlined text-sm">swap_calls</span>
+        Station to Station
+      </button>
+      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-DEFAULT text-secondary hover:text-primary transition-all">
+        <span class="material-symbols-outlined text-sm">radar</span>
+        Live Sector Status
+      </button>
+    </div>
+    <div class="inline-flex items-center gap-2 text-xs text-secondary bg-surface-container-low px-3 py-1 rounded-full border border-surface-border">
+      <span class="material-symbols-outlined text-sm text-status-success">verified</span>
+      <span class="">ML Reliability: <strong class="text-primary font-bold">94.8% (±4.2m)</strong></span>
+    </div>
+  </div>
+
+  <!-- Main Search Form Input Row -->
+  <div class="relative flex flex-col sm:flex-row items-stretch gap-2.5">
+    <div class="relative flex-grow flex items-center">
+      <span class="material-symbols-outlined absolute left-3.5 text-secondary text-xl pointer-events-none">search</span>
+      <input id="train-search" type="text" class="w-full bg-surface-container-lowest border border-outline-variant hover:border-primary/50 focus:border-primary rounded-lg pl-11 pr-24 py-3.5 text-body-sm font-medium text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-inner" placeholder="Enter train no. (e.g. 12951, 22436) or name (Rajdhani, Vande Bharat)..." value="12951">
+      <div class="absolute right-3 flex items-center gap-1.5">
+        <span class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-data-mono font-bold bg-surface-container text-secondary border border-surface-border">⌘K</span>
+        <button type="button" aria-label="Clear input" class="text-secondary hover:text-primary p-0.5 rounded transition-colors">
+          <span class="material-symbols-outlined text-base">cancel</span>
+        </button>
+      </div>
+    </div>
+    <button type="button" class="bg-primary hover:bg-primary-container text-on-primary px-8 py-3.5 rounded-lg text-label-caps font-label-caps uppercase font-bold tracking-wider transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-95 shrink-0">
+      <span class="material-symbols-outlined text-base">speed</span>
+      Track Live ETA
+    </button>
+  </div>
+
+  <!-- Rich Autocomplete / Live Match Telemetry Dropdown Card -->
+  <div class="mt-3 bg-surface-container-lowest rounded-lg border border-surface-border p-2.5 shadow-sm divide-y divide-surface-border">
+    <!-- Result 1 (Active Focused Match) -->
+    <div class="p-2.5 rounded-lg hover:bg-surface-container transition-colors cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-data-mono text-xs font-bold shrink-0">12951</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-body-sm text-primary">NDLS → MMCT</span>
+            <span class="text-xs text-secondary font-medium">• Mumbai Rajdhani Express</span>
+          </div>
+          <p class="text-xs text-secondary mt-0.5 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-status-success">near_me</span>
+            Past Surat (ST) • Speed: <span class="font-data-mono font-medium text-on-surface">118 km/h</span> • Platform 1 Forecast
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-success/10 text-status-success text-[11px] font-bold tracking-wide">
+          <span class="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse"></span>
+          ETA 19:42 (+14m)
+        </span>
+        <span class="text-label-caps text-[10px] font-bold text-secondary bg-surface-container px-2 py-1 rounded">96% Conf.</span>
+      </div>
+    </div>
+    <!-- Result 2 (Alternate Quick Query Match) -->
+    <div class="p-2.5 rounded-lg hover:bg-surface-container transition-colors cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-2 opacity-90">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-surface-container text-secondary flex items-center justify-center font-data-mono text-xs font-bold shrink-0">22436</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-body-sm text-primary">NDLS → BSB</span>
+            <span class="text-xs text-secondary font-medium">• Vande Bharat Express</span>
+          </div>
+          <p class="text-xs text-secondary mt-0.5 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px] text-status-info">navigation</span>
+            Approaching Kanpur Central (CNB) • Track Clear
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-success/10 text-status-success text-[11px] font-bold tracking-wide">
+          <span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+          On Schedule (14:08)
+        </span>
+        <span class="text-label-caps text-[10px] font-bold text-secondary bg-surface-container px-2 py-1 rounded">99% Conf.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgraded Trending Quick Filters with Status Dots -->
+  <div class="mt-3.5 pt-3 border-t border-surface-border flex flex-wrap items-center gap-2 text-xs text-secondary">
+    <span class="font-bold text-secondary uppercase text-[10px] tracking-wider flex items-center gap-1">
+      <span class="material-symbols-outlined text-xs">trending_up</span>
+      Trending Express:
+    </span>
+    <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-variant text-primary font-medium transition-colors border border-surface-border">
+      <span class="w-1.5 h-1.5 rounded-full bg-status-warning"></span>
+      <span class="">12951 Rajdhani</span>
+      <span class="text-[10px] text-secondary font-data-mono">+14m</span>
+    </button>
+    <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-variant text-primary font-medium transition-colors border border-surface-border">
+      <span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+      <span class="">22436 Vande Bharat</span>
+      <span class="text-[10px] text-status-success font-data-mono">On Time</span>
+    </button>
+    <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-variant text-primary font-medium transition-colors border border-surface-border">
+      <span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+      <span class="">12004 Shatabdi</span>
+      <span class="text-[10px] text-status-success font-data-mono">On Time</span>
+    </button>
+    <button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-variant text-primary font-medium transition-colors border border-surface-border">
+      <span class="w-1.5 h-1.5 rounded-full bg-status-error"></span>
+      <span class="">12809 Howrah Mail</span>
+      <span class="text-[10px] text-status-error font-data-mono">+42m</span>
+    </button>
+  </div>
+</div>
+</div>
+</section>
+<!-- Live Network Summary -->
+<section class="bg-surface-container-lowest border-y border-surface-border py-6 shadow-sm">
+  <div class="w-full px-margin-desktop max-w-container-max mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+    <!-- Left Status Telemetry Info -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+      <div class="flex items-center gap-2.5 bg-status-success/10 border border-status-success/20 px-3 py-1.5 rounded-full">
+        <div class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-success opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-status-success"></span>
+        </div>
+        <span class="text-label-caps font-label-caps text-primary uppercase font-bold tracking-widest">National Rail Telemetry Feed</span>
+      </div>
+      <div class="flex items-center gap-2 text-xs text-secondary">
+        <span class="material-symbols-outlined text-sm text-secondary">schedule</span>
+        <span class="">Updated <strong class="text-primary font-data-mono">12s ago</strong> via CRIS/NTES Hub</span>
+      </div>
+    </div>
+
+    <!-- Right Live Numerical Metrics with Visual Ratio Bar -->
+    <div class="flex flex-wrap items-center gap-6 sm:gap-10 w-full lg:w-auto justify-between lg:justify-end">
+      <div class="flex flex-col">
+        <div class="flex items-baseline gap-1.5">
+          <span class="text-headline-lg font-headline-lg font-bold text-primary">1,327</span>
+          <span class="text-[10px] text-secondary font-semibold uppercase">Trains</span>
+        </div>
+        <span class="text-label-caps font-label-caps text-secondary uppercase text-[10px]">Active in Transit</span>
+      </div>
+
+      <div class="h-8 w-px bg-surface-border hidden sm:block"></div>
+
+      <div class="flex flex-col">
+        <div class="flex items-baseline gap-1.5">
+          <span class="text-headline-lg font-headline-lg font-bold text-status-success">494</span>
+          <span class="text-xs font-bold text-status-success">(37.2%)</span>
+        </div>
+        <span class="text-label-caps font-label-caps text-secondary uppercase text-[10px]">On Schedule (±5m)</span>
+      </div>
+
+      <div class="h-8 w-px bg-surface-border hidden sm:block"></div>
+
+      <div class="flex flex-col">
+        <div class="flex items-baseline gap-1.5">
+          <span class="text-headline-lg font-headline-lg font-bold text-status-error">833</span>
+          <span class="text-xs font-bold text-status-error">(62.8%)</span>
+        </div>
+        <span class="text-label-caps font-label-caps text-secondary uppercase text-[10px]">Cascading Delay</span>
+      </div>
+
+      <div class="hidden md:flex flex-col w-36 gap-1">
+        <div class="flex justify-between text-[10px] font-bold text-secondary uppercase">
+          <span class="">Network Punctuality</span>
+          <span class="text-primary font-data-mono">37%</span>
+        </div>
+        <div class="w-full h-2 bg-status-error/20 rounded-full overflow-hidden flex">
+          <div class="bg-status-success h-full" style="width: 37.2%"></div>
+          <div class="bg-status-warning h-full" style="width: 24.5%"></div>
+          <div class="bg-status-error h-full" style="width: 38.3%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- How It Works & Popular Trains Bento -->
+<section class="w-full px-margin-desktop max-w-container-max mx-auto py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- How It Works -->
+<div class="lg:col-span-5 bg-surface-elevated border border-surface-border rounded-xl p-7 flex flex-col gap-6 shadow-sm">
+  <div class="flex items-center justify-between pb-3 border-b border-surface-border">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-xl">memory</span>
+      <h2 class="text-headline-md font-headline-md text-primary">How RailETA Works</h2>
+    </div>
+    <span class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-secondary px-2 py-1 rounded">Pipelines v4.2</span>
+  </div>
+  <div class="flex flex-col gap-5 relative">
+    <div class="absolute left-[13px] top-4 bottom-4 w-[2px] bg-surface-border"></div>
+    
+    <!-- Step 1 -->
+    <div class="flex gap-3.5 relative z-10">
+      <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
+        <span class="text-[11px] font-bold text-on-primary font-data-mono">1</span>
+      </div>
+      <div class="bg-surface-container-lowest border border-surface-border rounded-lg p-3 flex-grow">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="text-body-sm font-bold text-primary">Current State Ingestion</h3>
+          <span class="text-[10px] font-bold text-status-info uppercase bg-status-info/10 px-1.5 py-0.5 rounded">NTES API</span>
+        </div>
+        <p class="text-body-sm text-secondary">Ingesting real-time GPS telemetry, section block occupation, and train speeds every 30s.</p>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="flex gap-3.5 relative z-10">
+      <div class="w-7 h-7 rounded-full bg-surface-container border-2 border-primary flex items-center justify-center shrink-0">
+        <span class="text-[11px] font-bold text-primary font-data-mono">2</span>
+      </div>
+      <div class="bg-surface-container-lowest border border-surface-border rounded-lg p-3 flex-grow">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="text-body-sm font-bold text-primary">Historical Sector Dynamics</h3>
+          <span class="text-[10px] font-bold text-secondary uppercase bg-surface-container px-1.5 py-0.5 rounded">5Y Dataset</span>
+        </div>
+        <p class="text-body-sm text-secondary">Cross-referencing historical bottlenecks, crossing conflicts, weather delays, and seasonal peak factors.</p>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="flex gap-3.5 relative z-10">
+      <div class="w-7 h-7 rounded-full bg-surface-container border-2 border-primary flex items-center justify-center shrink-0">
+        <span class="text-[11px] font-bold text-primary font-data-mono">3</span>
+      </div>
+      <div class="bg-surface-container-lowest border border-surface-border rounded-lg p-3 flex-grow">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="text-body-sm font-bold text-primary">Gradient Boosting Engine</h3>
+          <span class="text-[10px] font-bold text-status-success uppercase bg-status-success/10 px-1.5 py-0.5 rounded">LightGBM</span>
+        </div>
+        <p class="text-body-sm text-secondary">Modeling cascade networks with SHAP feature explainability to quantify delay factors.</p>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="flex gap-3.5 relative z-10">
+      <div class="w-7 h-7 rounded-full bg-surface-container border-2 border-primary flex items-center justify-center shrink-0">
+        <span class="text-[11px] font-bold text-primary font-data-mono">4</span>
+      </div>
+      <div class="bg-surface-container-lowest border border-surface-border rounded-lg p-3 flex-grow">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="text-body-sm font-bold text-primary">Dynamic ETA &amp; Bounds</h3>
+          <span class="text-[10px] font-bold text-primary uppercase bg-primary-fixed px-1.5 py-0.5 rounded">High Confidence</span>
+        </div>
+        <p class="text-body-sm text-secondary">Providing minute-accurate arrival windows, platform forecasts, and reliability intervals.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Popular Live Trains -->
+<div class="lg:col-span-7 bg-surface-elevated border border-surface-border rounded-xl p-0 overflow-hidden flex flex-col shadow-sm">
+  <div class="p-5 border-b border-surface-border bg-surface-container-lowest flex flex-wrap justify-between items-center gap-3">
+    <div>
+      <h2 class="text-headline-md font-headline-md text-primary flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-xl">train</span>
+        Popular Live Trains
+      </h2>
+      <p class="text-xs text-secondary mt-0.5">Live predictive arrival times across high-frequency corridors</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container text-xs text-secondary font-medium">
+        <span class="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
+        Live Syncing
+      </span>
+    </div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-surface-bright border-b border-surface-border">
+          <th class="px-5 py-3.5 text-label-caps font-label-caps text-secondary uppercase font-bold">Train &amp; Route</th>
+          <th class="px-5 py-3.5 text-label-caps font-label-caps text-secondary uppercase font-bold">Current Sector</th>
+          <th class="px-5 py-3.5 text-label-caps font-label-caps text-secondary uppercase font-bold">AI Status</th>
+          <th class="px-5 py-3.5 text-label-caps font-label-caps text-secondary uppercase font-bold text-right">Next ETA</th>
+          <th class="px-4 py-3.5 text-label-caps font-label-caps text-secondary uppercase font-bold text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y border-surface-border">
+        <tr class="hover:bg-surface-container-lowest transition-colors group">
+          <td class="px-5 py-3.5">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono font-bold text-xs bg-primary/10 text-primary px-2 py-1 rounded">12951</span>
+              <div>
+                <span class="font-bold text-body-sm text-primary block leading-tight">Mumbai Rajdhani</span>
+                <span class="text-[11px] text-secondary font-medium">NDLS → MMCT (86% completed)</span>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="text-body-sm font-medium text-on-surface block">Surat (ST)</span>
+            <span class="text-[10px] text-secondary font-data-mono">Speed: 118 km/h</span>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-error/10 text-status-error text-[11px] font-bold uppercase tracking-wider">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-error"></span>
+              +14m Late
+            </span>
+          </td>
+          <td class="px-5 py-3.5 text-right">
+            <span class="text-body-lg font-data-mono font-bold text-primary block">19:42</span>
+            <span class="text-[10px] text-secondary font-medium">Sched: 19:28</span>
+          </td>
+          <td class="px-4 py-3.5 text-center">
+            <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-primary text-xs font-semibold transition-all">
+              <span class="">Inspect</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </button>
+          </td>
+        </tr>
+        <tr class="hover:bg-surface-container-lowest transition-colors group">
+          <td class="px-5 py-3.5">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono font-bold text-xs bg-status-success/15 text-status-success px-2 py-1 rounded">12004</span>
+              <div>
+                <span class="font-bold text-body-sm text-primary block leading-tight">Shatabdi Express</span>
+                <span class="text-[11px] text-secondary font-medium">NDLS → LKO (62% completed)</span>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="text-body-sm font-medium text-on-surface block">Kanpur (CNB)</span>
+            <span class="text-[10px] text-secondary font-data-mono">Speed: 104 km/h</span>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-success/10 text-status-success text-[11px] font-bold uppercase tracking-wider">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+              On Time
+            </span>
+          </td>
+          <td class="px-5 py-3.5 text-right">
+            <span class="text-body-lg font-data-mono font-bold text-primary block">08:15</span>
+            <span class="text-[10px] text-status-success font-medium">Target accurate</span>
+          </td>
+          <td class="px-4 py-3.5 text-center">
+            <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-primary text-xs font-semibold transition-all">
+              <span class="">Inspect</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </button>
+          </td>
+        </tr>
+        <tr class="hover:bg-surface-container-lowest transition-colors group">
+          <td class="px-5 py-3.5">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono font-bold text-xs bg-status-warning/15 text-status-warning px-2 py-1 rounded">12627</span>
+              <div>
+                <span class="font-bold text-body-sm text-primary block leading-tight">Karnataka Express</span>
+                <span class="text-[11px] text-secondary font-medium">SBC → NDLS (44% completed)</span>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="text-body-sm font-medium text-on-surface block">Itarsi (ET)</span>
+            <span class="text-[10px] text-secondary font-data-mono">Speed: 92 km/h</span>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-warning/10 text-status-warning text-[11px] font-bold uppercase tracking-wider">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-warning"></span>
+              +4m Late
+            </span>
+          </td>
+          <td class="px-5 py-3.5 text-right">
+            <span class="text-body-lg font-data-mono font-bold text-primary block">14:30</span>
+            <span class="text-[10px] text-secondary font-medium">Sched: 14:26</span>
+          </td>
+          <td class="px-4 py-3.5 text-center">
+            <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-primary text-xs font-semibold transition-all">
+              <span class="">Inspect</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </button>
+          </td>
+        </tr>
+        <tr class="hover:bg-surface-container-lowest transition-colors group">
+          <td class="px-5 py-3.5">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono font-bold text-xs bg-status-error/15 text-status-error px-2 py-1 rounded">12809</span>
+              <div>
+                <span class="font-bold text-body-sm text-primary block leading-tight">Howrah Mail</span>
+                <span class="text-[11px] text-secondary font-medium">CSMT → HWH (71% completed)</span>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="text-body-sm font-medium text-on-surface block">Nagpur (NGP)</span>
+            <span class="text-[10px] text-secondary font-data-mono">Speed: 68 km/h</span>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-status-error/10 text-status-error text-[11px] font-bold uppercase tracking-wider">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-error"></span>
+              +42m Late
+            </span>
+          </td>
+          <td class="px-5 py-3.5 text-right">
+            <span class="text-body-lg font-data-mono font-bold text-primary block">21:15</span>
+            <span class="text-[10px] text-secondary font-medium">Sched: 20:33</span>
+          </td>
+          <td class="px-4 py-3.5 text-center">
+            <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-primary text-xs font-semibold transition-all">
+              <span class="">Inspect</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-surface-container-highest border-t border-surface-border dark:border-outline-variant mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-8 max-w-container-max mx-auto gap-4">
+<div class="flex items-center gap-2">
+<span class="text-label-caps font-label-caps font-bold text-primary uppercase">RailETA</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant dark:text-surface-variant">© 2024 RailETA ML Forecasting. Built for High-Integrity Logistics.</span>
+</div>
+<nav class="flex gap-6">
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary text-label-caps font-label-caps hover:underline decoration-primary transition-all uppercase focus:outline-none focus:ring-1 focus:ring-primary rounded-sm px-1" href="#">About</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary text-label-caps font-label-caps hover:underline decoration-primary transition-all uppercase focus:outline-none focus:ring-1 focus:ring-primary rounded-sm px-1" href="#">How It Works</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary text-label-caps font-label-caps hover:underline decoration-primary transition-all uppercase focus:outline-none focus:ring-1 focus:ring-primary rounded-sm px-1" href="#">Hackathon Attribution</a>
+</nav>
+</div>
+</footer>
+
+
+</body></html>

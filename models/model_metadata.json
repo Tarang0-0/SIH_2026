@@ -1,0 +1,73 @@
+{
+  "model_version": "time-safe-eta-v2-all-compatible-data",
+  "target": "destination_arrival_delay_minutes",
+  "feature_columns": [
+    "distance_km",
+    "num_scheduled_stops",
+    "scheduled_travel_hours",
+    "departure_hour",
+    "day_of_week",
+    "month",
+    "is_weekend",
+    "is_night_departure",
+    "is_peak_hour",
+    "is_festival_season",
+    "is_monsoon_season",
+    "is_fog_risk",
+    "fog_risk_score",
+    "zone_fog_index",
+    "zone_congestion_index",
+    "season_severity_score",
+    "track_doubled",
+    "is_hdn_route",
+    "is_electrified",
+    "psr_count",
+    "seat_utilisation_pct",
+    "is_station_feed"
+  ],
+  "excluded_leakage_columns": [
+    "delay_minutes",
+    "is_delayed",
+    "primary_delay_cause",
+    "current_delay"
+  ],
+  "data_sources": {
+    "legacy_training_file": "data/ir_train.csv",
+    "combined_delay_pattern": "combined_delay_*.csv",
+    "files": 39,
+    "raw_rows": 38428703,
+    "valid_observations": 35725370,
+    "journey_rows": 1860954,
+    "legacy_rows": 1500000,
+    "compatible_rows_total": 3360954
+  },
+  "split": {
+    "type": "chronological whole-date",
+    "train_end": "2024-05-24",
+    "validation_end": "2025-04-20",
+    "test_start": "2025-04-21",
+    "test_end": "2026-02-07"
+  },
+  "best_rounds": {
+    "p10": 20,
+    "p50": 97,
+    "p90": 34
+  },
+  "metrics": {
+    "test_mae_minutes": 33.84745788574219,
+    "test_rmse_minutes": 66.82311436382811,
+    "test_median_baseline_mae_minutes": 92.93798065185547,
+    "test_p10_pinball_loss": 3.375051975250244,
+    "test_p90_pinball_loss": 16.044160842895508,
+    "test_p10_p90_coverage_percent": 72.73123799011948
+  },
+  "validation_selected_metrics": {
+    "test_mae_minutes": 91.63738250732422,
+    "test_rmse_minutes": 106.06999918243848,
+    "test_median_baseline_mae_minutes": 92.93798065185547,
+    "test_p10_pinball_loss": 9.3172025680542,
+    "test_p90_pinball_loss": 18.955732345581055,
+    "test_p10_p90_coverage_percent": 43.923681988337535
+  },
+  "trained_at_utc": "2026-09-07T19:12:14.005856+00:00"
+}
