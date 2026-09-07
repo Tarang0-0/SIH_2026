@@ -78,9 +78,9 @@ explicitly unavailable.
 Phase 5 controls are available offline:
 
 ```bash
-./ml/venv/bin/python scripts/16_calibrate_model.py
-./ml/venv/bin/python scripts/17_phase5_audit.py
-./ml/venv/bin/python scripts/18_promote_model.py candidate.json
+.venv/bin/python scripts/16_calibrate_model.py
+.venv/bin/python scripts/17_phase5_audit.py
+.venv/bin/python scripts/18_promote_model.py candidate.json
 ```
 
 Promotion refuses candidates without an untouched holdout, enough verified
@@ -117,13 +117,13 @@ The live-status response is stored in `data/railpulse_feedback.sqlite3`; its
 actual station events are exported with:
 
 ```bash
-./ml/venv/bin/python scripts/build_station_level_dataset.py
-./ml/venv/bin/python scripts/sync_indian_rail_operational.py --date YYYY-MM-DD
-./ml/venv/bin/python scripts/13_train_next_station_models.py
-./ml/venv/bin/python scripts/15_collect_live_feedback.py --trains 22436,22439 --interval 300 --duration 3600
-./ml/venv/bin/python scripts/build_phase3_movement_dataset.py
-./ml/venv/bin/python scripts/14_train_phase3_movement_models.py
-./ml/venv/bin/python scripts/19_run_phase_pipeline.py
+.venv/bin/python scripts/build_station_level_dataset.py
+.venv/bin/python scripts/sync_indian_rail_operational.py --date YYYY-MM-DD
+.venv/bin/python scripts/13_train_next_station_models.py
+.venv/bin/python scripts/15_collect_live_feedback.py --trains 22436,22439 --interval 300 --duration 3600
+.venv/bin/python scripts/build_phase3_movement_dataset.py
+.venv/bin/python scripts/14_train_phase3_movement_models.py
+.venv/bin/python scripts/19_run_phase_pipeline.py
 ```
 
 The Phase 2 trainer will stop instead of training when there are not enough

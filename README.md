@@ -81,7 +81,42 @@ SIH_202/
 
 ---
 
+## 👥 Team setup
+
+This is a single GitHub repository for the backend, frontend, models, tests,
+and documentation. The recommended team workflow is:
+
+1. Clone the repository and create a local branch for each change.
+2. Copy `.env.example` to `.env`; keep provider credentials local.
+3. Install the backend and frontend dependencies described below.
+4. Run the tests and frontend build before opening a pull request.
+5. Merge reviewed pull requests into `main` after the GitHub Actions checks
+   pass.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the exact clone, setup, branch,
+testing, and pull-request commands. GitHub branch protection for `main` is
+recommended so teammates do not overwrite each other's work.
+
 ## ⚡ Quick Start: Running the Demo
+
+### One-time setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r ml/requirements.txt
+
+cp .env.example .env
+cd frontend
+npm ci
+cp .env.example .env.local
+cd ..
+```
+
+The checked-in model artifacts and timetable index are enough for the offline
+demo. Live provider keys are optional; without them, live provider-backed
+fields are reported as unavailable.
 
 ### Option 1: Single-Command Launch (Recommended)
 ```bash
@@ -91,7 +126,7 @@ SIH_202/
 ### Option 2: Manual Launch
 1. **Start the FastAPI Engine (Port 8000):**
    ```bash
-   ./ml/venv/bin/uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+   .venv/bin/uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
    ```
 2. **Start the Next.js Frontend (Port 3000):**
    ```bash
@@ -103,7 +138,8 @@ SIH_202/
 ## 🧪 Automated Testing
 Run the Phase 4 unit test suite:
 ```bash
-./ml/venv/bin/python -m unittest tests/test_api_phase4.py
+source .venv/bin/activate
+python -m unittest discover -s tests -p 'test_*.py'
 ```
 
 ## Model training and limits
@@ -111,7 +147,7 @@ Run the Phase 4 unit test suite:
 Retrain the deployable ETA artifacts and write reproducible held-out metrics:
 
 ```bash
-./ml/venv/bin/python scripts/12_train_ir_production.py
+.venv/bin/python scripts/12_train_ir_production.py
 ```
 
 The API prefers RailRadar for live station/delay status when `RAILRADAR_API_KEY`
@@ -123,18 +159,18 @@ Phase 2 station-level learning is now wired into the live feedback path. When
 the live provider is configured, live ETA requests refresh official route data,
 persist normalized station events, and keep cancellation and rescheduling
 signals. Export verified labels with
-`./ml/venv/bin/python scripts/build_station_level_dataset.py`; the separate
+`.venv/bin/python scripts/build_station_level_dataset.py`; the separate
 next-station trainer will refuse to train until enough provider-actual arrivals
 have been collected.
 
 For bounded live collection, run
-`./ml/venv/bin/python scripts/15_collect_live_feedback.py --trains 22436,22439
+`.venv/bin/python scripts/15_collect_live_feedback.py --trains 22436,22439
 --interval 300 --duration 3600`.
 
 Phase 3 adds movement snapshots and separate next-station travel-time and
 delay-propagation quantile models. Run
-`./ml/venv/bin/python scripts/build_phase3_movement_dataset.py` followed by
-`./ml/venv/bin/python scripts/14_train_phase3_movement_models.py` after enough
+`.venv/bin/python scripts/build_phase3_movement_dataset.py` followed by
+`.venv/bin/python scripts/14_train_phase3_movement_models.py` after enough
 live journeys have completed. The API uses those artifacts only after their
 feature contract is validated.
 

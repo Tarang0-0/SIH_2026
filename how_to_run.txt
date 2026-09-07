@@ -17,7 +17,7 @@ The backend reads this file at startup. Do not put provider secrets in
 
 From the project root:
 
-    ./ml/venv/bin/uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+    .venv/bin/uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
 Verify it:
 
@@ -62,8 +62,8 @@ forecast error. Predictions are never used as labels.
 After completed journeys have been observed, export terminal observations and
 retrain explicitly:
 
-    ./ml/venv/bin/python scripts/export_feedback_history.py
-    ./ml/venv/bin/python scripts/12_train_ir_production.py
+    .venv/bin/python scripts/export_feedback_history.py
+    .venv/bin/python scripts/12_train_ir_production.py
 
 Live status is intentionally reported as unavailable when the provider key
 is missing. The application does not substitute demo speed, GPS, platform, or
@@ -72,5 +72,5 @@ station data.
 6. Verification
 ---------------
 
-    ./ml/venv/bin/python -m unittest discover -s tests -p 'test_*.py'
+    .venv/bin/python -m unittest discover -s tests -p 'test_*.py'
     cd frontend && npm run lint && npm run build

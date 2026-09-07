@@ -7,6 +7,23 @@ It is not a live-tracking feed.
 coordinates intentionally remain missing: the map must not interpolate fake
 station positions or imply that a straight line is a railway track geometry.
 
+## Repository data policy
+
+The repository includes the small timetable, station, and demo datasets needed
+to start the API. Generated runtime state and large training inputs are ignored
+by Git so a normal GitHub clone stays manageable and does not hit GitHub's
+100 MB per-file limit. In particular, these local files are not committed:
+
+- `ir_train.csv`, `ir_test.csv`, and `ir_sample_submission.csv`
+- `Train_details_22122017.csv`
+- `combined_delay_*.csv`
+- SQLite feedback state and generated station/movement training exports
+
+Place those files under `data/` from the team's approved shared storage before
+running the full retraining scripts. The checked-in files under `models/` are
+the deployable artifacts used by the demo, so raw training data is not needed
+to run the API or frontend.
+
 ## Official status integration
 
 The backend supports the documented IndianRailAPI live-status and live-station
@@ -77,8 +94,8 @@ IndianRailAPI does not provide GPS or a station-arrival event timestamp.
 Only terminal observations are exported as completed-journey labels:
 
 ```text
-./ml/venv/bin/python scripts/export_feedback_history.py
-./ml/venv/bin/python scripts/12_train_ir_production.py
+.venv/bin/python scripts/export_feedback_history.py
+.venv/bin/python scripts/12_train_ir_production.py
 ```
 
 Retraining remains an explicit offline operation. This prevents the model from
