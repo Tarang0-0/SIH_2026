@@ -118,10 +118,27 @@ The checked-in model artifacts and timetable index are enough for the offline
 demo. Live provider keys are optional; without them, live provider-backed
 fields are reported as unavailable.
 
+### Windows quick start
+
+Install Git for Windows, Python 3.9+, and Node.js 20 LTS, then run these
+commands in PowerShell:
+
+```powershell
+git clone https://github.com/Tarang0-0/SIH_2026.git
+cd SIH_202
+powershell -ExecutionPolicy Bypass -File .\scripts\setup_windows.ps1
+powershell -ExecutionPolicy Bypass -File .\run_demo.ps1
+```
+
+See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for troubleshooting and test
+commands.
+
 ### Option 1: Single-Command Launch (Recommended)
 ```bash
 ./run_demo.sh
 ```
+
+On Windows, use `powershell -ExecutionPolicy Bypass -File .\run_demo.ps1`.
 
 ### Option 2: Manual Launch
 1. **Start the FastAPI Engine (Port 8000):**

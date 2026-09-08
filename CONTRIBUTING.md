@@ -24,6 +24,18 @@ cd ..
 Provider keys are optional for the offline demo. Never commit `.env`,
 `frontend/.env.local`, API keys, or other credentials.
 
+Windows teammates can run the equivalent setup automatically with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup_windows.ps1
+```
+
+Then start both services with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_demo.ps1
+```
+
 ## Daily workflow
 
 Before starting work, sync your local `main` branch:
