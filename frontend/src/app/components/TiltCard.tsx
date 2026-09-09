@@ -8,6 +8,7 @@ interface TiltCardProps {
   maxTilt?: number;
   perspective?: number;
   glareOpacity?: number;
+  allowOverflow?: boolean;
 }
 
 export default function TiltCard({
@@ -16,6 +17,7 @@ export default function TiltCard({
   maxTilt = 10,
   perspective = 1000,
   glareOpacity = 0.15,
+  allowOverflow = false,
 }: TiltCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -72,7 +74,7 @@ export default function TiltCard({
           transformStyle: 'preserve-3d',
           transition: isHovered ? 'transform 0.1s ease-out' : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
-        className={`relative overflow-hidden rounded-2xl ${className}`}
+        className={`relative ${allowOverflow ? 'overflow-visible' : 'overflow-hidden'} rounded-2xl ${className}`}
       >
         {/* Dynamic Specular Light Sheen */}
         <div

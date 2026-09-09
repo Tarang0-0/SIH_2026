@@ -1,74 +1,73 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { apiUrl } from '../../lib/api';
 
-interface ServiceStatus {
-  status: string;
-  models_active: boolean;
-  live_provider_configured: boolean;
+interface NavbarProps {
+  theme?: 'dark' | 'light';
 }
 
-export default function Navbar() {
+export default function Navbar({ theme = 'dark' }: NavbarProps) {
+  void theme;
   const pathname = usePathname();
-  const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [indiaClock, setIndiaClock] = useState('');
 
   useEffect(() => {
-    fetch(apiUrl('/health'))
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data) =>
-        setServiceStatus({
-          status: data.status || 'degraded',
-          models_active: Boolean(data.models_active),
-          live_provider_configured: Boolean(data.live_provider_configured),
-        })
-      )
-      .catch(() => setServiceStatus(null));
+    const updateClock = () => {
+      setIndiaClock(new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).format(new Date()));
+    };
+    updateClock();
+    const clockTimer = window.setInterval(updateClock, 1000);
+    return () => window.clearInterval(clockTimer);
   }, []);
 
   const navLinks = [
     { href: '/', label: 'Overview' },
-    { href: '/dashboard', label: 'Live Operations' },
-    { href: '/operator', label: 'Operator Room' },
-    { href: '/features', label: 'Architecture' },
-    { href: '/about', label: 'About SIH' },
+    { href: '/operator', label: 'Control Room' },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#070b14]/90 backdrop-blur-md border-b border-white/[0.08]">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-sky-50/90 border-b border-sky-200/70 shadow-[0_4px_20px_-4px_rgba(14,116,144,0.08)] transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         
-        {/* Brand Logo */}
+        {/* Brand logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 group-hover:bg-blue-600/30 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-              <rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/>
-            </svg>
+          <div className="relative flex items-center justify-center">
+            <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-sky-400/20 to-blue-600/20 blur-sm group-hover:blur transition-all duration-300" />
+            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 border border-sky-400/40 flex items-center justify-center text-white shadow-[0_2px_10px_rgba(2,132,199,0.25)] group-hover:scale-105 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                <rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/>
+              </svg>
+            </div>
           </div>
           <div>
-            <div className="text-base font-bold tracking-tight text-white flex items-center gap-2">
+            <div className="text-base font-extrabold tracking-tight flex items-center gap-2 text-slate-900">
               <span>RailPulse</span>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">CRIS Telemetry</span>
             </div>
-            <div className="text-[10px] text-slate-400 font-mono hidden sm:block">Indian Railways Transit Intelligence</div>
+            <div className="text-[10px] font-mono text-slate-500 hidden sm:block">Indian Railways Transit Intelligence</div>
           </div>
         </Link>
 
         {/* Desktop Nav Links */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden md:flex items-center space-x-1 bg-sky-100/70 border border-sky-200/70 p-1 rounded-xl">
           {navLinks.map((link) => {
             const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                    ? 'bg-white text-sky-700 border border-sky-200/80 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                 }`}
               >
                 {link.label}
@@ -77,32 +76,21 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Right Status Pill & CTA */}
+        {/* Live India clock */}
         <div className="hidden lg:flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-white/[0.08] text-[11px] font-mono text-slate-300">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                serviceStatus?.models_active ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
-              }`}
-            />
-            <span>{serviceStatus?.models_active ? 'ML Core: Online' : 'Calibrated Mode'}</span>
+          <div className="flex items-center gap-2 rounded-xl border border-sky-200 bg-white/85 px-3.5 py-1.5 text-slate-700 shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-sky-700">IST</span>
+            <time className="font-mono text-xs font-bold tabular-nums" aria-label="Current India time">
+              {indiaClock || '--:--:--'}
+            </time>
           </div>
-
-          <Link
-            href="/dashboard"
-            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm flex items-center gap-1.5"
-          >
-            <span>Track Express</span>
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
         </div>
 
         {/* Mobile Menu Toggle Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-slate-300 hover:text-white p-2 rounded-lg border border-white/[0.08]"
+          className="md:hidden p-2 rounded-lg border border-sky-200 text-slate-700 hover:text-slate-900 bg-white shadow-xs"
           aria-label="Toggle Navigation Menu"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,25 +106,23 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0a0f1d] border-b border-white/[0.08] px-4 pt-2 pb-4 space-y-1">
+        <div className="md:hidden border-b border-sky-200 px-4 pt-2 pb-4 space-y-1 bg-sky-50/98 backdrop-blur-2xl shadow-lg">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/[0.04]"
+              className="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:text-sky-700 hover:bg-sky-50"
             >
               {link.label}
             </Link>
           ))}
-          <div className="pt-2 border-t border-white/[0.08]">
-            <Link
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded-lg"
-            >
-              Track Live Express
-            </Link>
+          <div className="pt-2">
+            <div className="flex items-center justify-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-slate-700 shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-sky-700">India time</span>
+              <time className="font-mono text-xs font-bold tabular-nums">{indiaClock || '--:--:--'}</time>
+            </div>
           </div>
         </div>
       )}

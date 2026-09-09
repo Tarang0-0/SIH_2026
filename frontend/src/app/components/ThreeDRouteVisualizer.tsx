@@ -21,7 +21,6 @@ interface ThreeDRouteVisualizerProps {
   currentSpeed?: number | null;
   delayMinutes?: number;
   progressPercent?: number;
-  telemetryLabel?: string;
 }
 
 export default function ThreeDRouteVisualizer({
@@ -33,44 +32,45 @@ export default function ThreeDRouteVisualizer({
   currentSpeed = null,
   delayMinutes = 0,
   progressPercent = 0,
-  telemetryLabel = 'LIVE STATUS',
 }: ThreeDRouteVisualizerProps) {
   const [activeStationIndex, setActiveStationIndex] = useState<number | null>(null);
 
-  // Take up to 5 representative nodes from the API response.
-  const displayNodes = stations.length > 0
-    ? [
-        stations[0],
-        ...(stations.length >= 3 ? [
-          stations[Math.floor(stations.length * 0.25)],
-          stations[Math.floor(stations.length * 0.5)],
-          stations[Math.floor(stations.length * 0.75)],
-        ] : []),
-        stations[stations.length - 1],
-      ]
-    : [];
+  // Take up to 5 representative nodes from the stations or graceful fallback
+  const effectiveStations = stations.length > 0
+    ? stations
+    : [
+        { code: origin || 'START', name: origin || 'Origin', sched: 'DEP' },
+        { code: 'WAYPOINT', name: 'Intermediate', sched: 'EN-ROUTE' },
+        { code: destination || 'TERM', name: destination || 'Destination', sched: 'ARR' },
+      ];
+
+  const displayNodes = [
+    effectiveStations[0],
+    ...(effectiveStations.length >= 4 ? [
+      effectiveStations[Math.floor(effectiveStations.length * 0.33)],
+      effectiveStations[Math.floor(effectiveStations.length * 0.66)],
+    ] : effectiveStations.length === 3 ? [
+      effectiveStations[1],
+    ] : []),
+    effectiveStations[effectiveStations.length - 1],
+  ];
 
   const isDelayed = delayMinutes > 0;
+  const clampedProgress = Math.min(100, Math.max(0, Math.round(progressPercent)));
 
   return (
     <TiltCard
-      maxTilt={6}
+      maxTilt={5}
       perspective={1200}
       className="surface-3d p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden"
     >
-      {/* 3D Atmospheric Background Lighting */}
+      {/* Route background lighting */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
       <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
 
       {/* Top HUD bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-white/[0.08] relative z-10">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-              LIVE CORRIDOR TELEMETRY
-            </span>
-            <span className="text-xs text-slate-400 font-mono">{telemetryLabel}</span>
-          </div>
           <div className="flex items-baseline gap-3">
             <h3 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight font-mono">
               {trainNumber}
@@ -120,11 +120,11 @@ export default function ThreeDRouteVisualizer({
           {/* Active progress rail glow overlay */}
           <div
             className="absolute left-0 top-[42%] h-[3px] bg-gradient-to-r from-cyan-500 to-cyan-300 rounded-full shadow-[0_0_15px_#00f0ff]"
-            style={{ width: `${progressPercent}%`, transition: 'width 0.8s ease' }}
+            style={{ width: `${clampedProgress}%`, transition: 'width 0.8s ease' }}
           />
           <div
             className="absolute left-0 top-[58%] h-[3px] bg-gradient-to-r from-cyan-500 to-cyan-300 rounded-full shadow-[0_0_15px_#00f0ff]"
-            style={{ width: `${progressPercent}%`, transition: 'width 0.8s ease' }}
+            style={{ width: `${clampedProgress}%`, transition: 'width 0.8s ease' }}
           />
 
           {/* 3D Sleepers / Ties along the route */}
@@ -135,7 +135,7 @@ export default function ThreeDRouteVisualizer({
                 className="w-[3px] h-full bg-slate-800/80 rounded-sm"
                 style={{
                   transform: 'rotateY(10deg)',
-                  boxShadow: i / 24 * 100 <= progressPercent ? '0 0 6px rgba(0,240,255,0.5)' : 'none',
+                  boxShadow: (i / 23) * 100 <= clampedProgress ? '0 0 6px rgba(0,240,255,0.5)' : 'none',
                 }}
               />
             ))}
@@ -145,7 +145,7 @@ export default function ThreeDRouteVisualizer({
           <div
             className="absolute top-1/2 -translate-y-1/2 z-30 transition-all duration-700"
             style={{
-              left: `calc(${progressPercent}% - 22px)`,
+              left: `calc(${clampedProgress}% - 22px)`,
               transform: 'translateZ(35px)',
             }}
           >
@@ -154,18 +154,18 @@ export default function ThreeDRouteVisualizer({
               <div className="absolute -inset-2.5 rounded-full bg-cyan-400/30 animate-ping" />
               {/* 3D Train Pod */}
               <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 border-2 border-white flex items-center justify-center shadow-[0_0_25px_rgba(0,240,255,0.8)] transform transition-transform group-hover:scale-110">
-                <span className="text-xl">🚆</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 10h16M8 17l-2 3M16 17l2 3M8 7h.01M16 7h.01"/></svg>
               </div>
               {/* Floating 3D Badge */}
               <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md border border-cyan-500/50 text-[11px] font-mono font-bold text-cyan-300 px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg">
-                LIVE {progressPercent}%
+                LIVE {clampedProgress}%
               </div>
             </div>
           </div>
 
           {/* Station Pillar Nodes */}
           {displayNodes.map((node, index) => {
-            const isPassed = displayNodes.length > 1 && (index / (displayNodes.length - 1)) * 100 <= progressPercent;
+            const isPassed = displayNodes.length > 1 && (index / (displayNodes.length - 1)) * 100 <= clampedProgress;
             const isHovered = activeStationIndex === index;
 
             return (

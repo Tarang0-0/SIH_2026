@@ -12,31 +12,38 @@ export default function ThreeDHeroCanvas() {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let dpr = window.devicePixelRatio || 1;
 
     let mouseX = 0;
     let mouseY = 0;
-    let targetRotX = 0.45;
+    let targetRotX = 0.42;
     let targetRotY = 0;
-    let rotX = 0.45;
+    let rotX = 0.42;
     let rotY = 0;
 
     const handleResize = () => {
       if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
     };
 
     const handleMouseMove = (e: MouseEvent) => {
       mouseX = (e.clientX / window.innerWidth) * 2 - 1;
       mouseY = (e.clientY / window.innerHeight) * 2 - 1;
-      targetRotY = mouseX * 0.25;
-      targetRotX = 0.45 + mouseY * 0.15;
+      targetRotY = mouseX * 0.22;
+      targetRotX = 0.42 + mouseY * 0.12;
     };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', handleMouseMove);
+    handleResize();
 
     // 3D Isometric Rail Track Network & Pulses
     interface TrackPoint {
@@ -45,20 +52,19 @@ export default function ThreeDHeroCanvas() {
       z: number;
     }
 
-    // Generate 4 continuous 3D rail lines with gentle curves
+    // Generate 5 continuous 3D rail lines with gentle curves
     const tracks: TrackPoint[][] = [];
     const numTracks = 5;
-    const trackLength = 28;
-    const spacing = 140;
+    const trackLength = 32;
+    const spacing = 150;
 
     for (let t = 0; t < numTracks; t++) {
       const line: TrackPoint[] = [];
       const offsetX = (t - (numTracks - 1) / 2) * spacing;
       for (let i = 0; i < trackLength; i++) {
-        const z = (i - trackLength / 2) * 90;
-        // subtle curve
-        const curve = Math.sin(i * 0.25 + t) * 60;
-        const elevation = Math.sin(i * 0.18 + t * 0.5) * 25;
+        const z = (i - trackLength / 2) * 95;
+        const curve = Math.sin(i * 0.22 + t * 0.8) * 70;
+        const elevation = Math.sin(i * 0.15 + t * 0.4) * 30;
         line.push({
           x: offsetX + curve,
           y: elevation,
@@ -68,17 +74,17 @@ export default function ThreeDHeroCanvas() {
       tracks.push(line);
     }
 
-    // High speed pulses traversing the tracks
+    // High speed pulses traversing the tracks (locomotives)
     const pulses = [
-      { trackIndex: 0, progress: 0.1, speed: 0.0035, color: '#00f0ff', length: 3 },
-      { trackIndex: 1, progress: 0.6, speed: 0.0042, color: '#38bdf8', length: 4 },
-      { trackIndex: 2, progress: 0.3, speed: 0.0050, color: '#10b981', length: 3 },
-      { trackIndex: 3, progress: 0.8, speed: 0.0038, color: '#00f0ff', length: 4 },
-      { trackIndex: 4, progress: 0.4, speed: 0.0045, color: '#818cf8', length: 3 },
+      { trackIndex: 0, progress: 0.15, speed: 0.0032, color: '#0284c7' },
+      { trackIndex: 1, progress: 0.65, speed: 0.0040, color: '#0ea5e9' },
+      { trackIndex: 2, progress: 0.35, speed: 0.0048, color: '#2563eb' },
+      { trackIndex: 3, progress: 0.82, speed: 0.0035, color: '#059669' },
+      { trackIndex: 4, progress: 0.45, speed: 0.0042, color: '#6366f1' },
     ];
 
     // 3D Perspective Projection helper
-    const focalLength = 650;
+    const focalLength = 700;
     const project = (p: TrackPoint) => {
       // Rotate around Y axis
       const cosY = Math.cos(rotY);
@@ -93,23 +99,24 @@ export default function ThreeDHeroCanvas() {
       const z2 = p.y * sinX + z1 * cosX;
 
       // Camera distance offset
-      const camZ = z2 + 850;
+      const camZ = z2 + 900;
       if (camZ <= 10) return null;
 
       const scale = focalLength / camZ;
       return {
         x: width / 2 + x1 * scale,
-        y: height / 2 + (y2 + 180) * scale,
+        y: height / 2 + (y2 + 160) * scale,
         scale,
         depth: camZ,
       };
     };
 
     const render = () => {
-      // Smooth camera rotation damping
       rotX += (targetRotX - rotX) * 0.05;
       rotY += (targetRotY - rotY) * 0.05;
 
+      ctx.save();
+      ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
 
       // Draw subtle 3D floor ties / sleeper rungs across adjacent tracks
@@ -122,7 +129,7 @@ export default function ThreeDHeroCanvas() {
           const prjB = project(pB);
 
           if (prjA && prjB) {
-            const alpha = Math.max(0.02, Math.min(0.12, 1 - prjA.depth / 1600));
+            const alpha = Math.max(0.02, Math.min(0.12, 1 - prjA.depth / 1800));
             ctx.strokeStyle = `rgba(148, 163, 184, ${alpha})`;
             ctx.beginPath();
             ctx.moveTo(prjA.x, prjA.y);
@@ -150,8 +157,9 @@ export default function ThreeDHeroCanvas() {
           }
         }
 
-        ctx.strokeStyle = tIdx === 2 ? 'rgba(0, 240, 255, 0.22)' : 'rgba(56, 189, 248, 0.12)';
-        ctx.lineWidth = tIdx === 2 ? 2.2 : 1.2;
+        const isCenter = tIdx === 2;
+        ctx.strokeStyle = isCenter ? 'rgba(2, 132, 199, 0.45)' : 'rgba(14, 165, 233, 0.22)';
+        ctx.lineWidth = isCenter ? 2.5 : 1.2;
         ctx.stroke();
       });
 
@@ -174,26 +182,29 @@ export default function ThreeDHeroCanvas() {
 
         const prj = project(pCurrent);
         if (prj) {
-          // Draw glowing head
-          const radius = Math.max(2.5, 5 * prj.scale);
-          const grad = ctx.createRadialGradient(prj.x, prj.y, 0, prj.x, prj.y, radius * 3.5);
+          const radius = Math.max(3, 6 * prj.scale);
+          const grad = ctx.createRadialGradient(prj.x, prj.y, 0, prj.x, prj.y, radius * 4);
           grad.addColorStop(0, pulse.color);
           grad.addColorStop(0.4, pulse.color);
           grad.addColorStop(1, 'transparent');
 
           ctx.fillStyle = grad;
           ctx.beginPath();
-          ctx.arc(prj.x, prj.y, radius * 3.5, 0, Math.PI * 2);
+          ctx.arc(prj.x, prj.y, radius * 4, 0, Math.PI * 2);
           ctx.fill();
 
-          // Core dot
+          // Bright Core dot
           ctx.fillStyle = '#ffffff';
           ctx.beginPath();
-          ctx.arc(prj.x, prj.y, radius * 0.9, 0, Math.PI * 2);
+          ctx.arc(prj.x, prj.y, radius * 1.1, 0, Math.PI * 2);
           ctx.fill();
+          ctx.strokeStyle = pulse.color;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
         }
       });
 
+      ctx.restore();
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -209,7 +220,8 @@ export default function ThreeDHeroCanvas() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 pointer-events-none z-0 opacity-75"
+      className="absolute inset-0 pointer-events-none z-0 opacity-80"
     />
   );
 }
+

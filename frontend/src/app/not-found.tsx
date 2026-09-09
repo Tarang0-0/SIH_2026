@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="page-grid bg-slate-950 text-slate-50 min-h-screen flex flex-col font-sans selection:bg-cyan-500/30 items-center justify-center p-6 relative overflow-hidden">
+    <div className="page-grid bg-[#061521] text-slate-50 min-h-screen flex flex-col font-sans selection:bg-cyan-500/30 items-center justify-center p-6 relative overflow-hidden">
       {/* Dynamic Background Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 flex items-center justify-center">
         <div className="w-[80%] h-[80%] rounded-full bg-cyan-900/10 blur-[120px]" />

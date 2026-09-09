@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import { apiUrl } from '../../lib/api';
 
@@ -41,8 +42,7 @@ interface ImpactResponse {
   };
 }
 
-const indiaDate = (): string =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+const ADMIN_SESSION_KEY = 'railpulse_admin_authenticated';
 
 const displayTime = (value?: string | null): string => {
   if (!value) return '—';
@@ -56,12 +56,22 @@ const displayTime = (value?: string | null): string => {
 };
 
 export default function OperatorPage() {
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
   const [trainNumber, setTrainNumber] = useState('');
-  const [journeyDate, setJourneyDate] = useState(indiaDate());
   const [lookahead, setLookahead] = useState('4');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [impact, setImpact] = useState<ImpactResponse | null>(null);
+
+  useEffect(() => {
+    if (window.sessionStorage.getItem(ADMIN_SESSION_KEY) !== 'true') {
+      router.replace('/admin/login?next=/operator');
+      return;
+    }
+    const frameId = window.requestAnimationFrame(() => setAuthChecked(true));
+    return () => window.cancelAnimationFrame(frameId);
+  }, [router]);
 
   const analyzeImpact = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -74,7 +84,7 @@ export default function OperatorPage() {
     setError('');
     setImpact(null);
     try {
-      const query = new URLSearchParams({ date: journeyDate, lookahead_stations: lookahead });
+      const query = new URLSearchParams({ lookahead_stations: lookahead });
       const response = await fetch(apiUrl(`/api/v1/control-room/impact/${encodeURIComponent(key)}?${query.toString()}`));
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.detail || 'The live control-room analysis is unavailable.');
@@ -93,66 +103,59 @@ export default function OperatorPage() {
       ? 'badge-delayed'
       : 'badge-ontime';
 
+  if (!authChecked) return <div className="min-h-screen bg-[#060a12]" />;
+
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 font-sans">
+    <div className="min-h-screen bg-[#061521] text-slate-100 font-sans relative overflow-x-hidden selection:bg-cyan-500/25">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-8">
-          <div className="text-xs uppercase tracking-[0.24em] text-cyan-400 font-mono mb-3">Network control room</div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">Downstream impact monitor</h1>
-          <p className="text-slate-400 mt-3 max-w-3xl">
-            Inspect a live train and the other trains currently appearing on its downstream station boards.
-            This is live operational correlation, not a confirmed track-blocking decision.
-          </p>
+        <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-400 font-mono mb-3"><span className="h-2 w-2 rounded-full bg-cyan-300 animate-pulse shadow-[0_0_8px_#00f0ff]" /> Admin only</div>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">Operations control room</h1>
+            <p className="text-slate-400 mt-3 max-w-3xl leading-6">Monitor a train’s current movement and identify other services that may be exposed downstream. Use this view for operational triage, not as proof of a track blockage.</p>
+          </div>
+          <button type="button" onClick={() => { window.sessionStorage.removeItem(ADMIN_SESSION_KEY); router.replace('/admin/login?next=/operator'); }} className="self-start rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-rose-400/40 hover:text-rose-200 cursor-pointer">Sign out</button>
         </div>
 
-        <form onSubmit={analyzeImpact} className="panel-card p-4 sm:p-5 grid grid-cols-1 md:grid-cols-[1.2fr_1fr_1fr_auto] gap-3 items-end">
+        <form onSubmit={analyzeImpact} className="surface-3d border border-cyan-400/25 p-5 sm:p-6 rounded-2xl grid grid-cols-1 md:grid-cols-[1.5fr_1fr_auto] gap-3.5 items-end shadow-2xl">
           <label className="text-xs text-slate-400 font-mono">
-            Train number
+            Train to inspect
             <input
               value={trainNumber}
               onChange={(event) => setTrainNumber(event.target.value)}
-              placeholder="Enter a train number"
+              placeholder="Enter a train number (e.g. 12951)"
               inputMode="numeric"
-              className="mt-2 w-full bg-[#070b14] border border-white/[0.1] rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400"
+              className="mt-2 w-full bg-[#071827]/80 border border-sky-200/15 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
             />
           </label>
           <label className="text-xs text-slate-400 font-mono">
-            Journey date
-            <input
-              type="date"
-              value={journeyDate}
-              onChange={(event) => setJourneyDate(event.target.value)}
-              className="mt-2 w-full bg-[#070b14] border border-white/[0.1] rounded-lg px-3 py-2.5 text-sm text-white outline-none [color-scheme:dark] focus:border-cyan-400"
-            />
-          </label>
-          <label className="text-xs text-slate-400 font-mono">
-            Downstream stations
+            Look ahead
             <select
               value={lookahead}
               onChange={(event) => setLookahead(event.target.value)}
-              className="mt-2 w-full bg-[#070b14] border border-white/[0.1] rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400"
+              className="mt-2 w-full bg-[#071827]/80 border border-sky-200/15 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
             >
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((value) => <option key={value} value={value}>{value}</option>)}
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((value) => <option key={value} value={value}>{value} stations</option>)}
             </select>
           </label>
-          <button type="submit" disabled={loading} className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors">
+          <button type="submit" disabled={loading} className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-slate-950 font-bold rounded-xl px-6 py-2.5 text-sm transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer">
             {loading ? 'Analyzing…' : 'Analyze impact'}
           </button>
         </form>
 
-        {error && <div className="mt-4 panel-card border-rose-400/30 p-4 text-sm text-rose-300">{error}</div>}
+        {error && <div className="mt-4 surface-3d border border-rose-400/30 p-4 rounded-xl text-sm text-rose-300">{error}</div>}
 
         {!impact && !loading && !error && (
-          <div className="mt-8 panel-card p-10 text-center text-slate-400">
-            Enter a train number to start a live downstream impact check.
+          <div className="mt-8 surface-3d p-12 text-center text-slate-400 rounded-2xl border border-white/[0.08]">
+            Enter a train number above to start a live downstream impact check.
           </div>
         )}
 
         {impact && incident && (
           <>
             <section className="mt-8 grid grid-cols-1 lg:grid-cols-[1.1fr_2fr] gap-4">
-              <div className="panel-card p-5">
+              <div className="surface-3d p-6 rounded-2xl border border-white/[0.08]">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-xs uppercase tracking-widest text-slate-500 font-mono">Incident train</div>

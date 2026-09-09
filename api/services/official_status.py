@@ -474,6 +474,26 @@ def runtime_route_from_status(status: LiveTrainStatus) -> Optional[dict[str, Any
     return None
 
 
+async def fetch_train_route_geometry(train_number: str) -> dict[str, Any]:
+    """Fetch provider-supplied railway track geometry for a train route."""
+    train_key = str(train_number).strip()
+    if not train_key:
+        raise LiveStatusInvalid("train number is required")
+    payload = _validate_railradar_response(await _fetch_railradar_json(
+        f"trains/{quote(train_key, safe='')}/route",
+        params={"format": "geojson", "stops": "true"},
+    ))
+    data = _railradar_data(payload)
+    geojson = data.get("geojson") if isinstance(data.get("geojson"), dict) else data
+    geometry = geojson.get("geometry") if isinstance(geojson, dict) else None
+    if not isinstance(geometry, dict) or geometry.get("type") not in {"LineString", "MultiLineString"}:
+        raise LiveStatusInvalid("RailRadar route geometry is missing or unsupported")
+    coordinates = geometry.get("coordinates")
+    if not isinstance(coordinates, list) or not coordinates:
+        raise LiveStatusInvalid("RailRadar route geometry has no coordinates")
+    return {"type": geometry["type"], "coordinates": coordinates, "source": "RAILRADAR"}
+
+
 def _parse_live_station_train(item: Any) -> dict[str, Optional[str]]:
     if not isinstance(item, dict):
         raise LiveStationInvalid("IndianRailAPI live-station train must be an object")

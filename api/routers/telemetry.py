@@ -7,6 +7,7 @@ import logging
 import os
 import time
 from typing import Any, Dict, List, Optional, Tuple
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -19,6 +20,7 @@ from api.services.official_status import (
     LiveStatusUnavailable,
     fetch_train_schedule,
     fetch_live_status,
+    fetch_train_route_geometry,
     runtime_route_from_status,
 )
 from api.routers.eta import get_train_eta
@@ -198,6 +200,86 @@ def get_history(train_number: str, date: Optional[str] = None) -> Dict[str, Any]
     return get_train_history(train_number, journey_date)
 
 
+def _scheduled_history_rows(stops: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Return a read-only timetable projection from the verified route index."""
+    return [
+        {
+            "station_code": str(stop.get("code", "")),
+            "station_name": str(stop.get("name", stop.get("code", ""))),
+            "sequence": stop.get("seq"),
+            "scheduled_arrival": stop.get("sched"),
+            "scheduled_departure": None,
+            "actual_arrival_at": None,
+            "actual_departure_at": None,
+            "delay_minutes": None,
+        }
+        for stop in stops
+    ]
+
+
+def _history_rows(history: Dict[str, Any], stops: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Prefer stored station events, falling back to the scheduled route."""
+    events = history.get("station_events") or []
+    if not events:
+        return _scheduled_history_rows(stops)
+
+    by_station: Dict[str, Dict[str, Any]] = {}
+    for event in events:
+        code = str(event.get("station_code", "")).strip().upper()
+        if not code:
+            continue
+        # Later observations are more complete for the same station.
+        by_station[code] = {
+            "station_code": code,
+            "station_name": event.get("station_name") or code,
+            "sequence": event.get("sequence"),
+            "scheduled_arrival": event.get("scheduled_arrival"),
+            "scheduled_departure": event.get("scheduled_departure"),
+            "actual_arrival_at": event.get("actual_arrival_at"),
+            "actual_departure_at": event.get("actual_departure_at"),
+            "delay_minutes": event.get("delay_arrival_minutes"),
+        }
+
+    rows = list(by_station.values())
+    rows.sort(key=lambda row: (row.get("sequence") is None, row.get("sequence") or 0))
+    return rows or _scheduled_history_rows(stops)
+
+
+@router.get("/{train_number}/previous-timetables", tags=["Forecast Feedback"])
+def get_previous_timetables(train_number: str, days: int = 5) -> Dict[str, Any]:
+    """Return the previous five journey dates without exposing a date picker.
+
+    Actual station events are returned when the local feedback store has them.
+    Otherwise the verified route index is returned as a clearly labelled
+    scheduled timetable, never as fabricated historical running data.
+    """
+    day_count = max(1, min(5, int(days)))
+    train_key = str(train_number).strip()
+    train_name, stops = get_train_stops(train_key)
+    today = dt.datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    response_days: List[Dict[str, Any]] = []
+
+    for offset in range(1, day_count + 1):
+        journey_date = today - dt.timedelta(days=offset)
+        history = get_train_history(train_key, journey_date)
+        has_actual_events = bool(history.get("station_events"))
+        response_days.append({
+            "date": journey_date.isoformat(),
+            "available": has_actual_events,
+            "source": "stored_station_events" if has_actual_events else "scheduled_route",
+            "observation_count": history.get("observation_count", 0),
+            "comparison_count": history.get("comparison_count", 0),
+            "note": (
+                "Stored provider station events for this journey."
+                if has_actual_events
+                else "No stored run for this date; showing the scheduled timetable only."
+            ),
+            "timetable": _history_rows(history, stops),
+        })
+
+    return {"train_number": train_key, "train_name": train_name, "days": response_days}
+
+
 @router.get("/{train_number}/live-eta", response_model=TrainETAResponse)
 async def get_live_eta(train_number: str, date: Optional[str] = None):
     """Fetch IndianRailAPI status and feed its station/delay into the ETA model."""
@@ -243,6 +325,20 @@ async def get_live_eta(train_number: str, date: Optional[str] = None):
         train_key, journey_date or dt.date.today(), status, eta, weather
     )
     return eta
+
+
+@router.get("/{train_number}/route-geometry")
+async def get_route_geometry(train_number: str):
+    """Return verified railway track geometry without exposing provider credentials."""
+    try:
+        return {
+            "train_number": str(train_number).strip(),
+            "route": await fetch_train_route_geometry(train_number),
+        }
+    except LiveStatusUnavailable as error:
+        raise HTTPException(status_code=503, detail="Railway route geometry is unavailable: configure RailRadar") from error
+    except LiveStatusInvalid as error:
+        raise HTTPException(status_code=502, detail="RailRadar returned unusable route geometry") from error
 
 
 @router.get("/{train_number}/live-stream")
