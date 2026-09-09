@@ -47,9 +47,10 @@ from api.services.phase3_models import load_phase3_models, phase3_status
 from api.services.phase2_models import load_phase2_models, phase2_status
 from api.services.phase5_controls import load_phase5_calibration, phase5_status
 from api.services.network_signals import network_provider_configured, network_provider_name
+from api.services.learning_status import load_learning_status
 
 app = FastAPI(
-    title="RailPulse ETA & Telemetry Platform",
+    title="Namaste Rail ETA & Telemetry Platform",
     version="2.0",
     description="Train ETA prediction with authorised live-status ingestion and transparent model forecasts",
     docs_url="/docs",
@@ -91,7 +92,7 @@ def startup_event():
     models, explainer = {}, None
     models_dir = os.path.join(ROOT_DIR, "models")
     
-    print("🚂 [RailPulse] Initializing ML models into memory...")
+    print("🚂 [Namaste Rail] Initializing ML models into memory...")
     load_train_index()
     load_feature_defaults()
     load_historical_records()
@@ -116,10 +117,10 @@ def startup_event():
             models = loaded_models
             explainer = DelayExplainer(models["p50"])
             set_models(models, explainer)
-            print("✅ [RailPulse] Production ML models and SHAP Explainer active.")
+        print("✅ [Namaste Rail] Production ML models and SHAP Explainer active.")
         else:
             set_models({}, None)
-            print("ℹ️ [RailPulse] Local model files not found on disk. Running in calibrated fallback mode.")
+        print("ℹ️ [Namaste Rail] Local model files not found on disk. Running in calibrated fallback mode.")
     except Exception:
         logger.exception("ETA model loading failed; starting without trained models")
         set_models({}, None)
@@ -129,13 +130,14 @@ def health_check():
     """System health check and diagnostic status."""
     return {
         "status": "healthy" if "p50" in models else "degraded",
-        "service": "RailPulse Operations Engine",
+        "service": "Namaste Rail Operations Engine",
         "version": "2.0",
         "models_active": "p50" in models,
         "model_version": eta_module.MODEL_VERSION,
         "phase3": phase3_status(),
         "phase2": phase2_status(),
         "phase5": phase5_status(),
+        "learning": load_learning_status(),
         "indexed_routes": len(eta_module.TRAIN_ROUTES_INDEX),
         "live_provider_configured": bool(
             os.getenv("RAILRADAR_API_KEY") or os.getenv("INDIAN_RAIL_API_KEY") or os.getenv("OFFICIAL_RAIL_STATUS_URL")
@@ -151,3 +153,8 @@ def health_check():
         "network_signals_provider": network_provider_name(),
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
     }
+
+@app.get("/learning-status", tags=["System Health"])
+def learning_status():
+    """Return the last daily collection/export/retraining report."""
+    return load_learning_status()

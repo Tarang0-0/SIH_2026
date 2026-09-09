@@ -7,7 +7,7 @@ import os
 import time
 
 print("=" * 60)
-print("🚂 RailPulse Model Retraining on Complete Dataset")
+print("🚂 Namaste Rail Model Retraining on Complete Dataset")
 print("=" * 60)
 
 # 1. Load Data

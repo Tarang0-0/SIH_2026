@@ -1,6 +1,6 @@
-# Contributing to RailPulse
+# Contributing to Namaste Rail
 
-RailPulse uses a single root repository containing the FastAPI backend, the
+Namaste Rail uses a single root repository containing the FastAPI backend, the
 Next.js frontend, model artifacts, and supporting scripts.
 
 ## First-time setup

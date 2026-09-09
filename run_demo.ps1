@@ -21,7 +21,7 @@ function Stop-Tree($Process) {
 }
 
 try {
-    Write-Host "Starting RailPulse backend on http://localhost:8000 ..." -ForegroundColor Cyan
+    Write-Host "Starting Namaste Rail backend on http://localhost:8000 ..." -ForegroundColor Cyan
     $BackendProcess = Start-Process `
         -FilePath $PythonExecutable `
         -ArgumentList @("-m", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", "8000") `
@@ -48,7 +48,7 @@ try {
         throw "The backend did not become ready within 30 seconds."
     }
 
-    Write-Host "Starting RailPulse frontend on http://localhost:3000 ..." -ForegroundColor Cyan
+    Write-Host "Starting Namaste Rail frontend on http://localhost:3000 ..." -ForegroundColor Cyan
     $FrontendProcess = Start-Process `
         -FilePath "npm.cmd" `
         -ArgumentList @("run", "dev", "--", "-p", "3000") `
@@ -60,7 +60,7 @@ try {
     try { Start-Process "http://localhost:3000" } catch { }
 
     Write-Host "" 
-    Write-Host "RailPulse is running." -ForegroundColor Green
+    Write-Host "Namaste Rail is running." -ForegroundColor Green
     Write-Host "Website: http://localhost:3000"
     Write-Host "API docs: http://localhost:8000/docs"
     Write-Host "Press Ctrl+C to stop both services."

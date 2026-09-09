@@ -10,7 +10,7 @@ export default function ThreeDSignalOrb({
   providerConfigured = false,
 }: ThreeDSignalOrbProps) {
   return (
-    <div className="signal-stage" aria-label="RailPulse model and provider status visualization">
+    <div className="signal-stage" aria-label="Namaste Rail model and provider status visualization">
       <div className="signal-stage__halo signal-stage__halo--one" />
       <div className="signal-stage__halo signal-stage__halo--two" />
       <div className="signal-orb" aria-hidden="true">

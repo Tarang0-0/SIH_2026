@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# 🚂 RailPulse - Single Command Unified Demo Launcher
+# 🚂 Namaste Rail - Single Command Unified Demo Launcher
 # Smart India Hackathon 2026
 # ==============================================================================
 
@@ -22,13 +22,13 @@ else
 fi
 
 echo "========================================================"
-echo "  🚂 STARTING RAILPULSE AI OPERATIONS & TELEMETRY ENGINE  "
+echo "  🚂 STARTING NAMASTE RAIL AI OPERATIONS & TELEMETRY ENGINE  "
 echo "========================================================"
 
 # Cleanup handler on exit (Ctrl+C)
 cleanup() {
     echo ""
-    echo "🛑 Shutting down RailPulse services..."
+    echo "🛑 Shutting down Namaste Rail services..."
     kill $(jobs -p) 2>/dev/null || true
     echo "✅ All services stopped safely."
     exit 0
@@ -57,7 +57,7 @@ FRONTEND_PID=$!
 
 echo ""
 echo "========================================================"
-echo "  🌟 RAILPULSE IS READY FOR PRESENTATION & DEMO!"
+echo "  🌟 NAMASTE RAIL IS READY FOR PRESENTATION & DEMO!"
 echo "========================================================"
 echo "  • Passenger Web App:     http://localhost:3000"
 echo "  • Telemetry Dashboard:   http://localhost:3000/dashboard"

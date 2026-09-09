@@ -1,4 +1,4 @@
-# RailPulse 🚂
+# Namaste Rail 🚂
 ### Dynamic Train ETA Prediction & Network Cascading Delay Propagation Engine
 **Smart India Hackathon 2026** | Ministry of Railways / CRIS  
 **Theme:** Smart Automation, Transportation & Logistics  
@@ -6,9 +6,9 @@
 ---
 
 ## 🌟 Executive Overview
-**RailPulse** replaces static, schedule-based timetable estimates with a Machine Learning telemetry engine for the Indian Railways. It captures provider-backed feedback for a gated, auditable retraining loop.
+**Namaste Rail** replaces static, schedule-based timetable estimates with a Machine Learning telemetry engine for the Indian Railways. It captures provider-backed feedback for a gated, auditable retraining loop.
 
-Unlike conventional railway tracking apps that merely carry forward current delays, RailPulse predicts downstream ETA intervals from historical delay patterns, timetable structure, and live signals available from configured providers. Network occupancy and dispatch causality remain explicitly data-gated.
+Unlike conventional railway tracking apps that merely carry forward current delays, Namaste Rail predicts downstream ETA intervals from historical delay patterns, timetable structure, and live signals available from configured providers. Network occupancy and dispatch causality remain explicitly data-gated.
 
 Live weather is provided by OpenWeather when `OPENWEATHER_API_KEY` is set on
 the backend. It is stored as an external, explicitly tagged feature for Phase
@@ -190,6 +190,34 @@ delay-propagation quantile models. Run
 `.venv/bin/python scripts/14_train_phase3_movement_models.py` after enough
 live journeys have completed. The API uses those artifacts only after their
 feature contract is validated.
+
+### Daily data refresh and retraining
+
+The repository includes a safe daily learning job:
+
+```bash
+.venv/bin/python scripts/20_daily_learning.py
+```
+
+It rebuilds the terminal, station-level, and movement datasets from the
+SQLite feedback store. It then retrains only when the relevant verified data
+has changed. Failed or data-gated trainers leave the previous model artifacts
+in place and write a report to `reports/daily_learning_status.json`.
+
+To collect live observations before the export, configure an authorised
+provider and set `RAILPULSE_DAILY_TRAIN_NUMBERS` in `.env`, then run:
+
+```bash
+.venv/bin/python scripts/20_daily_learning.py --collect
+```
+
+The API exposes the latest result at `/learning-status` and includes it in
+`/health`. This job must be scheduled on a machine that stays online; GitHub
+cannot update a developer's local SQLite database unless that database is
+placed in an approved shared data service. On Windows, use
+`scripts/run_daily_learning.ps1` with Task Scheduler as described in
+[WINDOWS_SETUP.md](WINDOWS_SETUP.md). Restart the API after a successful
+training run so it loads the new model files.
 
 Add your own provider credential to `.env` before starting the backend:
 

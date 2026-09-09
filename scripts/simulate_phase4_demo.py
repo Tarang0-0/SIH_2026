@@ -27,7 +27,7 @@ def test_endpoint(title, url, method="GET", data=None):
         return None
 
 def main():
-    print("=== RAILPULSE PHASE 4 END-TO-END VERIFICATION ===")
+    print("=== NAMASTE RAIL PHASE 4 END-TO-END VERIFICATION ===")
     
     # 1. Health Check
     test_endpoint("API Health & Active Subscriptions", f"{BASE_URL}/health")

@@ -1,6 +1,6 @@
-# RailPulse ETA API
+# Namaste Rail ETA API
 
-This directory contains the FastAPI service that serves the Machine Learning ETA models for the RailPulse platform.
+This directory contains the FastAPI service that serves the Machine Learning ETA models for the Namaste Rail platform.
 
 ## Features
 - **FastAPI Framework:** High performance and automatic OpenAPI documentation.

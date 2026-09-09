@@ -1,6 +1,6 @@
 # Windows setup
 
-RailPulse runs locally on Windows through PowerShell. Install these tools
+Namaste Rail runs locally on Windows through PowerShell. Install these tools
 before cloning:
 
 - Git for Windows
@@ -57,3 +57,39 @@ Pop-Location
   change the port in `run_demo.ps1` and the frontend API configuration.
 - Live train/weather data stays unavailable until the relevant provider keys
   are added to the root `.env` file.
+
+## Daily data refresh and model learning
+
+The backend records successful live provider polls in
+`data\railpulse_feedback.sqlite3`. To collect a small approved set of trains
+and refresh verified datasets every day, configure the provider keys and these
+values in `.env`:
+
+```text
+RAILPULSE_DAILY_COLLECT=true
+RAILPULSE_DAILY_TRAIN_NUMBERS=12951,12952
+RAILPULSE_DAILY_COLLECTION_INTERVAL_SECONDS=300
+RAILPULSE_DAILY_COLLECTION_SECONDS=3600
+```
+
+Run the job once manually to verify it:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_daily_learning.ps1 -Collect
+```
+
+For Task Scheduler, create a daily task that runs at a time when this laptop
+is on and connected to the internet:
+
+```powershell
+$action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-ExecutionPolicy Bypass -File `"$PWD\scripts\run_daily_learning.ps1`" -Collect"
+$trigger = New-ScheduledTaskTrigger -Daily -At 3:30am
+Register-ScheduledTask -TaskName "Namaste Rail Daily Learning" -Action $action -Trigger $trigger -Description "Refresh verified Namaste Rail data and retrain eligible models"
+```
+
+The job always rebuilds the exported datasets. It retrains only when a dataset
+has changed and only from provider-confirmed labels; insufficient data is
+reported as a gate instead of producing a misleading model. The report is
+available at `http://localhost:8000/learning-status` and in
+`reports\daily_learning_status.json`. Restart the API after a successful
+training run so the new model files are loaded into memory.

@@ -106,7 +106,7 @@ def simulate_alert_trigger(subscription_id: str):
         status="DISPATCHED", channel="SMS_GATEWAY_SIMULATOR", recipient=sub["user_phone"],
         dispatched_at=dt.datetime.now(IST).isoformat(timespec="seconds"),
         payload={
-            "title": f"🚨 RailPulse Alert: Train {train_number}",
-            "body": f"Your train #{train_number} is approaching {station_code}. Predicted arrival is updated by RailPulse AI.",
+            "title": f"🚨 Namaste Rail Alert: Train {train_number}",
+            "body": f"Your train #{train_number} is approaching {station_code}. Predicted arrival is updated by Namaste Rail AI.",
         },
     )

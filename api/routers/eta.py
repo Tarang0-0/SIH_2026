@@ -41,9 +41,9 @@ def load_train_index() -> None:
     try:
         with open(INDEX_PATH) as file:
             TRAIN_ROUTES_INDEX = json.load(file)
-        print(f"✅ [RailPulse] Loaded {len(TRAIN_ROUTES_INDEX)} train routes from index.")
+        print(f"✅ [Namaste Rail] Loaded {len(TRAIN_ROUTES_INDEX)} train routes from index.")
     except (OSError, json.JSONDecodeError) as error:
-        print(f"⚠️ [RailPulse] Failed to load train index: {error}")
+        print(f"⚠️ [Namaste Rail] Failed to load train index: {error}")
 
 
 def load_feature_defaults() -> None:
@@ -59,7 +59,7 @@ def load_feature_defaults() -> None:
             if np.isfinite(float(value))
         }
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
-        print(f"⚠️ [RailPulse] Failed to load feature defaults: {error}")
+        print(f"⚠️ [Namaste Rail] Failed to load feature defaults: {error}")
 
 
 def load_historical_records() -> None:

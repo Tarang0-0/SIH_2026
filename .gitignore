@@ -49,6 +49,8 @@ data/official_route_cache.json
 data/online_completed_journeys.csv
 data/station_level_training.csv
 data/phase3_movement_training.csv
+reports/daily_learning_status.json
+data/.daily_learning.lock
 
 # Reproducible training intermediates and local exports
 data/*.parquet

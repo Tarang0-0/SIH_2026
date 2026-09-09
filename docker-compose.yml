@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: railpulse-backend
+    container_name: namaste-rail-backend
     ports:
       - "8000:8000"
     environment:
@@ -30,7 +30,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: railpulse-frontend
+    container_name: namaste-rail-frontend
     ports:
       - "3000:3000"
     environment:

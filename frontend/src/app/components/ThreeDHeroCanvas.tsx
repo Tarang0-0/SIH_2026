@@ -119,6 +119,8 @@ export default function ThreeDHeroCanvas() {
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
 
+      const isDark = document.documentElement.classList.contains('dark');
+
       // Draw subtle 3D floor ties / sleeper rungs across adjacent tracks
       ctx.lineWidth = 1;
       for (let i = 0; i < trackLength; i += 2) {
@@ -129,8 +131,8 @@ export default function ThreeDHeroCanvas() {
           const prjB = project(pB);
 
           if (prjA && prjB) {
-            const alpha = Math.max(0.02, Math.min(0.12, 1 - prjA.depth / 1800));
-            ctx.strokeStyle = `rgba(148, 163, 184, ${alpha})`;
+            const alpha = Math.max(0.02, Math.min(isDark ? 0.18 : 0.12, 1 - prjA.depth / 1800));
+            ctx.strokeStyle = isDark ? `rgba(56, 189, 248, ${alpha})` : `rgba(148, 163, 184, ${alpha})`;
             ctx.beginPath();
             ctx.moveTo(prjA.x, prjA.y);
             ctx.lineTo(prjB.x, prjB.y);
@@ -158,8 +160,10 @@ export default function ThreeDHeroCanvas() {
         }
 
         const isCenter = tIdx === 2;
-        ctx.strokeStyle = isCenter ? 'rgba(2, 132, 199, 0.45)' : 'rgba(14, 165, 233, 0.22)';
-        ctx.lineWidth = isCenter ? 2.5 : 1.2;
+        ctx.strokeStyle = isDark
+          ? (isCenter ? 'rgba(56, 189, 248, 0.75)' : 'rgba(14, 165, 233, 0.35)')
+          : (isCenter ? 'rgba(2, 132, 199, 0.45)' : 'rgba(14, 165, 233, 0.22)');
+        ctx.lineWidth = isCenter ? (isDark ? 3 : 2.5) : (isDark ? 1.5 : 1.2);
         ctx.stroke();
       });
 
@@ -182,24 +186,25 @@ export default function ThreeDHeroCanvas() {
 
         const prj = project(pCurrent);
         if (prj) {
-          const radius = Math.max(3, 6 * prj.scale);
-          const grad = ctx.createRadialGradient(prj.x, prj.y, 0, prj.x, prj.y, radius * 4);
-          grad.addColorStop(0, pulse.color);
-          grad.addColorStop(0.4, pulse.color);
+          const radius = Math.max(3, (isDark ? 7.5 : 6) * prj.scale);
+          const grad = ctx.createRadialGradient(prj.x, prj.y, 0, prj.x, prj.y, radius * 4.5);
+          grad.addColorStop(0, isDark ? '#ffffff' : pulse.color);
+          grad.addColorStop(0.25, pulse.color);
+          grad.addColorStop(0.65, pulse.color);
           grad.addColorStop(1, 'transparent');
 
           ctx.fillStyle = grad;
           ctx.beginPath();
-          ctx.arc(prj.x, prj.y, radius * 4, 0, Math.PI * 2);
+          ctx.arc(prj.x, prj.y, radius * 4.5, 0, Math.PI * 2);
           ctx.fill();
 
           // Bright Core dot
           ctx.fillStyle = '#ffffff';
           ctx.beginPath();
-          ctx.arc(prj.x, prj.y, radius * 1.1, 0, Math.PI * 2);
+          ctx.arc(prj.x, prj.y, radius * 1.15, 0, Math.PI * 2);
           ctx.fill();
           ctx.strokeStyle = pulse.color;
-          ctx.lineWidth = 1.2;
+          ctx.lineWidth = isDark ? 1.8 : 1.2;
           ctx.stroke();
         }
       });

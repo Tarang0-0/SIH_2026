@@ -1,4 +1,4 @@
-# RailPulse model improvement phases
+# Namaste Rail model improvement phases
 
 ## Phase 1 — Data foundation and observability
 

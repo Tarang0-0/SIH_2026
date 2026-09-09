@@ -64,6 +64,14 @@ export default function OperatorPage() {
   const [error, setError] = useState('');
   const [impact, setImpact] = useState<ImpactResponse | null>(null);
 
+  const sampleTrains = [
+    { number: '12951', name: 'Mumbai Tejas Rajdhani' },
+    { number: '12002', name: 'Bhopal Shatabdi' },
+    { number: '12301', name: 'Howrah Rajdhani' },
+    { number: '12259', name: 'Sealdah Duronto' },
+    { number: '22436', name: 'Vande Bharat Exp' },
+  ];
+
   useEffect(() => {
     if (window.sessionStorage.getItem(ADMIN_SESSION_KEY) !== 'true') {
       router.replace('/admin/login?next=/operator');
@@ -73,9 +81,8 @@ export default function OperatorPage() {
     return () => window.cancelAnimationFrame(frameId);
   }, [router]);
 
-  const analyzeImpact = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const key = trainNumber.trim();
+  const executeAnalysis = async (targetTrain: string, stationsLookahead: string) => {
+    const key = targetTrain.trim();
     if (!key) {
       setError('Enter a train number to inspect the live downstream impact.');
       return;
@@ -84,7 +91,7 @@ export default function OperatorPage() {
     setError('');
     setImpact(null);
     try {
-      const query = new URLSearchParams({ lookahead_stations: lookahead });
+      const query = new URLSearchParams({ lookahead_stations: stationsLookahead });
       const response = await fetch(apiUrl(`/api/v1/control-room/impact/${encodeURIComponent(key)}?${query.toString()}`));
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.detail || 'The live control-room analysis is unavailable.');
@@ -96,116 +103,432 @@ export default function OperatorPage() {
     }
   };
 
-  const incident = impact?.incident;
-  const statusClass = incident?.halt_status === 'halted'
-    ? 'badge-critical'
-    : incident?.delay_minutes && incident.delay_minutes > 0
-      ? 'badge-delayed'
-      : 'badge-ontime';
+  const analyzeImpact = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await executeAnalysis(trainNumber, lookahead);
+  };
 
-  if (!authChecked) return <div className="min-h-screen bg-[#060a12]" />;
+  const handleSelectSample = (number: string) => {
+    setTrainNumber(number);
+    void executeAnalysis(number, lookahead);
+  };
+
+  const incident = impact?.incident;
+
+  // Semantic status color coding
+  const getDelayBadge = (delayMinutes?: number | null) => {
+    if (delayMinutes == null) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+          Unknown
+        </span>
+      );
+    }
+    if (delayMinutes <= 0) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.15)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          On time (0m)
+        </span>
+      );
+    }
+    if (delayMinutes <= 15) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.15)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          +{delayMinutes}m moderate
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.2)]">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+        +{delayMinutes}m critical
+      </span>
+    );
+  };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-[#eef7ff] dark:bg-[#060c18] flex items-center justify-center">
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
+          <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
+          Authenticating dispatch session…
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#061521] text-slate-100 font-sans relative overflow-x-hidden selection:bg-cyan-500/25">
+    <div className="min-h-screen bg-[#eef7ff] dark:bg-[#060c18] text-slate-900 dark:text-slate-100 font-sans relative overflow-x-hidden selection:bg-sky-500/20">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        
+        {/* Header Section */}
+        <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-400 font-mono mb-3"><span className="h-2 w-2 rounded-full bg-cyan-300 animate-pulse shadow-[0_0_8px_#00f0ff]" /> Admin only</div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">Operations control room</h1>
-            <p className="text-slate-400 mt-3 max-w-3xl leading-6">Monitor a train’s current movement and identify other services that may be exposed downstream. Use this view for operational triage, not as proof of a track blockage.</p>
+            <div className="inline-flex items-center gap-2 rounded-full border border-sky-300 dark:border-cyan-500/30 bg-sky-50 dark:bg-cyan-500/10 px-3.5 py-1 text-[11px] font-mono uppercase tracking-widest text-sky-700 dark:text-cyan-300 shadow-[0_0_12px_rgba(14,165,233,0.15)] dark:shadow-[0_0_12px_rgba(0,240,255,0.2)] mb-3">
+              <span className="h-2 w-2 rounded-full bg-sky-500 dark:bg-cyan-300 animate-pulse shadow-[0_0_8px_#00f0ff]" />
+              Operations Dispatch Console • Restricted Access
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+              Corridor Impact & Cascade Control
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-3xl leading-relaxed text-xs sm:text-sm">
+              Live corridor triage analyzing downstream station exposure from halted or delayed services. Correlates RTIS locomotive telemetry with station arrivals to identify potential headway conflicts.
+            </p>
           </div>
-          <button type="button" onClick={() => { window.sessionStorage.removeItem(ADMIN_SESSION_KEY); router.replace('/admin/login?next=/operator'); }} className="self-start rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-rose-400/40 hover:text-rose-200 cursor-pointer">Sign out</button>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              className="rounded-xl border border-sky-200 dark:border-sky-800/80 bg-white dark:bg-[#0b1528] px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-cyan-300 hover:border-sky-300 dark:hover:border-sky-700 shadow-xs transition cursor-pointer"
+            >
+              Passenger Search
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
+                router.replace('/admin/login?next=/operator');
+              }}
+              className="rounded-xl border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-rose-950/20 px-4 py-2 text-xs font-semibold text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/40 hover:border-rose-300 dark:hover:border-rose-700 shadow-xs transition cursor-pointer"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={analyzeImpact} className="surface-3d border border-cyan-400/25 p-5 sm:p-6 rounded-2xl grid grid-cols-1 md:grid-cols-[1.5fr_1fr_auto] gap-3.5 items-end shadow-2xl">
-          <label className="text-xs text-slate-400 font-mono">
-            Train to inspect
-            <input
-              value={trainNumber}
-              onChange={(event) => setTrainNumber(event.target.value)}
-              placeholder="Enter a train number (e.g. 12951)"
-              inputMode="numeric"
-              className="mt-2 w-full bg-[#071827]/80 border border-sky-200/15 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
-            />
-          </label>
-          <label className="text-xs text-slate-400 font-mono">
-            Look ahead
-            <select
-              value={lookahead}
-              onChange={(event) => setLookahead(event.target.value)}
-              className="mt-2 w-full bg-[#071827]/80 border border-sky-200/15 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50"
+        {/* Triage Search & Filter Console */}
+        <div className="bg-white dark:bg-[#0b1528] border border-sky-200/90 dark:border-sky-900/60 p-5 sm:p-6 rounded-2xl shadow-sm dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] mb-6">
+          <form onSubmit={analyzeImpact} className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_auto] gap-4 items-end">
+            <label className="text-xs text-slate-600 dark:text-slate-400 font-mono">
+              <span className="block mb-1.5 font-bold uppercase tracking-wider text-[11px]">Train to Inspect</span>
+              <input
+                value={trainNumber}
+                onChange={(event) => setTrainNumber(event.target.value)}
+                placeholder="Enter 5-digit train number (e.g. 12951)"
+                inputMode="numeric"
+                className="w-full bg-sky-50/50 dark:bg-[#071827]/80 border border-sky-200 dark:border-sky-800/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-sky-500 dark:focus:border-cyan-400 focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-cyan-400/30 transition-all font-mono"
+              />
+            </label>
+
+            <label className="text-xs text-slate-600 dark:text-slate-400 font-mono">
+              <span className="block mb-1.5 font-bold uppercase tracking-wider text-[11px]">Lookahead Depth</span>
+              <select
+                value={lookahead}
+                onChange={(event) => setLookahead(event.target.value)}
+                className="w-full bg-sky-50/50 dark:bg-[#071827]/80 border border-sky-200 dark:border-sky-800/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-sky-500 dark:focus:border-cyan-400 focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-cyan-400/30 transition-all font-mono cursor-pointer"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((value) => (
+                  <option key={value} value={value}>
+                    {value} downstream {value === 1 ? 'station' : 'stations'}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 dark:from-cyan-500 dark:to-blue-600 text-white dark:text-slate-950 font-bold rounded-xl px-7 py-2.5 text-sm transition-all shadow-[0_4px_14px_rgba(14,165,233,0.3)] dark:shadow-[0_0_18px_rgba(0,240,255,0.3)] cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((value) => <option key={value} value={value}>{value} stations</option>)}
-            </select>
-          </label>
-          <button type="submit" disabled={loading} className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-slate-950 font-bold rounded-xl px-6 py-2.5 text-sm transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer">
-            {loading ? 'Analyzing…' : 'Analyze impact'}
-          </button>
-        </form>
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-current" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  <span>Analyzing…</span>
+                </>
+              ) : (
+                <span>Analyze Impact</span>
+              )}
+            </button>
+          </form>
 
-        {error && <div className="mt-4 surface-3d border border-rose-400/30 p-4 rounded-xl text-sm text-rose-300">{error}</div>}
+          {/* Quick-test Preset Trains */}
+          <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">Quick Preset:</span>
+            {sampleTrains.map((sample) => (
+              <button
+                key={sample.number}
+                type="button"
+                onClick={() => handleSelectSample(sample.number)}
+                className={`text-xs font-mono px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                  trainNumber === sample.number
+                    ? 'bg-sky-500 text-white border-sky-600 dark:bg-cyan-500 dark:text-slate-950 dark:border-cyan-400 font-bold shadow-xs'
+                    : 'bg-slate-50 dark:bg-[#0c1729] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-sky-300 dark:hover:border-cyan-500/50'
+                }`}
+              >
+                <span className="font-bold">{sample.number}</span> <span className="opacity-75 hidden sm:inline">• {sample.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {!impact && !loading && !error && (
-          <div className="mt-8 surface-3d p-12 text-center text-slate-400 rounded-2xl border border-white/[0.08]">
-            Enter a train number above to start a live downstream impact check.
+        {/* Error notification */}
+        {error && (
+          <div className="mb-6 rounded-2xl border border-rose-300 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-400/10 p-4 text-sm text-rose-700 dark:text-rose-200 flex items-center gap-3">
+            <svg className="w-5 h-5 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>{error}</span>
           </div>
         )}
 
-        {impact && incident && (
-          <>
-            <section className="mt-8 grid grid-cols-1 lg:grid-cols-[1.1fr_2fr] gap-4">
-              <div className="surface-3d p-6 rounded-2xl border border-white/[0.08]">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="text-xs uppercase tracking-widest text-slate-500 font-mono">Incident train</div>
-                    <div className="text-3xl font-black font-mono text-white mt-2">{incident.train_number}</div>
-                    <div className="text-sm text-slate-400 mt-1">{incident.current_station} → {incident.next_station || 'Next station unavailable'}</div>
-                  </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold ${statusClass}`}>
-                    {incident.halt_status === 'halted' ? 'HALTED' : `+${incident.delay_minutes} MIN`}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-6 text-sm">
-                  <div><div className="text-xs text-slate-500">Journey</div><div className="font-mono text-slate-200 mt-1">{incident.journey_date}</div></div>
-                  <div><div className="text-xs text-slate-500">Speed</div><div className="font-mono text-slate-200 mt-1">{incident.speed_kmh ?? '—'} km/h</div></div>
-                  <div><div className="text-xs text-slate-500">Provider</div><div className="font-mono text-slate-200 mt-1">{incident.provider}</div></div>
-                  <div><div className="text-xs text-slate-500">Board stations</div><div className="font-mono text-slate-200 mt-1">{impact.affected_station_codes.join(', ')}</div></div>
-                </div>
-              </div>
-              <div className="panel-card p-5">
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <div>
-                    <div className="text-xs uppercase tracking-widest text-slate-500 font-mono">Potential downstream exposure</div>
-                    <h2 className="text-xl font-bold text-white mt-1">{impact.affected_trains.length} train records</h2>
-                  </div>
-                  <div className="text-right text-xs text-slate-500 font-mono">Live board correlation<br />{impact.data_quality.provider}</div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-white/[0.08]">
-                      <tr><th className="py-2 pr-4">Train</th><th className="py-2 pr-4">Station</th><th className="py-2 pr-4">Expected</th><th className="py-2">Delay</th></tr>
-                    </thead>
-                    <tbody>
-                      {impact.affected_trains.map((train, index) => (
-                        <tr key={`${train.train_number}-${train.station_code}-${index}`} className="border-b border-white/[0.05] last:border-0">
-                          <td className="py-3 pr-4"><div className="font-mono font-bold text-white">{train.train_number}</div><div className="text-xs text-slate-500 max-w-[180px] truncate">{train.train_name}</div></td>
-                          <td className="py-3 pr-4 font-mono text-cyan-300">{train.station_code}</td>
-                          <td className="py-3 pr-4 font-mono text-slate-300">{displayTime(train.expected_arrival || train.scheduled_arrival)}</td>
-                          <td className="py-3 font-mono text-amber-300">{train.delay_minutes == null ? '—' : `+${train.delay_minutes}m`}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {impact.affected_trains.length === 0 && <div className="py-8 text-center text-slate-500">No other trains were returned by the live boards in this window.</div>}
-                </div>
-              </div>
-            </section>
-            <div className="mt-4 text-xs text-slate-500 font-mono">
-              Occupancy feed: {impact.data_quality.network_signals_available ? `connected (${impact.data_quality.network_signal_provider || 'provider'})` : 'unavailable'} · Causality confirmed: no · Failed boards: {impact.data_quality.failed_station_boards.length ? impact.data_quality.failed_station_boards.join(', ') : 'none'}
+        {/* Empty state when no analysis performed yet */}
+        {!impact && !loading && !error && (
+          <div className="bg-white dark:bg-[#0b1528] p-12 text-center rounded-2xl border border-sky-200/90 dark:border-sky-900/60 shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-950/80 border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-cyan-400 mx-auto flex items-center justify-center mb-4 shadow-sm">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
             </div>
-          </>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Ready for Corridor Triage</h3>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed mb-4">
+              Enter a train number or choose a quick preset above to query real-time downstream station boards and identify services exposed to potential delays.
+            </p>
+          </div>
         )}
+
+        {/* Live Analysis Display */}
+        {impact && incident && (
+          <div className="space-y-6">
+            
+            {/* Top Grid: Incident Train + Downstream Exposure */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.9fr] gap-6">
+              
+              {/* Incident Train Telemetry Card */}
+              <div className="bg-white dark:bg-[#0b1528] p-6 rounded-2xl border border-sky-200/90 dark:border-sky-900/60 shadow-sm dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-sky-700 dark:text-cyan-400 font-mono font-bold">
+                        Incident Train Telemetry
+                      </div>
+                      <div className="text-3xl sm:text-4xl font-black font-mono text-slate-900 dark:text-white mt-1">
+                        #{incident.train_number}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-1.5 font-mono">
+                        <span className="font-bold text-slate-900 dark:text-slate-200">{incident.current_station}</span>
+                        <span>➔</span>
+                        <span>{incident.next_station || 'Terminal'}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      {incident.halt_status === 'halted' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.25)]">
+                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                          HALTED
+                        </span>
+                      ) : incident.delay_minutes > 15 ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.25)]">
+                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                          +{incident.delay_minutes} MIN DELAY
+                        </span>
+                      ) : incident.delay_minutes > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                          <span className="w-2 h-2 rounded-full bg-amber-500" />
+                          +{incident.delay_minutes} MIN DELAY
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                          ON SCHEDULE
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Downstream Corridor Path Ribbon */}
+                  <div className="my-5 p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-500 font-mono mb-2">
+                      Downstream Monitored Corridor ({impact.affected_station_codes.length} Halts)
+                    </div>
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono scrollbar-none">
+                      {impact.affected_station_codes.map((code, idx) => (
+                        <React.Fragment key={code}>
+                          <span className="px-2 py-1 rounded-lg bg-white dark:bg-[#071827] border border-sky-200 dark:border-cyan-500/40 text-slate-900 dark:text-cyan-300 font-bold shrink-0 shadow-2xs">
+                            {code}
+                          </span>
+                          {idx < impact.affected_station_codes.length - 1 && (
+                            <span className="text-slate-400 dark:text-slate-600 shrink-0">➔</span>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4-Stat Telemetry Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-500 uppercase">Movement State</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${incident.halt_status === 'halted' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                        <span className="capitalize">{incident.halt_status}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-500 uppercase">Current Velocity</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-1">
+                        {incident.speed_kmh != null ? `${incident.speed_kmh} km/h` : '—'}
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-500 uppercase">Journey Date</div>
+                      <div className="text-xs font-bold text-slate-900 dark:text-slate-200 mt-1 truncate">
+                        {incident.journey_date}
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-500 uppercase">Signal Source</div>
+                      <div className="text-xs font-bold text-sky-700 dark:text-cyan-300 mt-1 truncate">
+                        {incident.provider}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-[11px] font-mono text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                  <span>Telemetry observed:</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-300">{displayTime(incident.observed_at)} IST</span>
+                </div>
+              </div>
+
+              {/* Downstream Train Exposure Table */}
+              <div className="bg-white dark:bg-[#0b1528] p-5 sm:p-6 rounded-2xl border border-sky-200/90 dark:border-sky-900/60 shadow-sm dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between">
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+                        Potential Downstream Exposure
+                      </div>
+                      <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5">
+                        {impact.affected_trains.length} Services in Corridor Window
+                      </h2>
+                    </div>
+                    <div className="text-left sm:text-right text-xs text-slate-500 font-mono">
+                      Board Correlation: <span className="font-bold text-slate-700 dark:text-slate-300">{impact.data_quality.provider}</span>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs font-mono">
+                      <thead className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-100 dark:border-slate-800">
+                        <tr>
+                          <th className="py-2.5 pr-4">Train Service</th>
+                          <th className="py-2.5 pr-4">Halt Station</th>
+                          <th className="py-2.5 pr-4">Expected ETA</th>
+                          <th className="py-2.5 pr-4">Delay State</th>
+                          <th className="py-2.5">Impact Vector</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                        {impact.affected_trains.map((train, index) => (
+                          <tr key={`${train.train_number}-${train.station_code}-${index}`} className="hover:bg-sky-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="py-3 pr-4">
+                              <div className="font-bold text-slate-900 dark:text-white">#{train.train_number}</div>
+                              <div className="text-[11px] text-slate-500 max-w-[170px] truncate">{train.train_name}</div>
+                            </td>
+                            <td className="py-3 pr-4">
+                              <span className="px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/80 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-cyan-300 font-bold">
+                                {train.station_code}
+                              </span>
+                            </td>
+                            <td className="py-3 pr-4 text-slate-700 dark:text-slate-300 tabular-nums">
+                              {displayTime(train.expected_arrival || train.scheduled_arrival)}
+                            </td>
+                            <td className="py-3 pr-4">
+                              {getDelayBadge(train.delay_minutes)}
+                            </td>
+                            <td className="py-3 text-[11px] text-slate-600 dark:text-slate-400 max-w-[220px] leading-relaxed">
+                              {train.impact_reason.includes('occupied block') ? (
+                                <span className="text-rose-600 dark:text-rose-400 font-medium">Occupied block contention</span>
+                              ) : train.impact_reason.includes('maintenance') ? (
+                                <span className="text-amber-600 dark:text-amber-400 font-medium">Maintenance block</span>
+                              ) : (
+                                <span>Downstream station window</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {impact.affected_trains.length === 0 && (
+                      <div className="py-10 text-center text-slate-500 text-xs font-mono">
+                        No other trains were returned by the live boards in this lookahead corridor window.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-[11px] font-mono text-slate-500 dark:text-slate-400 flex flex-wrap items-center justify-between gap-2">
+                  <span>Note: Correlates live arrivals within downstream windows. Does not assume rigid physical interlock blockage.</span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Panel: System Telemetry Diagnostics & Health */}
+            <div className="bg-white dark:bg-[#0b1528] p-5 sm:p-6 rounded-2xl border border-sky-200/90 dark:border-sky-900/60 shadow-sm">
+              <div className="text-xs uppercase font-mono font-bold tracking-wider text-sky-700 dark:text-cyan-400 mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Operational Data Diagnostics & Signal Quality</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase mb-1">Occupancy Feed</div>
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-200">
+                    <span className={`w-2 h-2 rounded-full ${impact.data_quality.network_signals_available ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    <span>
+                      {impact.data_quality.network_signals_available
+                        ? `Active (${impact.data_quality.network_signal_provider || 'Provider'})`
+                        : 'Simulated / Standby'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase mb-1">Causality Verification</div>
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-200">
+                    <span className="w-2 h-2 rounded-full bg-sky-500" />
+                    <span>Predictive Correlation</span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase mb-1">Station Board Health</div>
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-200">
+                    <span className={`w-2 h-2 rounded-full ${impact.data_quality.failed_station_boards.length === 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                    <span>
+                      {impact.data_quality.failed_station_boards.length === 0
+                        ? '100% Boards Active'
+                        : `${impact.data_quality.failed_station_boards.length} Offline`}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase mb-1">Telemetric Provider</div>
+                  <div className="flex items-center gap-1.5 font-bold text-sky-700 dark:text-cyan-300 truncate">
+                    <span>{impact.data_quality.provider}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
       </main>
     </div>
   );

@@ -8,7 +8,7 @@ export default function Loading() {
       <div className="relative z-10 flex flex-col items-center">
         <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin mb-6"></div>
         <div className="text-cyan-400 font-bold tracking-widest text-sm uppercase animate-pulse">
-          Connecting to RailPulse Network...
+          Connecting to Namaste Rail Network...
         </div>
         <div className="text-slate-500 text-xs mt-3 font-mono">
           Authenticating telemetry streams

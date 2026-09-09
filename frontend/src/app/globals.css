@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --bg-main: #eef7ff;
@@ -7,6 +9,7 @@
     --bg-card: #ffffff;
     --border-subtle: rgba(14, 116, 144, 0.12);
     --border-highlight: rgba(14, 165, 233, 0.42);
+    --glare-color: rgba(255, 255, 255, 0.18);
     
     --text-main: #0f172a;
     --text-muted: #475569;
@@ -19,12 +22,44 @@
     --status-blue: #2563eb;
   }
 
+  html.dark,
+  :root[data-theme="dark"] {
+    --bg-main: #060c18;
+    --bg-surface: #0b1528;
+    --bg-card: #0e1b33;
+    --border-subtle: rgba(56, 189, 248, 0.16);
+    --border-highlight: rgba(56, 189, 248, 0.5);
+    --glare-color: rgba(56, 189, 248, 0.22);
+    
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+
+    --status-emerald: #10b981;
+    --status-amber: #f59e0b;
+    --status-rose: #f43f5e;
+    --status-cyan: #38bdf8;
+    --status-blue: #3b82f6;
+
+    color-scheme: dark;
+  }
+
   body {
     background-color: var(--bg-main);
     background-image: radial-gradient(circle at 18% 0%, rgba(125, 211, 252, 0.12), transparent 32%), radial-gradient(circle at 90% 20%, rgba(186, 230, 253, 0.2), transparent 28%);
     color: var(--text-main);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow-x: hidden;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  html.dark body {
+    background-color: #060c18;
+    background-image: 
+      radial-gradient(circle at 16% 0%, rgba(14, 165, 233, 0.15), transparent 36%),
+      radial-gradient(circle at 85% 15%, rgba(37, 99, 235, 0.12), transparent 35%),
+      radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.05), transparent 45%);
+    color: #f8fafc;
   }
 
   ::selection {
@@ -32,7 +67,12 @@
     color: #0369a1;
   }
 
-  /* Custom Clean Light Scrollbar */
+  html.dark ::selection {
+    background: rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+  }
+
+  /* Custom Clean Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -47,6 +87,17 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #7eb4d0;
   }
+
+  html.dark ::-webkit-scrollbar-track {
+    background: #0b1528;
+  }
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #1e3a5f;
+    border-radius: 4px;
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #0284c7;
+  }
 }
 
 @layer utilities {
@@ -60,6 +111,16 @@
       0 20px 45px -15px rgba(15, 23, 42, 0.08),
       0 0 0 1px rgba(255, 255, 255, 0.9),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  html.dark .surface-3d {
+    background: rgba(11, 21, 40, 0.88);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    box-shadow:
+      0 20px 45px -15px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(56, 189, 248, 0.08),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
   }
 
   .glass-panel {
@@ -68,6 +129,13 @@
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(186, 230, 253, 0.75);
     box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+
+  html.dark .glass-panel {
+    background: rgba(11, 21, 40, 0.82);
+    border: 1px solid rgba(56, 189, 248, 0.18);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
   }
 
   .glass-panel-interactive {
@@ -84,6 +152,12 @@
     border: 1px solid #d7ebf7;
     border-radius: 1rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+
+  html.dark .panel-base {
+    background-color: #0b1528;
+    border-color: rgba(56, 189, 248, 0.18);
   }
 
   .panel-card {
@@ -91,6 +165,13 @@
     border: 1px solid #d7ebf7;
     border-radius: 1rem;
     box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+
+  html.dark .panel-card {
+    background: #0b1528;
+    border-color: rgba(56, 189, 248, 0.18);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
   }
 
   .panel-card-hover {
@@ -174,6 +255,32 @@
     border: 1px solid #bae6fd;
     color: #0369a1;
   }
+
+  html.dark .badge-ontime {
+    background-color: rgba(6, 78, 59, 0.45);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #34d399;
+  }
+
+  html.dark .badge-delayed {
+    background-color: rgba(120, 53, 15, 0.45);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+  }
+
+  html.dark .badge-critical {
+    background-color: rgba(136, 19, 55, 0.45);
+    border: 1px solid rgba(251, 113, 133, 0.4);
+    color: #fb7185;
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.25);
+  }
+
+  html.dark .badge-info {
+    background-color: rgba(12, 74, 110, 0.45);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);
+  }
 }
 
 /* Animations */
@@ -200,6 +307,14 @@
 .leaflet-container {
   font-family: inherit !important;
   background-color: #eaf5fc !important;
+}
+
+html.dark .leaflet-container {
+  background-color: #060b17 !important;
+}
+
+html.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(185deg) brightness(0.88) contrast(1.25) saturate(0.35);
 }
 
 /* Custom Railway Marker Pins */
@@ -231,6 +346,30 @@
   box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.2), 0 0 15px rgba(2, 132, 199, 0.8);
 }
 
+html.dark .station-pin {
+  border-color: #060b17;
+  background-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+}
+
+html.dark .station-pin.passed {
+  border-color: #060b17;
+  background-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+}
+
+html.dark .station-pin.delayed {
+  border-color: #060b17;
+  background-color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+}
+
+html.dark .station-pin.current {
+  border-color: #ffffff;
+  background-color: #00f0ff;
+  box-shadow: 0 0 0 4px rgba(0, 240, 255, 0.35), 0 0 20px rgba(0, 240, 255, 0.9);
+}
+
 /* Custom Live Train Locomotive Marker */
 .train-live-marker {
   width: 34px;
@@ -245,6 +384,12 @@
   color: #ffffff;
   font-size: 16px;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+html.dark .train-live-marker {
+  background: linear-gradient(135deg, #0284c7, #3b82f6);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.85);
 }
 
 /* Leaflet Popup Light Styling */
@@ -268,44 +413,176 @@
   border: 1px solid #cfe7f5 !important;
 }
 
-/* Light operational dashboard skin */
-.dashboard-light {
+html.dark .leaflet-popup-content-wrapper {
+  background: rgba(11, 21, 40, 0.96) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark .leaflet-popup-tip {
+  background: #0b1528 !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+}
+
+.station-delay-label {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.35rem !important;
+  border: 1px solid rgba(125, 211, 252, 0.9) !important;
+  border-radius: 0.45rem !important;
+  background: rgba(248, 252, 255, 0.94) !important;
+  color: #334155 !important;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62rem !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+
+.station-delay-label::before {
+  display: none !important;
+}
+
+.station-delay-code {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.station-delay-value {
+  font-weight: 800;
+}
+
+.station-delay-value.delayed {
+  color: #d97706;
+}
+
+.station-delay-value.on-time {
+  color: #059669;
+}
+
+html.dark .station-delay-label {
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  background: rgba(11, 21, 40, 0.94) !important;
+  color: #cbd5e1 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .station-delay-code {
+  color: #f8fafc !important;
+}
+
+html.dark .station-delay-value.delayed {
+  color: #fbbf24 !important;
+}
+
+html.dark .station-delay-value.on-time {
+  color: #34d399 !important;
+}
+
+/* Light operational dashboard skin (applied only when not in dark mode) */
+html:not(.dark) .dashboard-light {
   background-image: radial-gradient(circle at 12% 0%, rgba(125, 211, 252, 0.14), transparent 30%), radial-gradient(circle at 92% 16%, rgba(186, 230, 253, 0.22), transparent 30%);
 }
 
-.dashboard-light .text-white,
-.dashboard-light .text-slate-100 {
+html:not(.dark) .dashboard-light .text-white,
+html:not(.dark) .dashboard-light .text-slate-100 {
   color: #0f172a !important;
 }
 
-.dashboard-light .text-slate-200 {
+html:not(.dark) .dashboard-light .text-slate-200 {
   color: #334155 !important;
 }
 
-.dashboard-light .text-slate-300 {
+html:not(.dark) .dashboard-light .text-slate-300 {
   color: #475569 !important;
 }
 
-.dashboard-light .text-slate-400,
-.dashboard-light .text-slate-500 {
+html:not(.dark) .dashboard-light .text-slate-400,
+html:not(.dark) .dashboard-light .text-slate-500 {
   color: #64748b !important;
 }
 
-.dashboard-light [class*="border-white/"] {
+html:not(.dark) .dashboard-light [class*="border-white/"] {
   border-color: rgba(14, 116, 144, 0.16) !important;
 }
 
-.dashboard-light [class*="bg-[#071827]"],
-.dashboard-light [class*="bg-[#060a12]"],
-.dashboard-light [class*="bg-[#0a0f1d]"],
-.dashboard-light [class*="bg-[#102539]"],
-.dashboard-light [class*="bg-[#0b2034]"],
-.dashboard-light [class*="bg-[#070b14]"],
-.dashboard-light [class*="bg-[#111827]"],
-.dashboard-light [class*="bg-black/"] {
+html:not(.dark) .dashboard-light [class*="bg-[#071827]"],
+html:not(.dark) .dashboard-light [class*="bg-[#060a12]"],
+html:not(.dark) .dashboard-light [class*="bg-[#0a0f1d]"],
+html:not(.dark) .dashboard-light [class*="bg-[#102539]"],
+html:not(.dark) .dashboard-light [class*="bg-[#0b2034]"],
+html:not(.dark) .dashboard-light [class*="bg-[#070b14]"],
+html:not(.dark) .dashboard-light [class*="bg-[#111827]"],
+html:not(.dark) .dashboard-light [class*="bg-black/"] {
   background-color: rgba(248, 252, 255, 0.92) !important;
 }
 
-.dashboard-light [class*="bg-white/[0.04]"] {
+html:not(.dark) .dashboard-light [class*="bg-white/[0.04]"] {
   background-color: rgba(224, 242, 254, 0.55) !important;
+}
+
+/* Dark mode dashboard skin */
+html.dark .dashboard-light {
+  background-color: #070c18 !important;
+  background-image: radial-gradient(circle at 12% 0%, rgba(14, 165, 233, 0.12), transparent 30%), radial-gradient(circle at 92% 16%, rgba(37, 99, 235, 0.08), transparent 30%) !important;
+  color: #f8fafc !important;
+}
+
+html.dark .dashboard-light .text-white {
+  color: #ffffff !important;
+}
+
+html.dark .dashboard-light .text-slate-950,
+html.dark .dashboard-light .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+html.dark .dashboard-light .text-slate-800 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .dashboard-light .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .dashboard-light .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+html.dark .dashboard-light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.dark .dashboard-light .bg-white\/85,
+html.dark .dashboard-light .bg-white\/75,
+html.dark .dashboard-light .bg-white\/60,
+html.dark .dashboard-light .bg-white {
+  background-color: rgba(11, 21, 40, 0.88) !important;
+}
+
+html.dark .dashboard-light .bg-slate-50,
+html.dark .dashboard-light .bg-sky-50,
+html.dark .dashboard-light .bg-sky-50\/80,
+html.dark .dashboard-light .bg-sky-50\/90,
+html.dark .dashboard-light .bg-sky-100 {
+  background-color: rgba(15, 29, 54, 0.72) !important;
+}
+
+html.dark .dashboard-light .border-sky-200,
+html.dark .dashboard-light .border-sky-200\/80,
+html.dark .dashboard-light .border-sky-100,
+html.dark .dashboard-light .border-slate-100,
+html.dark .dashboard-light .border-slate-200,
+html.dark .dashboard-light .border-slate-300 {
+  border-color: rgba(56, 189, 248, 0.18) !important;
+}
+
+html.dark .dashboard-light input {
+  color: #f8fafc !important;
+}
+
+html.dark .dashboard-light input::placeholder {
+  color: #64748b !important;
 }

@@ -7,7 +7,7 @@ import time
 from sklearn.model_selection import train_test_split
 
 print("=" * 60)
-print("🚂 RailPulse Model Retraining on IR Dataset")
+print("🚂 Namaste Rail Model Retraining on IR Dataset")
 print("=" * 60)
 
 DATA_PATH = "data/ir_train.csv"

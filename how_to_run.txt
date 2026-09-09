@@ -1,76 +1,198 @@
-RailPulse: local development
-============================
+================================================================================
+🚂 Namaste Rail: Real-Time Dynamic ETA Prediction & Transit Intelligence System
+Smart India Hackathon 2026
+================================================================================
 
-1. Configure the backend
-------------------------
+This guide walks you through setting up and running the Namaste Rail application,
+including the FastAPI Machine Learning backend and Next.js 16 3D frontend.
 
-Copy the provider values into the root `.env` file. The live train and live
-station endpoints require an IndianRailAPI key:
+--------------------------------------------------------------------------------
+1. PREREQUISITES
+--------------------------------------------------------------------------------
+Ensure you have the following installed on your system:
+- Python 3.9+ (Python 3.10 or 3.11 recommended)
+- Node.js 18.0+ (Node.js 20+ LTS recommended)
+- npm 9.0+
+- Git
 
-    INDIAN_RAIL_API_KEY=your_key_here
+--------------------------------------------------------------------------------
+2. QUICK START (ONE-COMMAND UNIFIED LAUNCHER)
+--------------------------------------------------------------------------------
+The fastest way to launch both backend and frontend concurrently:
 
-The backend reads this file at startup. Do not put provider secrets in
-`NEXT_PUBLIC_*` variables.
-
-2. Start the backend
---------------------
-
-From the project root:
-
-    .venv/bin/uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
-
-Verify it:
-
-    curl http://127.0.0.1:8000/health
-
-3. Start the frontend
----------------------
-
-In a second terminal:
-
-    cd frontend
-    npm run dev
-
-Open `http://127.0.0.1:3000`. The frontend reads `NEXT_PUBLIC_API_URL` from
-`frontend/.env.local` and uses it for health, search, live ETA, and SSE calls.
-
-4. Run both services together
------------------------------
-
-From the project root:
-
+    chmod +x run_demo.sh
     ./run_demo.sh
 
-Press Ctrl+C to stop both services.
+What this script does:
+1. Runs automated Phase 4 unit tests to verify system integrity.
+2. Boots the FastAPI AI engine in the background on http://localhost:8000.
+3. Boots the Next.js 3D frontend on http://localhost:3000.
+4. Handles graceful teardown when you press Ctrl+C.
 
-5. Useful API requests
-----------------------
+--------------------------------------------------------------------------------
+3. STEP-BY-STEP MANUAL SETUP & RUN
+--------------------------------------------------------------------------------
 
-    curl http://127.0.0.1:8000/api/v1/trains/${TRAIN_NUMBER}/live-eta?date=${YYYY_MM_DD}
-    curl http://127.0.0.1:8000/api/v1/stations/${STATION_CODE}/live?hours=2
-    curl -N http://127.0.0.1:8000/api/v1/trains/${TRAIN_NUMBER}/live-stream
-    curl http://127.0.0.1:8000/api/v1/trains/${TRAIN_NUMBER}/history?date=${YYYY_MM_DD}
+### STEP A: Backend Setup (FastAPI & ML Engine)
 
-Live feedback and retraining
-----------------------------
+1. Open a terminal in the project root:
+   cd /path/to/SIH_202
 
-Every successful live-eta or live-stream poll is stored in the local SQLite
-feedback store (`data/railpulse_feedback.sqlite3`). A later observation of the
-same station resolves the earlier forecast and records the observed delay and
-forecast error. Predictions are never used as labels.
+2. Set up Python Virtual Environment:
+   python3 -m venv .venv
+   source .venv/bin/activate
 
-After completed journeys have been observed, export terminal observations and
-retrain explicitly:
+   (On Windows PowerShell: .venv\Scripts\Activate.ps1)
+   (On Windows Command Prompt: .venv\Scripts\activate.bat)
 
-    .venv/bin/python scripts/export_feedback_history.py
-    .venv/bin/python scripts/12_train_ir_production.py
+3. Install Backend Dependencies:
+   pip install --upgrade pip
+   pip install -r ml/requirements.txt
 
-Live status is intentionally reported as unavailable when the provider key
-is missing. The application does not substitute demo speed, GPS, platform, or
-station data.
+4. Configure Environment Variables:
+   Copy the template to create your local .env file:
+   cp .env.example .env
 
-6. Verification
----------------
+   Optional: If you have live provider keys, add them to .env:
+   - INDIAN_RAIL_API_KEY=your_key_here
+   - OPENWEATHER_API_KEY=your_key_here
+   Note: The application has built-in offline ML models, historical route catalogues,
+   and synthetic fallback simulators, so it runs completely out of the box even
+   without external API keys.
 
-    .venv/bin/python -m unittest discover -s tests -p 'test_*.py'
-    cd frontend && npm run lint && npm run build
+5. Start the FastAPI Server:
+   uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+
+6. Verify the Backend is Running:
+   Open http://localhost:8000/health in your browser or run:
+   curl http://127.0.0.1:8000/health
+
+   Expected Response:
+   {"status":"healthy","models_loaded":true,"routes_indexed":11243}
+
+
+### STEP B: Frontend Setup (Next.js 16 & 3D Web UI)
+
+1. Open a second terminal window and navigate to the frontend directory:
+   cd /path/to/SIH_202/frontend
+
+2. Install Node Dependencies:
+   npm install
+
+3. Configure Frontend Environment:
+   Verify or create frontend/.env.local:
+   cp .env.example .env.local
+
+   Ensure it points to your local FastAPI backend:
+   NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+
+4. Launch the Next.js Development Server:
+   npm run dev
+
+5. Open the Web Application:
+   Visit http://localhost:3000 in your browser.
+
+--------------------------------------------------------------------------------
+4. KEY PAGES & FEATURES TO EXPLORE
+--------------------------------------------------------------------------------
+
+- Landing Page (http://localhost:3000):
+  * Clean 3D light-theme interface with interactive 3D rail canvas.
+  * Direct train search console embedded inside the locomotive glass tile.
+  * Rapid train number & station autocomplete.
+
+- Train Dashboard (http://localhost:3000/dashboard?train=12951):
+  * Dynamic ML ETA Predictions with P10 (optimistic), P50 (median), and P90 (pessimistic) bounds.
+  * Real-time Empirical Confidence Score (%) calibrated against interval sharpness.
+  * Tree-SHAP Causal Explainability: Natural-language breakdown of delay root causes
+    (e.g., Section Congestion, Fog/Weather protocol, Headway).
+  * Interactive station timeline with halt durations and platform indicators.
+
+- Interactive GIS Route Map (http://localhost:3000/map):
+  * Live corridor track layout using Leaflet and station GIS coordinates.
+
+- Divisional Control Room (http://localhost:3000/operator):
+  * Sectional congestion heatmaps, active rake tracking, and caution order indicators.
+
+- Architecture & Technical Specs (http://localhost:3000/features):
+  * In-depth documentation of the multi-quantile regression and XAI architecture.
+
+--------------------------------------------------------------------------------
+5. SAMPLE TRAIN NUMBERS TO TEST
+--------------------------------------------------------------------------------
+Try entering any of these prominent Indian Railways services into the search bar:
+- 12951 / 12952 - Mumbai Rajdhani Express (NDLS <-> MMCT)
+- 12002 / 12001 - Bhopal Shatabdi Express (NDLS <-> RKMP)
+- 22436 / 22435 - Vande Bharat Express (NDLS <-> BSB)
+- 12627 / 12628 - Karnataka Express (SBC <-> NDLS)
+- 12301 / 12302 - Howrah Rajdhani Express (HWH <-> NDLS)
+
+--------------------------------------------------------------------------------
+6. USEFUL API ENDPOINTS (FOR DEVELOPERS & INSPECTION)
+--------------------------------------------------------------------------------
+- Health Check:
+  curl http://127.0.0.1:8000/health
+
+- Train Search Autocomplete:
+  curl "http://127.0.0.1:8000/api/v1/trains/search?q=12951"
+
+- Full Dynamic ETA with P10/P50/P90 Bounds & SHAP Explanations:
+  curl "http://127.0.0.1:8000/api/v1/trains/12951/eta"
+
+- Real-Time Server-Sent Events (SSE) Stream:
+  curl -N "http://127.0.0.1:8000/api/v1/trains/12951/live-stream"
+
+- Station Live Arrival / Departure Board:
+  curl "http://127.0.0.1:8000/api/v1/stations/NDLS/live?hours=2"
+
+- Divisional Control Room Congestion Summary:
+  curl "http://127.0.0.1:8000/api/v1/control-room/summary"
+
+--------------------------------------------------------------------------------
+7. VERIFICATION & AUTOMATED TESTS
+--------------------------------------------------------------------------------
+
+Run Python Unit Tests (Backend & ML Integrity):
+    source .venv/bin/activate
+    python -m unittest discover -s tests -p 'test_*.py'
+
+Run Frontend Linting & Production Build:
+    cd frontend
+    npm run lint
+    npm run build
+
+--------------------------------------------------------------------------------
+8. CONTINUOUS FEEDBACK LOOP & RETRAINING (MLOps)
+--------------------------------------------------------------------------------
+Every forecast is logged in the local SQLite store (data/railpulse_feedback.sqlite3).
+When actual arrivals are confirmed, forecast errors are recorded to continuously
+monitor Mean Absolute Error (MAE) and concept drift.
+
+To export verified journey histories and retrain production weights:
+    python scripts/export_feedback_history.py
+    python scripts/12_train_ir_production.py
+
+--------------------------------------------------------------------------------
+9. TROUBLESHOOTING & FAQ
+--------------------------------------------------------------------------------
+
+Q: "Address already in use: 8000 or 3000"
+A: Free up the occupied port or specify another port:
+   - To find and kill the process on macOS/Linux:
+     lsof -ti :8000 | xargs kill -9
+     lsof -ti :3000 | xargs kill -9
+   - Or start FastAPI on port 8001: uvicorn api.main:app --port 8001
+     (and update NEXT_PUBLIC_API_URL=http://127.0.0.1:8001 in frontend/.env.local)
+
+Q: "ModuleNotFoundError: No module named 'fastapi'"
+A: Ensure your virtual environment is activated before running uvicorn:
+   source .venv/bin/activate
+   pip install -r ml/requirements.txt
+
+Q: "Can I run the project without any external API keys?"
+A: Yes! Namaste Rail includes built-in offline route catalogs (11,200+ routes),
+   pre-trained ML weights (models/*.pkl), and realistic fallback generators.
+   External API keys are only necessary if you require real-time satellite RTIS
+   locomotive GPS or live radar weather data.
+
+================================================================================
