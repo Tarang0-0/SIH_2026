@@ -23,6 +23,7 @@ from urllib.parse import quote, urlparse
 
 import httpx
 
+from api.services.http_client import get_http_client
 from api.services.phase2_dataset import normalize_station_code, normalize_train_route, parse_delay_minutes
 
 
@@ -134,8 +135,8 @@ async def _fetch_indian_rail_json(path: str) -> Any:
         raise LiveStatusUnavailable("INDIAN_RAIL_API_KEY is not configured")
     endpoint = f"{_indian_rail_api_base()}/{path.lstrip('/')}"
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=5.0), follow_redirects=False) as client:
-            response = await client.get(endpoint)
+        client = get_http_client(15.0)
+        response = await client.get(endpoint)
         response.raise_for_status()
         return response.json()
     except httpx.HTTPError as error:
@@ -160,10 +161,10 @@ async def _fetch_railradar_json(path: str, params: Optional[dict[str, Any]] = No
         raise LiveStatusUnavailable("RAILRADAR_API_KEY is not configured")
     endpoint = f"{_railradar_api_base()}/{path.lstrip('/')}"
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=5.0), follow_redirects=False) as client:
-            response = await client.get(endpoint, params=params or {}, headers={
-                "Accept": "application/json", "Authorization": f"Bearer {key}",
-            })
+        client = get_http_client(15.0)
+        response = await client.get(endpoint, params=params or {}, headers={
+            "Accept": "application/json", "Authorization": f"Bearer {key}",
+        })
         response.raise_for_status()
         return response.json()
     except httpx.HTTPError as error:
@@ -636,8 +637,8 @@ async def fetch_live_status(train_number: str, journey_date: Optional[dt.date] =
     if journey_date:
         params["journey_date"] = journey_date.isoformat()
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0), follow_redirects=False) as client:
-            response = await client.get(endpoint, params=params, headers=headers)
+        client = get_http_client(10.0)
+        response = await client.get(endpoint, params=params, headers=headers)
         response.raise_for_status()
         return _parse_status(response.json(), train_number)
     except httpx.HTTPError as error:

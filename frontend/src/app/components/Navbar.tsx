@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
+import { useLanguage } from './LanguageContext';
 
 interface NavbarProps {
   theme?: 'dark' | 'light';
@@ -12,18 +13,21 @@ interface NavbarProps {
 export default function Navbar({ theme = 'dark' }: NavbarProps) {
   void theme;
   const pathname = usePathname();
+  const { language, openLanguageModal, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [indiaClock, setIndiaClock] = useState('');
 
   useEffect(() => {
     const updateClock = () => {
-      setIndiaClock(new Intl.DateTimeFormat('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      }).format(new Date()));
+      setIndiaClock(
+        new Intl.DateTimeFormat('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        }).format(new Date())
+      );
     };
     updateClock();
     const clockTimer = window.setInterval(updateClock, 1000);
@@ -31,71 +35,99 @@ export default function Navbar({ theme = 'dark' }: NavbarProps) {
   }, []);
 
   const navLinks = [
-    { href: '/', label: 'Overview' },
-    { href: '/operator', label: 'Control Room' },
+    { href: '/', label: t('nav_home', 'Home'), isOperator: false },
+    { href: '/operator', label: t('nav_control_room', 'Control Room'), isOperator: true },
   ];
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-sky-50/90 dark:bg-[#070c18]/90 border-b border-sky-200/70 dark:border-sky-900/60 shadow-[0_4px_20px_-4px_rgba(14,116,144,0.08)] dark:shadow-[0_4px_25px_-4px_rgba(0,0,0,0.5)] transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full max-w-7xl mx-auto p-2 sm:p-3 sm:mt-2 transition-all duration-300">
+      <div className="relative bg-white/85 dark:bg-[#070e1c]/80 backdrop-blur-xl px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-2xl border border-white/90 dark:border-sky-800/50 shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.7)] flex items-center justify-between transition-all duration-300">
         
-        {/* Brand logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-sky-400/20 to-blue-600/20 blur-sm group-hover:blur transition-all duration-300" />
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 border border-sky-400/40 flex items-center justify-center text-white shadow-[0_2px_10px_rgba(2,132,199,0.25)] group-hover:scale-105 transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-5 h-5">
-                <path d="M10.621.515C8.647.02 7.353.02 5.38.515c-.924.23-1.982.766-2.78 1.22C1.566 2.322 1 3.432 1 4.582V13.5A2.5 2.5 0 0 0 3.5 16h9a2.5 2.5 0 0 0 2.5-2.5V4.583c0-1.15-.565-2.26-1.6-2.849-.797-.453-1.855-.988-2.779-1.22ZM6.5 2h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1m-2 2h7A1.5 1.5 0 0 1 13 5.5v2A1.5 1.5 0 0 1 11.5 9h-7A1.5 1.5 0 0 1 3 7.5v-2A1.5 1.5 0 0 1 4.5 4m.5 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0m0 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0m8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3-1a1 1 0 1 1 0 2 1 1 0 0 1 0-2M4 5.5a.5.5 0 0 1 .5-.5h3v3h-3a.5.5 0 0 1-.5-.5zM8.5 8V5h3a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5z"/>
-              </svg>
-            </div>
+        {/* Brand Logo & Title */}
+        <Link href="/" className="flex items-center gap-3 group focus-visible:outline-2 focus-visible:outline-blue-500 rounded-xl shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-5 h-5">
+              <path d="M10.621.515C8.647.02 7.353.02 5.38.515c-.924.23-1.982.766-2.78 1.22C1.566 2.322 1 3.432 1 4.582V13.5A2.5 2.5 0 0 0 3.5 16h9a2.5 2.5 0 0 0 2.5-2.5V4.583c0-1.15-.565-2.26-1.6-2.849-.797-.453-1.855-.988-2.779-1.22ZM6.5 2h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1m-2 2h7A1.5 1.5 0 0 1 13 5.5v2A1.5 1.5 0 0 1 11.5 9h-7A1.5 1.5 0 0 1 3 7.5v-2A1.5 1.5 0 0 1 4.5 4m.5 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0m0 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0m8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3-1a1 1 0 1 1 0 2 1 1 0 0 1 0-2M4 5.5a.5.5 0 0 1 .5-.5h3v3h-3a.5.5 0 0 1-.5-.5zM8.5 8V5h3a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5z"/>
+            </svg>
           </div>
           <div>
-            <div className="text-base font-extrabold tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
-              <span>Namaste Rail</span>
-            </div>
-            <div className="text-[10px] font-mono text-slate-500 dark:text-sky-400 hidden sm:block">Indian Railways Transit Intelligence</div>
+            <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white block leading-tight">
+              {t('brand_name', 'Namaste Rail')}
+            </span>
+            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-medium hidden lg:block">
+              {t('brand_tagline')}
+            </span>
           </div>
         </Link>
 
-        {/* Desktop Nav Links */}
-        <nav className="hidden md:flex items-center space-x-1 bg-sky-100/70 dark:bg-sky-950/60 border border-sky-200/70 dark:border-sky-800/60 p-1 rounded-xl">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-white dark:bg-sky-900/80 text-sky-700 dark:text-sky-200 border border-sky-200/80 dark:border-sky-700/60 shadow-xs font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/70 dark:hover:bg-sky-900/40'
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
+        {/* Desktop Nav Links with Differentiated Shaded Pill Buttons - Centered in Middle */}
+        <nav aria-label="Main Navigation" className="hidden md:flex md:absolute md:left-1/2 md:-translate-x-1/2 items-center gap-2 p-1.5 rounded-2xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/70 shadow-inner z-10">
+          {/* Home Button */}
+          <Link
+            href="/"
+            className={`px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+              pathname === '/'
+                ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-200/90 dark:border-slate-700 font-bold'
+                : 'bg-white/60 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs'
+            }`}
+          >
+            <span>{t('nav_home', 'Home')}</span>
+          </Link>
+
+          {/* Control Room Button */}
+          <Link
+            href="/operator"
+            className={`px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+              pathname.startsWith('/operator')
+                ? 'bg-blue-600 text-white shadow-sm border border-blue-700 dark:border-blue-500 font-bold'
+                : 'bg-slate-200/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 hover:bg-slate-300/80 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white border border-slate-300/70 dark:border-slate-700/80 shadow-2xs'
+            }`}
+          >
+            <span>{t('nav_control_room', 'Control Room')}</span>
+          </Link>
         </nav>
 
-        {/* Live India clock and Theme Toggle */}
-        <div className="hidden lg:flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-xl border border-sky-200 dark:border-sky-800/80 bg-white/85 dark:bg-sky-950/70 px-3.5 py-1.5 text-slate-700 dark:text-slate-200 shadow-sm">
+        {/* Right Section: Clock, Language, Theme, and Signature CTA */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* India Clock */}
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/60 text-xs text-slate-600 dark:text-slate-300 font-mono shadow-2xs">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-sky-700 dark:text-sky-400">IST</span>
-            <time className="font-mono text-xs font-bold tabular-nums" aria-label="Current India time">
-              {indiaClock || '--:--:--'}
-            </time>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('nav_ist')}</span>
+            <time className="tabular-nums font-bold">{indiaClock || '--:--:--'}</time>
           </div>
+
+          {/* Language Switcher Pill: Shows Currently Selected Language */}
+          <button
+            type="button"
+            onClick={openLanguageModal}
+            title={t('nav_lang_title')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/60 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-slate-700 transition shadow-2xs cursor-pointer"
+          >
+            <span className="text-sm" aria-hidden="true">🌐</span>
+            <span>{language === 'hi' ? 'हिन्दी' : 'English'}</span>
+          </button>
+
           <ThemeToggle />
         </div>
 
-        {/* Mobile Menu & Toggle Button */}
+        {/* Mobile Actions & Menu Toggle */}
         <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={openLanguageModal}
+            title={t('nav_lang_title')}
+            className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-900/80 shadow-2xs"
+          >
+            🌐 {language === 'hi' ? 'हिन्दी' : 'English'}
+          </button>
+          
           <ThemeToggle />
+
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg border border-sky-200 dark:border-sky-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-sky-950 shadow-xs"
+            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-white/80 dark:bg-slate-900/80 shadow-2xs"
             aria-label="Toggle Navigation Menu"
+            aria-expanded={mobileMenuOpen}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {mobileMenuOpen ? (
@@ -111,24 +143,37 @@ export default function Navbar({ theme = 'dark' }: NavbarProps) {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-sky-200 dark:border-sky-800/70 px-4 pt-2 pb-4 space-y-1 bg-sky-50/98 dark:bg-[#070c18]/98 backdrop-blur-2xl shadow-lg">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-200 hover:text-sky-700 dark:hover:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/40"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="pt-2 flex items-center justify-between gap-2">
-            <div className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-sky-200 dark:border-sky-800 bg-white dark:bg-sky-950 px-3 py-2 text-slate-700 dark:text-slate-200 shadow-sm">
+        <div
+          id="mobile-navigation-menu"
+          className="md:hidden mt-2 p-3 space-y-1.5 rounded-2xl border border-slate-200/90 dark:border-slate-800/70 bg-white/95 dark:bg-[#070c18]/95 backdrop-blur-2xl shadow-xl transition-all"
+        >
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href.split('?')[0]));
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs ${
+                  link.isOperator
+                    ? isActive
+                      ? 'bg-blue-600 text-white font-bold'
+                      : 'bg-slate-200/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border border-slate-300/60 dark:border-slate-700/60'
+                    : isActive
+                      ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-slate-700 font-bold'
+                      : 'bg-white/70 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700/70'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+            <div className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-slate-700 dark:text-slate-200 shadow-2xs">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-sky-700 dark:text-sky-400">India time</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('nav_ist')}</span>
               <time className="font-mono text-xs font-bold tabular-nums">{indiaClock || '--:--:--'}</time>
             </div>
-            <ThemeToggle showLabel className="shrink-0" />
           </div>
         </div>
       )}

@@ -12,7 +12,7 @@ PHASE4_WEATHER_FEATURES = [
 
 def add_weather_features(observation: dict, weather: dict | None) -> dict:
     """Attach only provider-backed weather features; missing stays missing."""
-    result = dict(observation)
+    result = {}
     for field in PHASE4_WEATHER_FEATURES:
         result[field] = None
     result["weather_available"] = 0

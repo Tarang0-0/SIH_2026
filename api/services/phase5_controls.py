@@ -49,8 +49,10 @@ def calibration_bucket(features: dict[str, Any]) -> str:
     return f"delay:{delay}|horizon:{horizon}"
 
 
-def load_phase5_calibration(path: Path = CALIBRATION_PATH) -> dict[str, Any]:
+def load_phase5_calibration(path: Path = CALIBRATION_PATH, force: bool = False) -> dict[str, Any]:
     global _calibration
+    if _calibration and not force:
+        return _calibration
     _calibration = {}
     try:
         loaded = json.loads(path.read_text(encoding="utf-8"))

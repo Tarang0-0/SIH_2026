@@ -23,6 +23,7 @@ from api.services.phase4_dataset import PHASE4_WEATHER_FEATURES, add_weather_fea
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_DB_PATH = ROOT_DIR / "data" / "railpulse_feedback.sqlite3"
 ONLINE_DATASET_PATH = ROOT_DIR / "data" / "online_completed_journeys.csv"
+_initialized_databases: set[Path] = set()
 
 
 def _db_path() -> Path:
@@ -30,12 +31,7 @@ def _db_path() -> Path:
     return Path(configured) if configured else DEFAULT_DB_PATH
 
 
-def _connect(path: Optional[Path] = None) -> sqlite3.Connection:
-    database_path = path or _db_path()
-    database_path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(database_path, timeout=10)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA journal_mode=WAL")
+def _init_schema(connection: sqlite3.Connection) -> None:
     connection.executescript(
         """
         CREATE TABLE IF NOT EXISTS live_observations (
@@ -189,6 +185,17 @@ def _connect(path: Optional[Path] = None) -> sqlite3.Connection:
         for field, definition in fields.items():
             if field not in table_columns[table]:
                 connection.execute(f"ALTER TABLE {table} ADD COLUMN {field} {definition}")
+
+
+def _connect(path: Optional[Path] = None) -> sqlite3.Connection:
+    database_path = (path or _db_path()).resolve()
+    database_path.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(database_path, timeout=10)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA journal_mode=WAL")
+    if database_path not in _initialized_databases:
+        _init_schema(connection)
+        _initialized_databases.add(database_path)
     return connection
 
 

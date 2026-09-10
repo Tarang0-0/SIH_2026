@@ -8,6 +8,7 @@ choose whether to use it without silently imputing a weather value.
 from __future__ import annotations
 
 import datetime as dt
+import dataclasses
 import math
 import os
 import time
@@ -16,6 +17,8 @@ from typing import Any, Optional
 from urllib.parse import urlparse
 
 import httpx
+
+from api.services.http_client import get_http_client
 
 
 OPENWEATHER_CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather"
@@ -78,6 +81,7 @@ class WeatherSnapshot:
 
 
 _cache: dict[tuple[float, float], tuple[float, WeatherSnapshot]] = {}
+MAX_WEATHER_CACHE_SIZE = 500
 
 
 def _api_key() -> str:
@@ -212,12 +216,12 @@ async def _fetch_openweather_json(latitude: float, longitude: float) -> Any:
     if parsed.scheme != "https" or not parsed.netloc:
         raise WeatherUnavailable("OpenWeather endpoint must use HTTPS")
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=5.0), follow_redirects=False) as client:
-            response = await client.get(
-                OPENWEATHER_CURRENT_URL,
-                params={"lat": latitude, "lon": longitude, "appid": key, "units": "metric"},
-                headers={"Accept": "application/json"},
-            )
+        client = get_http_client(15.0)
+        response = await client.get(
+            OPENWEATHER_CURRENT_URL,
+            params={"lat": latitude, "lon": longitude, "appid": key, "units": "metric"},
+            headers={"Accept": "application/json"},
+        )
         response.raise_for_status()
         return response.json()
     except httpx.HTTPStatusError as error:
@@ -243,9 +247,12 @@ async def fetch_current_weather(
     cached = _cache.get(key)
     if cached and not force_refresh and time.monotonic() - cached[0] < _cache_seconds():
         snapshot = cached[1]
-        return WeatherSnapshot(**{**snapshot.__dict__, "coordinate_source": coordinate_source})
+        return WeatherSnapshot(**{**dataclasses.asdict(snapshot), "coordinate_source": coordinate_source})
     snapshot = _normalize(await _fetch_openweather_json(latitude, longitude), latitude, longitude)
-    snapshot = WeatherSnapshot(**{**snapshot.__dict__, "coordinate_source": coordinate_source})
+    snapshot = WeatherSnapshot(**{**dataclasses.asdict(snapshot), "coordinate_source": coordinate_source})
+    if len(_cache) >= MAX_WEATHER_CACHE_SIZE and key not in _cache:
+        oldest_key = min(_cache.keys(), key=lambda k: _cache[k][0])
+        _cache.pop(oldest_key, None)
     _cache[key] = (time.monotonic(), snapshot)
     return snapshot
 

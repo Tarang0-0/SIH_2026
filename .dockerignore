@@ -1,0 +1,39 @@
+# Git & IDE
+.git
+.gitignore
+.DS_Store
+.idea
+.vscode
+
+# Python virtual environments & bytecode
+.venv/
+venv/
+ml/venv/
+__pycache__/
+*.py[cod]
+*.so
+
+# Tests & caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend assets (built in separate frontend container)
+frontend/
+node_modules/
+
+# Local database runtime state & large intermediates
+data/*.sqlite3
+data/*.sqlite3-*
+data/*.parquet
+data/splits/
+data/*_training_data.*
+data/ir_train.csv
+data/ir_test.csv
+data/ir_sample_submission.csv
+data/Train_details_22122017.csv
+data/combined_delay_*.csv
+
+# Secrets
+.env
+.env.*

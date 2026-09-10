@@ -4,9 +4,11 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from './components/Navbar';
-import ThreeDHeroCanvas from './components/ThreeDHeroCanvas';
+import Footer from './components/Footer';
 import TiltCard from './components/TiltCard';
+import { Crosshair, Clock, Building2, ArrowRight } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import { useLanguage } from './components/LanguageContext';
 
 interface TrainSearchResult {
   train_number: string;
@@ -17,10 +19,14 @@ interface TrainSearchResult {
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<TrainSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [selectedDate] = useState(() =>
+    new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
+  );
 
   useEffect(() => {
     const query = searchQuery.trim();
@@ -58,7 +64,9 @@ export default function Home() {
   const handleSelectTrain = (trainNo: string) => {
     const typed = trainNo.trim();
     const selected = /^\d+$/.test(typed) ? typed : searchResults[0]?.train_number;
-    if (selected) router.push(`/dashboard?train=${encodeURIComponent(selected)}`);
+    if (selected) {
+      router.push(`/dashboard?train=${encodeURIComponent(selected)}&date=${encodeURIComponent(selectedDate)}`);
+    }
   };
 
   const canSearch = Boolean(searchQuery.trim()) && (
@@ -67,46 +75,42 @@ export default function Home() {
   const showSuggestions = searchQuery.trim().length >= 2 && !isSearching && !searchError;
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#eef2f7] dark:bg-[#070c18] bg-[radial-gradient(circle_at_50%_12%,rgba(14,165,233,0.07),transparent_48%),radial-gradient(circle_at_85%_80%,rgba(71,85,105,0.08),transparent_38%)] dark:bg-[radial-gradient(circle_at_50%_12%,rgba(14,165,233,0.15),transparent_48%),radial-gradient(circle_at_85%_80%,rgba(37,99,235,0.1),transparent_38%)] font-sans text-slate-900 dark:text-slate-100 selection:bg-sky-500/20">
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#f8fafc] dark:bg-[#070c18] font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-500/20">
       <Navbar />
 
-      <main className="flex-1">
-        <section className="relative isolate flex min-h-[calc(100vh-4rem)] flex-col justify-center overflow-visible bg-transparent px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-          <ThreeDHeroCanvas />
-          <div className="pointer-events-none absolute -top-40 left-1/2 h-[350px] w-[700px] -translate-x-1/2 rounded-full bg-sky-400/10 blur-[130px]" />
-
-          <div className="relative z-30 mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+      <main id="main-content" className="flex-1">
+        <section className="relative flex min-h-[calc(100vh-5rem)] flex-col justify-center px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+          <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <div className="max-w-2xl">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-200 dark:border-sky-800/80 bg-sky-50 dark:bg-sky-950/60 px-3.5 py-1.5 text-xs font-semibold text-sky-700 dark:text-sky-300 shadow-sm">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                Live train tracking
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-950/50 px-3.5 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                {t('hero_live_badge')}
               </div>
-              <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-950 dark:text-white sm:text-6xl">
-                Find your train.
-                <span className="block bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 dark:from-sky-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                  Know what happens next.
+              <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 dark:text-white sm:text-6xl">
+                {t('hero_title_1')}
+                <span className="block text-blue-600 dark:text-blue-400 mt-1">
+                  {t('hero_title_2')}
                 </span>
               </h1>
-              <p className="mt-6 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
-                Search by train number or name to see its live location, upcoming station, expected arrival, and delay.
+              <p className="mt-6 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg font-normal">
+                {t('hero_desc')}
               </p>
             </div>
 
             <div className="flex w-full justify-center lg:justify-end">
               <TiltCard
-                maxTilt={5}
-                perspective={1300}
                 allowOverflow
-                className="min-h-[420px] w-full max-w-xl rounded-[2rem] border border-slate-300/90 dark:border-sky-800/60 bg-slate-50/95 dark:bg-[#0b1528]/95 p-7 shadow-[0_28px_80px_-18px_rgba(15,23,42,0.2),0_0_0_1px_rgba(255,255,255,0.8)] dark:shadow-[0_28px_80px_-18px_rgba(0,0,0,0.7),0_0_0_1px_rgba(56,189,248,0.15)] backdrop-blur-xl sm:min-h-[450px] sm:p-10"
+                className="w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1527] p-6 sm:p-9 shadow-xl transition-colors"
               >
                 <div className="flex h-full flex-col justify-center">
-                  <div className="mb-8 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                  <div className="mb-8 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-400">Namaste Rail tracker</div>
-                      <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl">Where is your train?</h2>
+                      <div className="text-xs font-mono font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">{t('search_card_tag')}</div>
+                      <h2 className="mt-1.5 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">{t('search_card_title')}</h2>
                     </div>
-                    <span className="hidden rounded-full border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 sm:inline-flex">
-                      Ready
+                    <span className="hidden rounded-full border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 sm:inline-flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <span>{t('search_card_ready')}</span>
                     </span>
                   </div>
 
@@ -117,28 +121,28 @@ export default function Home() {
                     }}
                     className="relative z-40"
                   >
-                    <label htmlFor="landing-train-search" className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      Search train number or name
+                    <label htmlFor="landing-train-search" className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      {t('search_input_label')}
                     </label>
-                    <div className="flex flex-col gap-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-2 shadow-inner transition-all focus-within:border-sky-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-4 focus-within:ring-sky-500/15 sm:flex-row">
+                    <div className="flex flex-col gap-2 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-[#07101f] p-2 transition-all focus-within:border-blue-500 dark:focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/20 sm:flex-row">
                       <div className="relative flex min-w-0 flex-1 items-center">
-                        <span className="pl-3 pr-2 font-mono text-sm font-bold text-sky-600 dark:text-sky-400">#</span>
+                        <span className="pl-3.5 pr-2.5 font-mono text-sm font-bold text-slate-400 dark:text-slate-500">#</span>
                         <input
                           id="landing-train-search"
                           type="text"
                           value={searchQuery}
                           onChange={(event) => setSearchQuery(event.target.value)}
-                          placeholder="Train number or name"
-                          aria-label="Search train number or name"
-                          className="w-full bg-transparent py-3 pr-8 text-sm font-medium text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                          placeholder={t('search_input_placeholder')}
+                          aria-label={t('search_input_label')}
+                          className="w-full bg-transparent py-3 pr-8 text-sm font-medium text-slate-900 dark:text-white outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                         />
                         {isSearching ? (
-                          <div className="absolute right-3 h-4 w-4 animate-spin rounded-full border-2 border-sky-600/30 border-t-sky-600" />
+                          <div className="absolute right-3 h-4 w-4 animate-spin rounded-full border-2 border-blue-600/30 dark:border-blue-400/30 border-t-blue-600 dark:border-t-blue-400" />
                         ) : searchQuery ? (
                           <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-3 text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition"
+                            className="absolute right-3 text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition p-1 cursor-pointer"
                             aria-label="Clear search"
                           >
                             ×
@@ -148,15 +152,58 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={!canSearch}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-3 text-sm font-bold text-white shadow-[0_4px_14px_rgba(2,132,199,0.25)] transition hover:from-sky-600 hover:to-blue-700 disabled:cursor-not-allowed disabled:from-slate-200 dark:disabled:from-slate-800 disabled:to-slate-200 dark:disabled:to-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-6 py-3 text-sm font-semibold text-white shadow-xs hover:shadow transition-colors disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:shadow-none cursor-pointer"
                       >
-                        Search
-                        <span aria-hidden="true">→</span>
+                        <span>{t('search_btn')}</span>
+                        <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
 
+                    {/* Popular Route Shortcuts */}
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                      <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mb-2 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                        <span>{t('quick_corridors_title')}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          {
+                            no: '12951',
+                            name: 'Mumbai Rajdhani',
+                            tag: t('popular_tag_fast'),
+                            badgeClass: 'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60',
+                          },
+                          {
+                            no: '12002',
+                            name: 'Bhopal Shatabdi',
+                            tag: t('popular_tag_express'),
+                            badgeClass: 'bg-blue-50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60',
+                          },
+                          {
+                            no: '22436',
+                            name: 'Vande Bharat',
+                            tag: t('popular_tag_superfast'),
+                            badgeClass: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60',
+                          },
+                        ].map((item) => (
+                          <button
+                            key={item.no}
+                            type="button"
+                            onClick={() => {
+                              setSearchQuery(item.no);
+                              handleSelectTrain(item.no);
+                            }}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-colors cursor-pointer group"
+                          >
+                            <span className="font-bold text-blue-600 dark:text-blue-400">{item.no}</span>
+                            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-sans font-medium">{item.name}</span>
+                            <span className={`px-1.5 py-0.5 text-[9px] rounded font-bold tracking-tight ${item.badgeClass}`}>{item.tag}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     {showSuggestions && (
-                      <div role="listbox" aria-label="Train suggestions" className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-72 overflow-y-auto overscroll-contain divide-y divide-slate-100 dark:divide-slate-800 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b1528] shadow-2xl ring-1 ring-slate-900/5">
+                      <div role="listbox" aria-label="Train suggestions" className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-72 overflow-y-auto overscroll-contain divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1527] shadow-xl">
                         {searchResults.map((train) => (
                           <button
                             key={train.train_number}
@@ -167,21 +214,23 @@ export default function Home() {
                               setSearchQuery(train.train_number);
                               handleSelectTrain(train.train_number);
                             }}
-                            className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition hover:bg-sky-50 dark:hover:bg-sky-950/60"
+                            className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer"
                           >
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-                                <span className="font-mono text-sky-700 dark:text-sky-400">{train.train_number}</span>
-                                <span className="truncate font-medium text-slate-700 dark:text-slate-300">{train.train_name}</span>
+                                <span className="font-mono text-blue-600 dark:text-blue-400">{train.train_number}</span>
+                                <span className="truncate font-medium text-slate-700 dark:text-slate-200">{train.train_name}</span>
                               </div>
                             </div>
-                            <div className="shrink-0 text-right text-[11px] text-slate-500 dark:text-slate-400">
-                              {train.origin} <span className="px-1 text-sky-500">→</span> {train.dest}
+                            <div className="shrink-0 text-right text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                              {train.origin} <span className="px-1 text-slate-400">→</span> {train.dest}
                             </div>
                           </button>
                         ))}
                         {searchResults.length === 0 && (
-                          <div className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">No matching train found.</div>
+                          <div className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">
+                            {t('search_no_results', 'No matching train found.')}
+                          </div>
                         )}
                       </div>
                     )}
@@ -193,68 +242,56 @@ export default function Home() {
                     )}
                   </form>
 
-                  <div className="mt-8 grid grid-cols-3 gap-2 border-t border-slate-100 dark:border-slate-800/80 pt-6">
-                    <div className="rounded-xl bg-sky-50/80 dark:bg-sky-950/60 border border-transparent dark:border-sky-800/50 p-3 text-center transition-all hover:border-sky-500/50">
-                      <div className="text-lg text-sky-600 dark:text-sky-400" aria-hidden="true">⌖</div>
-                      <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">Next station</div>
+                  <div className="mt-8 grid grid-cols-3 gap-2.5 border-t border-slate-100 dark:border-slate-800/80 pt-6">
+                    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 p-3.5 text-center transition-colors flex flex-col items-center justify-center gap-1.5 cursor-default">
+                      <Crosshair className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">{t('next_station_badge')}</div>
                     </div>
-                    <div className="rounded-xl bg-amber-50/80 dark:bg-amber-950/50 border border-transparent dark:border-amber-800/50 p-3 text-center transition-all hover:border-amber-500/50">
-                      <div className="text-lg text-amber-600 dark:text-amber-400" aria-hidden="true">◷</div>
-                      <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">Delay status</div>
+                    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 p-3.5 text-center transition-colors flex flex-col items-center justify-center gap-1.5 cursor-default">
+                      <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">{t('delay_status_badge')}</div>
                     </div>
-                    <div className="rounded-xl bg-emerald-50/80 dark:bg-emerald-950/50 border border-transparent dark:border-emerald-800/50 p-3 text-center transition-all hover:border-emerald-500/50">
-                      <div className="text-lg text-emerald-600 dark:text-emerald-400" aria-hidden="true">▦</div>
-                      <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">Station help</div>
+                    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 p-3.5 text-center transition-colors flex flex-col items-center justify-center gap-1.5 cursor-default">
+                      <Building2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">{t('station_help_badge')}</div>
                     </div>
                   </div>
 
-                  <p className="mt-5 text-center text-xs text-slate-500 dark:text-slate-400">
-                    Enter a train number for direct tracking, or choose a matching train from the suggestions.
+                  <p className="mt-5 text-center text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                    {t('search_subtext')}
                   </p>
                 </div>
               </TiltCard>
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto mt-12 grid w-full max-w-7xl grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-300/80 dark:border-sky-900/60 bg-white/60 dark:bg-[#0c1729]/70 px-5 py-4 shadow-sm backdrop-blur-sm transition-all hover:border-sky-500/40">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_8px_#38bdf8]" />
-                <div className="text-sm font-bold text-slate-900 dark:text-white">Live position</div>
+          <div className="relative z-10 mx-auto mt-12 grid w-full max-w-7xl grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1527] px-5 py-4 shadow-xs transition-colors">
+              <div className="flex items-center gap-2.5">
+                <span className="h-2 w-2 rounded-full bg-blue-500" />
+                <div className="text-sm font-bold text-slate-900 dark:text-white">{t('feature_1_title')}</div>
               </div>
-              <div className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-400">See where the train is right now on its route.</div>
+              <div className="mt-1.5 text-xs leading-5 text-slate-600 dark:text-slate-400">{t('feature_1_desc')}</div>
             </div>
-            <div className="rounded-2xl border border-slate-300/80 dark:border-sky-900/60 bg-white/60 dark:bg-[#0c1729]/70 px-5 py-4 shadow-sm backdrop-blur-sm transition-all hover:border-sky-500/40">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                <div className="text-sm font-bold text-slate-900 dark:text-white">Upcoming station</div>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1527] px-5 py-4 shadow-xs transition-colors">
+              <div className="flex items-center gap-2.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <div className="text-sm font-bold text-slate-900 dark:text-white">{t('feature_2_title')}</div>
               </div>
-              <div className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-400">Get the next stop and its expected arrival time.</div>
+              <div className="mt-1.5 text-xs leading-5 text-slate-600 dark:text-slate-400">{t('feature_2_desc')}</div>
             </div>
-            <div className="rounded-2xl border border-slate-300/80 dark:border-sky-900/60 bg-white/60 dark:bg-[#0c1729]/70 px-5 py-4 shadow-sm backdrop-blur-sm transition-all hover:border-sky-500/40">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_#f59e0b]" />
-                <div className="text-sm font-bold text-slate-900 dark:text-white">Delay clarity</div>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1527] px-5 py-4 shadow-xs transition-colors">
+              <div className="flex items-center gap-2.5">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                <div className="text-sm font-bold text-slate-900 dark:text-white">{t('feature_3_title')}</div>
               </div>
-              <div className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-400">Compare the assigned time with the latest estimate.</div>
+              <div className="mt-1.5 text-xs leading-5 text-slate-600 dark:text-slate-400">{t('feature_3_desc')}</div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-slate-200/60 dark:border-slate-800/60 bg-transparent px-4 py-6 text-xs text-slate-500 dark:text-slate-400 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-sky-500" />
-            <span className="font-bold text-slate-900 dark:text-white">Namaste Rail</span>
-            <span>Live train intelligence</span>
-          </div>
-          <div className="flex gap-5">
-            <Link href="/dashboard" className="transition hover:text-sky-600 dark:hover:text-sky-400">Live Operations</Link>
-            <Link href="/operator" className="transition hover:text-sky-600 dark:hover:text-sky-400">Admin</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

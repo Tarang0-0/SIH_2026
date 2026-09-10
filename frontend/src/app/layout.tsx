@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeContext";
+import { LanguageProvider } from "./components/LanguageContext";
+import LanguageModal from "./components/LanguageModal";
+import CookieConsent from "./components/CookieConsent";
 
 export const metadata: Metadata = {
   title: "Namaste Rail | Indian Railways Transit Intelligence & Telemetry",
@@ -34,15 +37,29 @@ export default function RootLayout({
                     document.documentElement.classList.remove('dark');
                     document.documentElement.setAttribute('data-theme', 'light');
                   }
+                  var storedLang = localStorage.getItem('railpulse-lang');
+                  if (storedLang === 'hi' || storedLang === 'en') {
+                    document.documentElement.lang = storedLang;
+                  }
                 } catch (e) {}
               })();
             `,
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#eef7ff] dark:bg-[#070c18] text-slate-900 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
+      <body className="min-h-full flex flex-col text-slate-900 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2.5 focus:bg-sky-600 focus:text-white focus:font-bold focus:shadow-2xl focus:rounded-xl focus:outline-2 focus:outline-white"
+        >
+          Skip to main content
+        </a>
         <ThemeProvider>
-          {children}
+          <LanguageProvider>
+            {children}
+            <LanguageModal />
+            <CookieConsent />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

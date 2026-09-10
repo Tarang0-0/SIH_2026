@@ -41,6 +41,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Fallback if localStorage is disabled
     }
+
+    const handleThemeChange = (e: Event) => {
+      const customEvt = e as CustomEvent<{ theme: Theme }>;
+      const nextTheme = customEvt.detail?.theme || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      setThemeState(nextTheme);
+    };
+
+    window.addEventListener('theme-changed', handleThemeChange);
+    return () => window.removeEventListener('theme-changed', handleThemeChange);
   }, []);
 
   const applyTheme = (newTheme: Theme) => {

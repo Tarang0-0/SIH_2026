@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -48,45 +49,15 @@ from api.services.phase2_models import load_phase2_models, phase2_status
 from api.services.phase5_controls import load_phase5_calibration, phase5_status
 from api.services.network_signals import network_provider_configured, network_provider_name
 from api.services.learning_status import load_learning_status
-
-app = FastAPI(
-    title="Namaste Rail ETA & Telemetry Platform",
-    version="2.0",
-    description="Train ETA prediction with authorised live-status ingestion and transparent model forecasts",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
+from api.services.http_client import close_http_client
+from api.middleware.rate_limit import RateLimiterMiddleware
 
 logger = logging.getLogger(__name__)
-
-# This service has no cookie/session authentication. Explicit local development
-# origins are safer and valid with future credentialed browser requests.
-cors_origins = [origin.strip() for origin in os.getenv(
-    "CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
-).split(",") if origin.strip()]
-
-# Enable CORS for all frontends (Next.js, Vite, or future Figma prototypes)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include all modular routers
-app.include_router(eta_router)
-app.include_router(telemetry_router)
-app.include_router(alerts_router)
-app.include_router(amenities_router)
-app.include_router(control_room_router)
-app.include_router(live_station_router)
-app.include_router(weather_router)
 
 models = {}
 explainer = None
 
-@app.on_event("startup")
+
 def startup_event():
     global models, explainer
     models, explainer = {}, None
@@ -117,13 +88,55 @@ def startup_event():
             models = loaded_models
             explainer = DelayExplainer(models["p50"])
             set_models(models, explainer)
-        print("✅ [Namaste Rail] Production ML models and SHAP Explainer active.")
+            print("✅ [Namaste Rail] Production ML models and SHAP Explainer active.")
         else:
             set_models({}, None)
-        print("ℹ️ [Namaste Rail] Local model files not found on disk. Running in calibrated fallback mode.")
+            print("ℹ️ [Namaste Rail] Local model files not found on disk. Running in calibrated fallback mode.")
     except Exception:
         logger.exception("ETA model loading failed; starting without trained models")
         set_models({}, None)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    startup_event()
+    yield
+    await close_http_client()
+
+
+app = FastAPI(
+    title="Namaste Rail ETA & Telemetry Platform",
+    version="2.0",
+    description="Train ETA prediction with authorised live-status ingestion and transparent model forecasts",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan,
+)
+
+# This service has no cookie/session authentication. Explicit local development
+# origins are safer and valid with future credentialed browser requests.
+cors_origins = [origin.strip() for origin in os.getenv(
+    "CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+).split(",") if origin.strip()]
+
+# Enable CORS for all frontends (Next.js, Vite, or future Figma prototypes)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(RateLimiterMiddleware)
+
+# Include all modular routers
+app.include_router(eta_router)
+app.include_router(telemetry_router)
+app.include_router(alerts_router)
+app.include_router(amenities_router)
+app.include_router(control_room_router)
+app.include_router(live_station_router)
+app.include_router(weather_router)
 
 @app.get("/health", tags=["System Health"])
 def health_check():

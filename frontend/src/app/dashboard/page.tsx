@@ -4,6 +4,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import TrainLiveLocationCard from '../components/TrainLiveLocationCard';
+import { useLanguage } from '../components/LanguageContext';
+import { Calendar } from '@/components/ui/calendar';
 import { apiUrl } from '../../lib/api';
 
 interface StationRecord {
@@ -142,6 +146,8 @@ interface LeafletMap {
   fitBounds: (bounds: unknown, options?: { padding: [number, number] }) => void;
   setView: (center: [number, number], zoom: number) => void;
   panTo: (center: [number, number]) => void;
+  getZoom?: () => number;
+  setZoom?: (zoom: number) => void;
 }
 
 interface LeafletMarker {
@@ -193,6 +199,7 @@ const indiaDate = (): string =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
 
 export default function DashboardPage() {
+  const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
   const trainFromQuery = searchParams.get('train') || '';
@@ -239,6 +246,7 @@ export default function DashboardPage() {
   const trackPolylineRef = useRef<LeafletPolyline | null>(null);
   const markersMapRef = useRef<Record<string, LeafletMarker>>({});
   const [leafletReady, setLeafletReady] = useState(false);
+  const [isLocationCardOpen, setIsLocationCardOpen] = useState(false);
 
   // SSE telemetry
   const [liveGps, setLiveGps] = useState({
@@ -779,11 +787,15 @@ export default function DashboardPage() {
         : null;
     if (!target || !mapInstanceRef.current) return;
     mapInstanceRef.current.panTo(target);
+    if (mapInstanceRef.current.getZoom && mapInstanceRef.current.getZoom() < 8 && mapInstanceRef.current.setZoom) {
+      mapInstanceRef.current.setZoom(9);
+    }
     if (hasGps) {
       trainMarkerRef.current?.openPopup();
     } else if (currentStation) {
       markersMapRef.current[currentStation.code]?.openPopup();
     }
+    setIsLocationCardOpen(true);
   };
   const overallDelay = currentLocation.reported_delay_minutes ?? currentSelectedStation?.delay ?? 0;
   const isDelayed = overallDelay > 0;
@@ -791,14 +803,14 @@ export default function DashboardPage() {
 
   if (!trainFromQuery) {
     return (
-      <div className="dashboard-light min-h-screen bg-[#eef7ff] dark:bg-[#060c18] text-slate-900 dark:text-slate-100 flex flex-col font-sans">
+      <div className="dashboard-light min-h-screen bg-[#f7f9fc] dark:bg-transparent text-[#1e293b] dark:text-slate-100 flex flex-col font-sans">
         <Navbar />
-        <main className="flex-grow flex items-center justify-center px-6 py-16">
+        <main id="main-content" className="flex-grow flex items-center justify-center px-6 py-16">
           <div className="surface-3d max-w-lg p-8 text-center rounded-2xl border border-sky-200/80 dark:border-sky-800/60 shadow-sm">
-            <div className="text-xs uppercase tracking-widest text-sky-700 dark:text-sky-400 font-mono font-bold mb-3">Live operations</div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Choose a train to begin</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-6">Search the live train directory first, then choose a train to inspect its current location and next stop.</p>
-            <Link href="/" className="inline-flex bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm px-5 py-2.5 rounded-lg shadow-sm transition-colors">Open train search</Link>
+            <div className="text-xs uppercase tracking-widest text-sky-700 dark:text-sky-400 font-mono font-bold mb-3">{t('dash_live_operations', 'Live operations')}</div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{t('dash_choose_train', 'Choose a train to begin')}</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-6">{t('dash_choose_desc', 'Search the live train directory first, then choose a train to inspect its current location and next stop.')}</p>
+            <Link href="/" className="inline-flex bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm px-5 py-2.5 rounded-lg shadow-sm transition-colors">{t('dash_open_search', 'Open train search')}</Link>
           </div>
         </main>
       </div>
@@ -807,11 +819,11 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="dashboard-light min-h-screen bg-[#eef7ff] dark:bg-[#060c18] text-slate-900 dark:text-slate-100 flex flex-col font-sans">
+      <div className="dashboard-light min-h-screen bg-[#f7f9fc] dark:bg-transparent text-[#1e293b] dark:text-slate-100 flex flex-col font-sans">
         <Navbar />
         <div className="flex-grow flex flex-col items-center justify-center p-6">
           <div className="w-12 h-12 border-3 border-sky-500/20 border-t-sky-600 dark:border-t-sky-400 rounded-full animate-spin mb-4"></div>
-          <div className="text-base font-bold font-mono text-slate-900 dark:text-white tracking-wide">Acquiring Live Transit Stream...</div>
+          <div className="text-base font-bold font-mono text-slate-900 dark:text-white tracking-wide">{t('dash_acquiring', 'Acquiring Live Transit Stream...')}</div>
           <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-1">Train #{inputTrainNo} • RTIS Telemetry Gateway</div>
         </div>
       </div>
@@ -819,8 +831,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="dashboard-light min-h-screen bg-[#eef7ff] dark:bg-[#060c18] text-slate-900 dark:text-slate-100 flex flex-col font-sans">
+    <div className="dashboard-light min-h-screen bg-[#f7f9fc] dark:bg-transparent text-[#1e293b] dark:text-slate-100 flex flex-col font-sans">
       <Navbar />
+      <main id="main-content" className="flex-1 flex flex-col">
 
       {/* Operations Header Banner */}
       <section className="bg-white/85 dark:bg-[#0b1528]/90 backdrop-blur-md border-b border-sky-200/80 dark:border-sky-800/60 px-4 sm:px-6 lg:px-8 py-4 shadow-xs dark:shadow-[0_4px_25px_rgba(0,0,0,0.5)]">
@@ -837,53 +850,67 @@ export default function DashboardPage() {
               </span>
               <span
                 className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold tracking-wide transition-all ${
-                  isDelayed
-                    ? 'bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-500/50 text-amber-800 dark:text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
-                    : 'bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                  overallDelay > 15
+                    ? 'bg-rose-100 dark:bg-rose-950/70 border border-rose-300 dark:border-rose-500/50 text-rose-800 dark:text-rose-300'
+                    : isDelayed
+                    ? 'bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-500/50 text-amber-800 dark:text-amber-300'
+                    : 'bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300'
                 }`}
               >
-                {isDelayed ? `+${overallDelay} MIN DELAYED` : 'ON SCHEDULE'}
+                {overallDelay > 15 ? `+${overallDelay} MIN ${t('dash_severe_delay', 'SEVERE DELAY')}` : isDelayed ? `+${overallDelay} MIN ${t('dash_delayed', 'DELAYED')}` : t('dash_on_schedule', 'ON SCHEDULE')}
               </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-400 dark:text-slate-500">Origin:</span>
+                <span className="text-slate-400 dark:text-slate-500">{t('dash_origin', 'Origin:')}</span>
                 <span className="text-slate-900 dark:text-slate-200 font-semibold">{trainDetails.origin}</span>
                 <span className="text-sky-600 dark:text-sky-400 font-bold">({stations[0]?.sched || '--:--'})</span>
               </div>
               <span className="text-slate-300 dark:text-slate-700">➔</span>
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-400 dark:text-slate-500">Destination:</span>
+                <span className="text-slate-400 dark:text-slate-500">{t('dash_destination', 'Destination:')}</span>
                 <span className="text-slate-900 dark:text-slate-200 font-semibold">{trainDetails.dest}</span>
                 <span className="text-sky-600 dark:text-sky-400 font-bold">({stations[stations.length - 1]?.sched || '--:--'})</span>
               </div>
               <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
               <div className="hidden sm:flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                <span>{stations.length} Scheduled Halts</span>
+                <span>{stations.length} {t('dash_scheduled_halts', 'Scheduled Halts')}</span>
               </div>
               <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
-              <div className="hidden sm:flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                <span>Journey {currentLocation.journey_date || '--'}</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setHistoryPanelOpen(true);
+                  if (!historicalTimetable) void loadHistoricalTimetable();
+                }}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800 text-xs font-mono text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900 transition-colors cursor-pointer"
+                title="Click to view train journey calendar"
+                aria-label="Open train journey calendar"
+              >
+                <svg className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>Journey {currentLocation.journey_date || journeyDate || '--'}</span>
+              </button>
             </div>
           </div>
 
           {/* Train switcher */}
           <div className="flex flex-wrap items-center gap-3">
-            <form onSubmit={handleSearchSubmit} className="flex items-center bg-white dark:bg-[#07101e] border border-sky-300 dark:border-sky-700/80 rounded-lg p-1 shadow-sm">
+            <form onSubmit={handleSearchSubmit} className="flex items-center bg-white dark:bg-[#07101e] border border-slate-200 dark:border-slate-800 rounded-lg p-1 shadow-xs">
               <input
                 type="text"
                 value={inputTrainNo}
                 onChange={(e) => setInputTrainNo(e.target.value)}
-                placeholder="Train No..."
+                placeholder={t('search_input_placeholder', 'Train No...')}
                 className="w-24 sm:w-28 px-2.5 py-1 text-xs font-mono text-slate-800 dark:text-slate-100 bg-transparent outline-none placeholder-slate-400 dark:placeholder-slate-500"
               />
               <button
                 type="submit"
-                className="bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-400 text-white dark:text-slate-950 text-xs font-bold px-3 py-1.5 rounded-md transition-colors cursor-pointer shadow-sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-md transition-colors cursor-pointer shadow-xs"
               >
-                Track
+                {t('dash_track_btn', 'Track')}
               </button>
             </form>
           </div>
@@ -893,44 +920,44 @@ export default function DashboardPage() {
 
       {upcomingStation && (
         <section className="px-4 sm:px-6 lg:px-8 pt-5">
-          <div className="max-w-7xl mx-auto panel-card px-5 py-5 sm:px-6 border border-sky-200 dark:border-sky-800/80 bg-gradient-to-r from-sky-50/90 via-blue-50/50 to-white dark:from-[#0b1c38] dark:via-[#09162e] dark:to-[#071124] shadow-sm dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+          <div className="max-w-7xl mx-auto panel-card px-5 py-5 sm:px-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#09152b] shadow-xs">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wider text-sky-700 dark:text-sky-400 font-mono font-bold">
-                  <span className="inline-flex h-2 w-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_8px_#38bdf8]" />
-                  Upcoming station
+                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wider text-blue-600 dark:text-blue-400 font-mono font-bold">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                  {t('dash_upcoming_station', 'Upcoming station')}
                 </div>
                 <div className="mt-1 text-xl sm:text-2xl font-black text-slate-900 dark:text-white truncate">
                   {upcomingStation.station_name || upcomingStation.station_code}
                   <span className="ml-2 text-sm sm:text-base font-mono font-semibold text-sky-600 dark:text-sky-400">({upcomingStation.station_code})</span>
                 </div>
                 <div className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                  Currently at <span className="font-semibold text-slate-800 dark:text-slate-200">{currentStationLabel}</span>
+                  {t('dash_currently_at', 'Currently at')} <span className="font-semibold text-slate-800 dark:text-slate-200">{currentStationLabel}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:flex sm:items-center gap-4 sm:gap-7">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Expected arrival</div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">{t('dash_expected_arrival', 'Expected arrival')}</div>
                   <div className="mt-1 text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white">{upcomingStation.predicted_arrival}</div>
                   {upcomingStation.predicted_minutes_to_next !== null && upcomingStation.predicted_minutes_to_next !== undefined && (
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">in about {upcomingStation.predicted_minutes_to_next} min</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{t('dash_in_about', 'in about')} {upcomingStation.predicted_minutes_to_next} {t('card_delayed', 'min')}</div>
                   )}
                 </div>
                 <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Delay at this station</div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">{t('dash_delay_at_station', 'Delay at this station')}</div>
                   <div className={`mt-1 text-2xl sm:text-3xl font-black font-mono ${upcomingStation.predicted_delay_minutes > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                    {upcomingStation.predicted_delay_minutes > 0 ? `+${upcomingStation.predicted_delay_minutes} min` : 'On time'}
+                    {upcomingStation.predicted_delay_minutes > 0 ? `+${upcomingStation.predicted_delay_minutes} min` : t('card_on_time', 'On time')}
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">Scheduled {upcomingStation.scheduled_arrival}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{t('dash_scheduled', 'Scheduled')} {upcomingStation.scheduled_arrival}</div>
                 </div>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-sky-100 dark:border-sky-900/60 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-slate-600 dark:text-slate-400">
-              <span>Forecast confidence: <strong className="text-slate-900 dark:text-slate-200 font-bold">{stations[1]?.conf ?? '—'}%</strong></span>
-              <span>Route progress: <strong className="text-slate-900 dark:text-slate-200 font-bold">{Math.round(currentLocation.route_progress_percent ?? 0)}%</strong></span>
+              <span>{t('dash_forecast_confidence', 'Forecast confidence')}: <strong className="text-slate-900 dark:text-slate-200 font-bold">{stations[1]?.conf ?? '—'}%</strong></span>
+              <span>{t('dash_route_progress', 'Route progress')}: <strong className="text-slate-900 dark:text-slate-200 font-bold">{Math.round(currentLocation.route_progress_percent ?? 0)}%</strong></span>
               {currentLocation.feedback?.latest_comparison && (
-                <span>Latest observed error: <strong className="text-emerald-700 dark:text-emerald-400 font-bold">{currentLocation.feedback.latest_comparison.error_minutes > 0 ? '+' : ''}{currentLocation.feedback.latest_comparison.error_minutes} min</strong></span>
+                <span>{t('dash_observed_error', 'Latest observed error')}: <strong className="text-emerald-700 dark:text-emerald-400 font-bold">{currentLocation.feedback.latest_comparison.error_minutes > 0 ? '+' : ''}{currentLocation.feedback.latest_comparison.error_minutes} min</strong></span>
               )}
             </div>
           </div>
@@ -941,50 +968,48 @@ export default function DashboardPage() {
         <div ref={historyPanelRef} className="max-w-7xl mx-auto rounded-xl border border-sky-200 dark:border-sky-800/80 bg-white/75 dark:bg-[#0b1528]/85 px-4 py-3 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-sky-700 dark:text-sky-400 font-mono font-bold">Past journey timings</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-sky-700 dark:text-sky-400 font-mono font-bold">{t('dash_past_journey_timings', 'Past journey timings')}</div>
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Select one of the last five dates to see when the train reached each station.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {historyPanelOpen && historicalTimetable && (
-                <label htmlFor="history-date" className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Journey date</label>
-              )}
-              {historyPanelOpen && historicalTimetable ? (
-                <select
-                  id="history-date"
-                  value={selectedHistoryDate}
-                  onChange={(event) => setSelectedHistoryDate(event.target.value)}
-                  className="rounded-lg border border-sky-200 dark:border-sky-700/80 bg-white dark:bg-[#07101e] px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-100 outline-none ring-sky-300 dark:ring-sky-500/40 focus:ring-2"
-                >
-                  {historicalTimetable.days.map((day) => (
-                    <option key={day.date} value={day.date}>
-                      {new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }).format(new Date(`${day.date}T12:00:00`))}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHistoryPanelOpen(true);
-                    if (!historicalTimetable) void loadHistoricalTimetable();
-                  }}
-                  className="rounded-lg bg-sky-600 dark:bg-sky-500 hover:bg-sky-700 dark:hover:bg-sky-400 px-3 py-2 text-xs font-bold text-white dark:text-slate-950 shadow-sm transition disabled:cursor-wait disabled:opacity-60 cursor-pointer"
-                  disabled={historyLoading}
-                >
-                  {historyLoading ? 'Loading dates…' : 'Choose a previous date'}
-                </button>
-              )}
-              {historyPanelOpen && (
-                <button
-                  type="button"
-                  onClick={() => setHistoryPanelOpen(false)}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0f1d36] px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-[#162a4a] hover:text-slate-900 dark:hover:text-white cursor-pointer"
-                >
-                  Close
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const nextState = !historyPanelOpen;
+                  setHistoryPanelOpen(nextState);
+                  if (nextState && !historicalTimetable) void loadHistoricalTimetable();
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition disabled:cursor-wait disabled:opacity-60 cursor-pointer"
+                disabled={historyLoading}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{historyLoading ? t('dash_loading_calendar', 'Loading calendar…') : historyPanelOpen ? t('dash_close_calendar', 'Close Calendar') : t('dash_select_date_btn', 'Select Journey Date')}</span>
+              </button>
             </div>
           </div>
+
+          {historyPanelOpen && (
+            <div className="mt-4 pt-4 border-t border-sky-100 dark:border-sky-900/60">
+              <Calendar
+                selectedDate={selectedHistoryDate || journeyDate}
+                onSelectDate={(newDate) => {
+                  setSelectedHistoryDate(newDate);
+                  void fetchLivePredictions(trainDetails.train_number, newDate);
+                }}
+                availableDates={historicalTimetable ? historicalTimetable.days.map((d) => d.date) : []}
+                title={`Train #${trainDetails.train_number} ${t('dash_journey_calendar', 'Journey Calendar')}`}
+                description={t('dash_pick_date_desc', 'Pick any date from the interactive calendar to view recorded arrivals, departures, and delay explanations.')}
+                actionLabel={t('dash_track_selected_date', 'Track Selected Date')}
+                onActionClick={() => {
+                  if (selectedHistoryDate) {
+                    router.push(`/dashboard?train=${encodeURIComponent(trainDetails.train_number)}&date=${encodeURIComponent(selectedHistoryDate)}`);
+                  }
+                }}
+              />
+            </div>
+          )}
 
           {historyPanelOpen && historyError && <p className="mt-3 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/50 px-3 py-2 text-xs text-rose-700 dark:text-rose-300">Historical timings could not be loaded. Start or restart the API server, then try again.</p>}
 
@@ -995,16 +1020,16 @@ export default function DashboardPage() {
               <div className="mt-3 overflow-hidden rounded-xl border border-sky-100 dark:border-sky-900/60 bg-sky-50/60 dark:bg-[#071224]/80">
                 <div className="flex flex-col gap-2 border-b border-sky-100 dark:border-sky-900/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }).format(new Date(`${selectedDay.date}T12:00:00`))}</h3>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{new Intl.DateTimeFormat(language === 'hi' ? 'hi-IN' : 'en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }).format(new Date(`${selectedDay.date}T12:00:00`))}</h3>
                     <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">{selectedDay.note}</p>
                   </div>
                   <span className={`w-fit rounded-full px-2.5 py-1 text-[10px] font-mono font-bold ${selectedDay.available ? 'bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-300'}`}>
-                    {selectedDay.available ? 'Recorded timings' : 'No recorded run'}
+                    {selectedDay.available ? t('dash_recorded_timings', 'Recorded timings') : t('dash_no_recorded_run', 'No recorded run')}
                   </span>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 border-b border-sky-100 dark:border-sky-900/60 px-4 py-2 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    <span>Station</span><span>Assigned</span><span>Reached</span><span>Departed</span><span>Delay</span>
+                    <span>{t('dash_station_col', 'Station')}</span><span>{t('dash_assigned', 'Assigned')}</span><span>{t('dash_reached', 'Reached')}</span><span>{t('dash_departed_col', 'Departed')}</span><span>{t('dash_delay_col', 'Delay')}</span>
                   </div>
                   {selectedDay.timetable.map((stop) => (
                     <div key={`${selectedDay.date}-${stop.station_code}`} className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-3 border-b border-sky-100 dark:border-sky-900/40 px-4 py-2 text-xs last:border-b-0">
@@ -1012,11 +1037,11 @@ export default function DashboardPage() {
                       <span className="font-mono text-slate-600 dark:text-slate-400">{stop.scheduled_arrival || '--:--'}</span>
                       <span className="font-mono font-semibold text-sky-700 dark:text-sky-400">{stop.actual_arrival_at ? new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' }).format(new Date(stop.actual_arrival_at)) : '—'}</span>
                       <span className="font-mono font-semibold text-sky-700 dark:text-sky-400">{stop.actual_departure_at ? new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' }).format(new Date(stop.actual_departure_at)) : '—'}</span>
-                      <span className={`font-mono font-bold ${stop.delay_minutes !== null && stop.delay_minutes !== undefined && stop.delay_minutes > 0 ? 'text-amber-700 dark:text-amber-400' : stop.delay_minutes === 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>{stop.delay_minutes === null || stop.delay_minutes === undefined ? '—' : stop.delay_minutes > 0 ? `+${stop.delay_minutes}m` : 'On time'}</span>
+                      <span className={`font-mono font-bold ${stop.delay_minutes !== null && stop.delay_minutes !== undefined && stop.delay_minutes > 0 ? 'text-amber-700 dark:text-amber-400' : stop.delay_minutes === 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>{stop.delay_minutes === null || stop.delay_minutes === undefined ? '—' : stop.delay_minutes > 0 ? `+${stop.delay_minutes}m` : t('card_on_time', 'On time')}</span>
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-sky-100 dark:border-sky-900/60 px-4 py-2 text-[10px] text-slate-500 dark:text-slate-400">Assigned = scheduled arrival · Reached/Departed = stored provider timestamps</div>
+                <div className="border-t border-sky-100 dark:border-sky-900/60 px-4 py-2 text-[10px] text-slate-500 dark:text-slate-400">{t('dash_timetable_legend_note', 'Assigned = scheduled arrival · Reached/Departed = stored provider timestamps')}</div>
               </div>
             );
           })()}
@@ -1027,13 +1052,13 @@ export default function DashboardPage() {
       {errorMsg ? (
         <div className="flex-grow flex items-center justify-center p-6">
           <div className="surface-3d p-8 text-center max-w-md border border-rose-300 rounded-2xl shadow-sm">
-            <div className="text-rose-600 font-bold text-base mb-2">Transit Data Offline</div>
+            <div className="text-rose-600 font-bold text-base mb-2">{t('dash_transit_offline', 'Transit Data Offline')}</div>
             <p className="text-xs text-slate-600 mb-6">{errorMsg}</p>
             <Link
               href="/"
               className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition-colors"
             >
-              Return to train search
+              {t('dash_return_search', 'Return to train search')}
             </Link>
           </div>
         </div>
@@ -1046,11 +1071,11 @@ export default function DashboardPage() {
             <div className="surface-3d p-4 flex flex-col rounded-2xl border border-sky-200/80 dark:border-sky-800/60 shadow-sm h-[680px]">
               <div className="flex items-center justify-between pb-3 border-b border-sky-100 dark:border-sky-900/60 mb-3">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Halt Timetable & Progress</h3>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">Full route · next stop selected automatically</div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">{t('dash_timeline_title', 'Halt Timetable & Progress')}</h3>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{t('dash_full_route_note', 'Full route · next stop selected automatically')}</div>
                 </div>
                 <div className="text-xs font-mono text-sky-700 dark:text-sky-300 font-bold bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800/70 px-2.5 py-0.5 rounded-full">
-                  {stations.length} Stops
+                  {stations.length} {t('dash_stops', 'Stops')}
                 </div>
               </div>
 
@@ -1081,18 +1106,18 @@ export default function DashboardPage() {
                         <div
                           className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
                             isCurrent
-                              ? 'bg-sky-500 animate-pulse shadow-[0_0_8px_#38bdf8]'
+                              ? 'bg-blue-500 animate-pulse'
                               : isPassed
-                                ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]'
+                                ? 'bg-emerald-500'
                                 : isDelayedStop
-                                  ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]'
+                                  ? 'bg-amber-500'
                                   : 'bg-slate-300 dark:bg-slate-700'
                           }`}
                         />
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-mono font-bold text-xs text-slate-900 dark:text-white">{stn.code}</span>
-                            {isCurrent && <span className="text-[9px] uppercase tracking-wider text-sky-700 dark:text-sky-300 font-mono font-bold bg-sky-100 dark:bg-sky-900/60 px-1.5 py-0.5 rounded">Current</span>}
+                            {isCurrent && <span className="text-[9px] uppercase tracking-wider text-blue-700 dark:text-blue-300 font-mono font-bold bg-blue-100 dark:bg-blue-900/60 px-1.5 py-0.5 rounded">{t('dash_current', 'Current')}</span>}
                             <span className="text-xs text-slate-700 dark:text-slate-300 font-medium truncate max-w-[140px] sm:max-w-[180px]">
                               {stn.name}
                             </span>
@@ -1115,7 +1140,7 @@ export default function DashboardPage() {
                               stn.delay === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
                             }`}
                           >
-                            {stn.delay === 0 ? 'On Time' : `+${stn.delay}m`}
+                            {stn.delay === 0 ? t('card_on_time', 'On Time') : `+${stn.delay}m`}
                           </span>
                         </div>
                       </div>
@@ -1128,15 +1153,15 @@ export default function DashboardPage() {
               <div className="pt-3 border-t border-sky-100 dark:border-sky-900/60 mt-3 flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>Departed</span>
+                  <span>{t('dash_departed', 'Departed')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span>Delayed Stop</span>
+                  <span>{t('dash_delayed_stop', 'Delayed Stop')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
-                  <span>Upcoming</span>
+                  <span>{t('dash_upcoming', 'Upcoming')}</span>
                 </div>
               </div>
             </div>
@@ -1147,56 +1172,82 @@ export default function DashboardPage() {
           <div className="lg:col-span-7 flex flex-col gap-4">
             
             {/* Geospatial Map Panel */}
-            <div className="surface-3d p-2 border border-sky-200/80 dark:border-sky-800/60 flex flex-col h-[400px] rounded-2xl relative overflow-hidden shadow-sm">
+            <div className="surface-3d p-2 border border-slate-200 dark:border-slate-800 flex flex-col h-[400px] rounded-2xl relative overflow-hidden shadow-sm">
               
               {/* Map floating header controls */}
-              <div className="absolute top-4 left-4 z-[400] bg-white/95 dark:bg-[#0b1528]/95 backdrop-blur-md border border-sky-200 dark:border-sky-800/80 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-mono shadow-sm text-slate-800 dark:text-slate-200">
-                <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_6px_rgba(2,132,199,0.5)]" />
-                <span className="font-bold text-slate-900 dark:text-white">Geospatial Corridor Route</span>
+              <div className="absolute top-4 left-4 z-[400] bg-white/95 dark:bg-[#0b1528]/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-mono shadow-xs text-slate-800 dark:text-slate-200">
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span className="font-bold text-slate-900 dark:text-white">{t('map_title', 'Geospatial Corridor Route')}</span>
               </div>
 
               <div className="absolute top-4 right-14 z-[400] flex gap-1.5">
                 <button
                   onClick={handleLocateTrain}
                   disabled={!leafletReady || stations.length === 0}
-                  className="bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-400 disabled:opacity-40 text-white dark:text-slate-950 font-bold border border-sky-500 px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer shadow-sm"
+                  className="group relative flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-semibold px-3 py-1.5 rounded-xl text-xs font-mono transition-colors cursor-pointer shadow-xs active:scale-[0.98]"
+                  title="Where is my train? Check live location, delay status and next station timing"
                 >
-                  Locate Train
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-300"></span>
+                  </span>
+                  <span>{t('map_where_is_my_train', 'Where is my train?')}</span>
                 </button>
                 <button
                   onClick={handleFitRoute}
-                  className="bg-white/95 dark:bg-[#0c1729]/95 hover:bg-slate-50 dark:hover:bg-[#162744] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-sky-800/80 px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer backdrop-blur-md shadow-sm"
+                  className="bg-white/95 dark:bg-[#0c1729]/95 hover:bg-slate-50 dark:hover:bg-[#162744] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer backdrop-blur-md shadow-xs"
                 >
-                  Fit Route
+                  {t('map_fit_route', 'Fit Route')}
                 </button>
+              </div>
+
+              {/* Train Location & Delay Card Overlay */}
+              <div className="absolute top-14 left-4 z-[450] max-w-[calc(100%-2rem)]">
+                <TrainLiveLocationCard
+                  trainNumber={inputTrainNo || trainDetails.train_number}
+                  trainName={trainDetails.train_name || 'Express Service'}
+                  currentStationCode={currentStation?.code}
+                  currentStationName={currentStation?.name}
+                  delayMinutes={overallDelay}
+                  nextStationCode={upcomingStation?.station_code || 'Next Station'}
+                  nextStationName={upcomingStation?.station_name || 'Upcoming Stop'}
+                  scheduledArrival={upcomingStation?.scheduled_arrival || '--:--'}
+                  predictedArrival={upcomingStation?.predicted_arrival || '--:--'}
+                  speedKmH={liveGps.speed}
+                  distanceKmToNext={upcomingStation?.predicted_minutes_to_next ? upcomingStation.predicted_minutes_to_next * 1.4 : null}
+                  routeProgressPercent={currentLocation.route_progress_percent}
+                  isOpen={isLocationCardOpen}
+                  onClose={() => setIsLocationCardOpen(false)}
+                  onCenterOnTrain={handleLocateTrain}
+                />
               </div>
 
               {/* Leaflet Map Mount Container */}
               <div ref={mapContainerRef} className="w-full h-full rounded-xl" />
-              <div className="absolute bottom-4 left-4 z-[400] bg-white/95 dark:bg-[#0b1528]/95 backdrop-blur-md border border-sky-200 dark:border-sky-800/80 px-3 py-2 rounded-xl text-[10px] font-mono text-slate-700 dark:text-slate-300 shadow-sm space-y-1">
-                <div className="flex items-center gap-2"><span className="w-5 border-t-[3px] border-sky-500" /> Planned train corridor</div>
-                <div className="flex items-center gap-2"><span className="w-5 border-t-[3px] border-emerald-500" /> Completed section</div>
+              <div className="absolute bottom-4 left-4 z-[400] bg-white/95 dark:bg-[#0b1528]/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl text-[10px] font-mono text-slate-700 dark:text-slate-300 shadow-xs space-y-1">
+                <div className="flex items-center gap-2"><span className="w-5 border-t-[3px] border-blue-500" /> {t('dash_planned_corridor', 'Planned train corridor')}</div>
+                <div className="flex items-center gap-2"><span className="w-5 border-t-[3px] border-emerald-500" /> {t('dash_completed_section', 'Completed section')}</div>
                 <div className="text-slate-500 dark:text-slate-400 pt-0.5">{routeGeometry ? `Track geometry: ${routeGeometry.source || 'provider'}` : 'Track geometry unavailable; timetable fallback'}</div>
               </div>
             </div>
 
             {/* AI Delay Diagnosis & Uncertainty Radar */}
-            <div className="surface-3d p-4 border border-sky-200/80 dark:border-sky-800/60 rounded-2xl shadow-sm">
-              <div className="flex items-center justify-between pb-3 border-b border-sky-100 dark:border-sky-900/60 mb-4">
+            <div className="surface-3d p-4 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(2,132,199,0.5)]" />
-                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">
-                    Causal Delay Diagnosis (SHAP Analysis)
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                    {t('dash_causal_diagnosis', 'Causal Delay Diagnosis (SHAP Analysis)')}
                   </h3>
                 </div>
                 <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                  Target: <span className="text-slate-900 dark:text-white font-bold">{currentSelectedStation?.name || 'Corridor'}</span>
+                  {t('dash_target', 'Target')}: <span className="text-slate-900 dark:text-white font-bold">{currentSelectedStation?.name || 'Corridor'}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                <div className="bg-white/95 dark:bg-[#0c1729]/90 border border-sky-100 dark:border-sky-800/60 p-3.5 rounded-xl shadow-xs">
-                  <div className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400 mb-1">Station Delay</div>
+                <div className="bg-white/95 dark:bg-[#0c1729]/90 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl shadow-xs">
+                  <div className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400 mb-1">{t('dash_station_delay', 'Station Delay')}</div>
                   <div
                     className={`text-2xl font-black font-mono ${
                       isDelayed ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
@@ -1206,15 +1257,15 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="bg-white/95 dark:bg-[#0c1729]/90 border border-sky-100 dark:border-sky-800/60 p-3.5 rounded-xl shadow-xs">
-                  <div className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400 mb-1">AI Confidence</div>
-                  <div className="text-2xl font-black font-mono text-sky-600 dark:text-sky-400">
+                <div className="bg-white/95 dark:bg-[#0c1729]/90 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl shadow-xs">
+                  <div className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400 mb-1">{t('dash_ai_confidence', 'AI Confidence')}</div>
+                  <div className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400">
                     {currentSelectedStation?.conf || 94}%
                   </div>
                 </div>
 
-                <div className="bg-white/95 dark:bg-[#0c1729]/90 border border-sky-100 dark:border-sky-800/60 p-3.5 rounded-xl shadow-xs">
-                  <div className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400 mb-1">Expected Arrival</div>
+                <div className="bg-white/95 dark:bg-[#0c1729]/90 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl shadow-xs">
+                  <div className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400 mb-1">{t('dash_expected_arrival', 'Expected Arrival')}</div>
                   <div className="text-2xl font-black font-mono text-slate-900 dark:text-white">
                     {currentSelectedStation?.pred || '--:--'}
                   </div>
@@ -1225,8 +1276,8 @@ export default function DashboardPage() {
               <div
                 className={`p-3.5 rounded-xl border flex items-start gap-3 transition-all ${
                   isDelayed
-                    ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.12)]'
-                    : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.12)]'
+                    ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/40'
+                    : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/40'
                 }`}
               >
                 <div className={`mt-0.5 ${isDelayed ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`} aria-label={isDelayed ? 'Delay warning' : 'On time'}>
@@ -1242,7 +1293,7 @@ export default function DashboardPage() {
                       isDelayed ? 'text-amber-800 dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-300'
                     }`}
                   >
-                    {isDelayed ? 'Identified Corridor Factor' : 'Optimal Schedule Adherence'}
+                    {isDelayed ? t('dash_factor_identified', 'Identified Corridor Factor') : t('dash_schedule_adherence', 'Optimal Schedule Adherence')}
                   </div>
                   <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
                     {delayReason}
@@ -1263,11 +1314,11 @@ export default function DashboardPage() {
           <div className="surface-3d rounded-2xl p-5 border border-sky-200/80 dark:border-sky-800/60 shadow-sm">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.18em] text-sky-700 dark:text-sky-400 font-mono font-bold">Passenger facilities</div>
-                <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">Nearby at {facilityStationName} <span className="text-sm font-mono text-slate-500 dark:text-slate-400">({facilityStation.code})</span></h2>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Optional station support while you wait for the train.</p>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-sky-700 dark:text-sky-400 font-mono font-bold">{t('dash_passenger_facilities', 'Passenger facilities')}</div>
+                <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">{t('dash_nearby_at', 'Nearby at')} {facilityStationName} <span className="text-sm font-mono text-slate-500 dark:text-slate-400">({facilityStation.code})</span></h2>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{t('dash_station_help_subtitle', 'Optional station support while you wait for the train.')}</p>
               </div>
-              {amenitiesStatus === 'loading' && <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Checking station options…</span>}
+              {amenitiesStatus === 'loading' && <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{t('dash_checking_options', 'Checking station options…')}</span>}
             </div>
 
             {amenitiesStatus === 'ready' && stationAmenities?.amenities.length ? (
@@ -1283,28 +1334,20 @@ export default function DashboardPage() {
             ) : (
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <a href={waitingAreaSearchUrl} target="_blank" rel="noreferrer" className="group rounded-xl border border-sky-200/80 dark:border-sky-800/60 bg-white/90 dark:bg-[#0c1729]/90 p-4 shadow-sm transition hover:border-sky-400 dark:hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-[#122340]">
-                  <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400"><svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4v16M19 4v16M5 5h14M5 12h14M7 20h-3M20 20h-3"/><path d="M8 12v8M16 12v8"/></svg></span><div><div className="text-sm font-bold text-slate-900 dark:text-white">Waiting area</div><div className="mt-1 text-xs text-slate-600 dark:text-slate-400">Find the nearest mapped option</div></div></div><svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-sky-500 transition group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+                  <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400"><svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4v16M19 4v16M5 5h14M5 12h14M7 20h-3M20 20h-3"/><path d="M8 12v8M16 12v8"/></svg></span><div><div className="text-sm font-bold text-slate-900 dark:text-white">{t('dash_waiting_area', 'Waiting area')}</div><div className="mt-1 text-xs text-slate-600 dark:text-slate-400">{t('dash_find_nearest_waiting', 'Find the nearest mapped option')}</div></div></div><svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-sky-500 transition group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
                 </a>
                 <a href={canteenSearchUrl} target="_blank" rel="noreferrer" className="group rounded-xl border border-amber-200/80 dark:border-amber-800/60 bg-white/90 dark:bg-[#0c1729]/90 p-4 shadow-sm transition hover:border-amber-400 dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-[#1f2618]/40">
-                  <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400"><svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10h12a1 1 0 0 1 1 1c0 3-2.5 5-7 5s-7-2-7-5a1 1 0 0 1 1-1Z"/><path d="M8 18h8M9 20h6M12 7v3M9 7c0-2 1.5-3 3-3s3 1 3 3"/></svg></span><div><div className="text-sm font-bold text-slate-900 dark:text-white">Canteen & food</div><div className="mt-1 text-xs text-slate-600 dark:text-slate-400">Find nearby food options</div></div></div><svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-amber-500 transition group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+                  <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400"><svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10h12a1 1 0 0 1 1 1c0 3-2.5 5-7 5s-7-2-7-5a1 1 0 0 1 1-1Z"/><path d="M8 18h8M9 20h6M12 7v3M9 7c0-2 1.5-3 3-3s3 1 3 3"/></svg></span><div><div className="text-sm font-bold text-slate-900 dark:text-white">{t('dash_canteen_food', 'Canteen & food')}</div><div className="mt-1 text-xs text-slate-600 dark:text-slate-400">{t('dash_find_nearby_food', 'Find nearby food options')}</div></div></div><svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-amber-500 transition group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
                 </a>
               </div>
             )}
-            {amenitiesStatus === 'unavailable' && <div className="mt-3 text-[11px] text-slate-500 dark:text-slate-400">Verified station facility data is unavailable; these links open nearby map results instead.</div>}
+            {amenitiesStatus === 'unavailable' && <div className="mt-3 text-[11px] text-slate-500 dark:text-slate-400">{t('dash_facility_unavailable', 'Verified station facility data is unavailable; these links open nearby map results instead.')}</div>}
           </div>
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="mt-auto border-t border-sky-200/80 dark:border-sky-800/60 py-5 px-4 sm:px-6 lg:px-8 bg-white/80 dark:bg-[#060c18]/90 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-sm">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div>Namaste Rail • Indian Railways Operations & Telemetry Gateway</div>
-          <div className="flex gap-4">
-            <Link href="/" className="text-slate-600 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors">Home</Link>
-            <Link href="/operator" className="text-slate-600 dark:text-slate-400 hover:text-sky-700 dark:hover:text-sky-400 transition-colors">Admin control room</Link>
-          </div>
-        </div>
-      </footer>
+      </main>
+      <Footer />
     </div>
   );
 }

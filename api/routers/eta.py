@@ -35,8 +35,10 @@ logger = logging.getLogger(__name__)
 INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
 
 
-def load_train_index() -> None:
+def load_train_index(force: bool = False) -> None:
     global TRAIN_ROUTES_INDEX
+    if TRAIN_ROUTES_INDEX and not force:
+        return
     TRAIN_ROUTES_INDEX = {}
     try:
         with open(INDEX_PATH) as file:
@@ -46,8 +48,10 @@ def load_train_index() -> None:
         print(f"⚠️ [Namaste Rail] Failed to load train index: {error}")
 
 
-def load_feature_defaults() -> None:
+def load_feature_defaults(force: bool = False) -> None:
     global feature_defaults_ref
+    if feature_defaults_ref and not force:
+        return
     feature_defaults_ref = {}
     try:
         with open(DEFAULTS_PATH) as file:
@@ -62,8 +66,10 @@ def load_feature_defaults() -> None:
         print(f"⚠️ [Namaste Rail] Failed to load feature defaults: {error}")
 
 
-def load_historical_records() -> None:
+def load_historical_records(force: bool = False) -> None:
     global HISTORICAL_DELAY_RECORDS
+    if HISTORICAL_DELAY_RECORDS and not force:
+        return
     HISTORICAL_DELAY_RECORDS = {}
     try:
         with open(HISTORY_PATH) as file:
@@ -75,9 +81,11 @@ def load_historical_records() -> None:
         pass
 
 
-def load_model_metadata() -> None:
+def load_model_metadata(force: bool = False) -> None:
     """Load the model identifier used to make each live forecast."""
     global MODEL_VERSION
+    if MODEL_VERSION != "unknown" and not force:
+        return
     MODEL_VERSION = "unknown"
     try:
         with open(METADATA_PATH, encoding="utf-8") as file:

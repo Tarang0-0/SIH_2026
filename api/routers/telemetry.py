@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 INDEX_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "train_routes_index.json")
 _route_index: Optional[Dict[str, Dict[str, Any]]] = None
 _official_schedule_cache: Dict[str, tuple[float, Dict[str, Any]]] = {}
+MAX_SCHEDULE_CACHE_SIZE = 200
 
 
 def _poll_seconds() -> int:
@@ -70,6 +71,9 @@ async def _refresh_official_route(train_number: str) -> None:
         logger.warning("Official schedule unavailable for train %s; using local route fallback", train_number)
         return
     eta_module.set_train_route(train_number, route)
+    if len(_official_schedule_cache) >= MAX_SCHEDULE_CACHE_SIZE and train_number not in _official_schedule_cache:
+        oldest_key = min(_official_schedule_cache.keys(), key=lambda k: _official_schedule_cache[k][0])
+        _official_schedule_cache.pop(oldest_key, None)
     _official_schedule_cache[train_number] = (now, route)
 
 
@@ -302,7 +306,7 @@ async def get_live_eta(train_number: str, date: Optional[str] = None):
     try:
         eta = get_train_eta(
             train_number=train_key,
-            date=(journey_date or dt.date.today()).isoformat(),
+            date=journey_date.isoformat(),
             current_station=status.current_station,
             current_delay=status.current_delay_minutes,
             speed_kmh=status.speed_kmh, current_latitude=status.latitude,
@@ -311,7 +315,7 @@ async def get_live_eta(train_number: str, date: Optional[str] = None):
     except HTTPException as error:
         raise HTTPException(status_code=502, detail=f"Live status cannot be mapped to the local ETA route: {error.detail}") from error
     eta.current_location.update({
-        "journey_date": (journey_date or dt.date.today()).isoformat(),
+        "journey_date": journey_date.isoformat(),
         "reported_delay_minutes": status.current_delay_minutes,
         "status_observed_at": status.observed_at.isoformat(),
         "status_provider": status.provider,
@@ -322,7 +326,7 @@ async def get_live_eta(train_number: str, date: Optional[str] = None):
     })
     eta.current_location["weather"] = weather.public_dict() if weather else None
     eta.current_location["feedback"] = _record_feedback(
-        train_key, journey_date or dt.date.today(), status, eta, weather
+        train_key, journey_date, status, eta, weather
     )
     return eta
 

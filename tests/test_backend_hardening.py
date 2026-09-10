@@ -229,6 +229,115 @@ class BackendHardeningTests(unittest.TestCase):
             get_station_amenities("!!")
         self.assertEqual(invalid_station.exception.status_code, 422)
 
+    def test_schema_initializes_once_per_database(self):
+        db_path = Path(self.tempdir.name) / "test_init_once.sqlite3"
+        conn1 = feedback_store._connect(db_path)
+        self.assertIn(db_path.resolve(), feedback_store._initialized_databases)
+        conn1.close()
+
+        # Connect a second time; schema initialization should be skipped
+        conn2 = feedback_store._connect(db_path)
+        self.assertIn(db_path.resolve(), feedback_store._initialized_databases)
+        conn2.close()
+
+    def test_http_client_connection_pooling_and_lifecycle(self):
+        from api.services.http_client import get_http_client, close_http_client
+        client1 = get_http_client(15.0)
+        client2 = get_http_client(15.0)
+        self.assertIs(client1, client2)
+        self.assertFalse(client1.is_closed)
+
+        asyncio.run(close_http_client())
+        self.assertTrue(client1.is_closed)
+
+    def test_idempotent_loading_skips_reload(self):
+        from api.routers import eta
+        from api.services import phase5_controls
+        eta.load_train_index()
+        initial_len = len(eta.TRAIN_ROUTES_INDEX)
+        self.assertGreater(initial_len, 0)
+        eta.load_train_index()
+        self.assertEqual(len(eta.TRAIN_ROUTES_INDEX), initial_len)
+
+        phase5_controls.load_phase5_calibration()
+        phase5_controls.load_phase5_calibration()
+
+    def test_bounded_weather_and_schedule_cache_eviction(self):
+        from api.services import weather
+        from api.routers import telemetry
+
+        weather.clear_weather_cache()
+        original_cap = weather.MAX_WEATHER_CACHE_SIZE
+        try:
+            weather.MAX_WEATHER_CACHE_SIZE = 3
+            for i in range(5):
+                key = (float(i), float(i))
+                if len(weather._cache) >= weather.MAX_WEATHER_CACHE_SIZE and key not in weather._cache:
+                    oldest = min(weather._cache.keys(), key=lambda k: weather._cache[k][0])
+                    weather._cache.pop(oldest, None)
+                weather._cache[key] = (float(i), None)
+            self.assertEqual(len(weather._cache), 3)
+            self.assertIn((4.0, 4.0), weather._cache)
+            self.assertNotIn((0.0, 0.0), weather._cache)
+        finally:
+            weather.MAX_WEATHER_CACHE_SIZE = original_cap
+            weather.clear_weather_cache()
+
+        original_sched_cap = telemetry.MAX_SCHEDULE_CACHE_SIZE
+        try:
+            telemetry.MAX_SCHEDULE_CACHE_SIZE = 3
+            telemetry._official_schedule_cache.clear()
+            for i in range(5):
+                t_key = f"train_{i}"
+                if len(telemetry._official_schedule_cache) >= telemetry.MAX_SCHEDULE_CACHE_SIZE and t_key not in telemetry._official_schedule_cache:
+                    oldest = min(telemetry._official_schedule_cache.keys(), key=lambda k: telemetry._official_schedule_cache[k][0])
+                    telemetry._official_schedule_cache.pop(oldest, None)
+                telemetry._official_schedule_cache[t_key] = (float(i), {})
+            self.assertEqual(len(telemetry._official_schedule_cache), 3)
+            self.assertIn("train_4", telemetry._official_schedule_cache)
+            self.assertNotIn("train_0", telemetry._official_schedule_cache)
+        finally:
+            telemetry.MAX_SCHEDULE_CACHE_SIZE = original_sched_cap
+            telemetry._official_schedule_cache.clear()
+
+    def test_rate_limiter_middleware_enforces_limit_and_exempts_health(self):
+        from starlette.applications import Starlette
+        from starlette.middleware import Middleware
+        from starlette.responses import PlainTextResponse
+        from starlette.routing import Route
+        from starlette.testclient import TestClient
+        from api.middleware.rate_limit import RateLimiterMiddleware
+
+        demo_app = Starlette(
+            routes=[
+                Route("/health", lambda r: PlainTextResponse("ok")),
+                Route("/api/test", lambda r: PlainTextResponse("hello")),
+            ],
+            middleware=[
+                Middleware(RateLimiterMiddleware, default_max_requests=2, window_seconds=60),
+            ],
+        )
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            client = TestClient(demo_app)
+
+            # Health is exempt
+            for _ in range(5):
+                response = client.get("/health")
+                self.assertEqual(response.status_code, 200)
+
+            # Normal endpoint is limited to 2
+            r1 = client.get("/api/test")
+            self.assertEqual(r1.status_code, 200)
+            r2 = client.get("/api/test")
+            self.assertEqual(r2.status_code, 200)
+            r3 = client.get("/api/test")
+            self.assertEqual(r3.status_code, 429)
+            self.assertIn("Rate limit exceeded", r3.json()["detail"])
+            self.assertIn("Retry-After", r3.headers)
+
 
 if __name__ == "__main__":
     unittest.main()
+
