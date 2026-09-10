@@ -3,42 +3,29 @@
   "target_coverage": 0.8,
   "global_radius_minutes": 0.0,
   "min_bucket_rows": 250,
-  "buckets": {
-    "delay:high|horizon:long": {
-      "rows": 17177,
-      "radius_minutes": 0.0
-    },
-    "delay:high|horizon:medium": {
-      "rows": 28264,
-      "radius_minutes": 0.0
-    },
-    "delay:high|horizon:short": {
-      "rows": 4559,
-      "radius_minutes": 0.0
-    }
-  },
-  "source": "data/ir_train.csv",
+  "buckets": {},
+  "source": "deployed_compatible_population",
   "calibration_period": {
-    "start": "2018-01-01",
-    "end": "2023-05-15"
+    "start": "2023-08-07",
+    "end": "2024-04-18"
   },
   "untouched_holdout_period": {
-    "start": "2023-08-07",
-    "end": "2024-12-29"
+    "start": "2024-04-19",
+    "end": "2024-12-30"
   },
   "calibration_rows": 50000,
   "holdout_rows": 50000,
   "holdout_metrics_before": {
     "rows": 50000,
-    "p50_mae_minutes": 40.79376334378265,
-    "interval_coverage": 0.81734,
-    "mean_interval_width_minutes": 146.47427368164062
+    "p50_mae_minutes": 38.632349177134834,
+    "interval_coverage": 0.80216,
+    "mean_interval_width_minutes": 124.472412109375
   },
   "holdout_metrics_after": {
     "rows": 50000,
-    "p50_mae_minutes": 40.79376334378265,
-    "interval_coverage": 0.81734,
-    "mean_interval_width_minutes": 146.46533203125
+    "p50_mae_minutes": 38.632349177134834,
+    "interval_coverage": 0.80216,
+    "mean_interval_width_minutes": 124.41290283203125
   },
-  "trained_model_version": "time-safe-eta-v2-all-compatible-data"
+  "trained_model_version": "time-safe-eta-v3-journey-only"
 }

@@ -20,6 +20,8 @@ from api.services.official_status import (
     fetch_live_station,
     fetch_live_status,
 )
+from api.services.network_signals import NetworkSignalsInvalid, _normalize_signal
+from api.services.phase2_dataset import parse_provider_datetime
 from api.services import feedback_store
 from api.services.feedback_store import get_train_history, record_live_cycle
 from api.schemas import AlertSubscriptionRequest
@@ -52,7 +54,7 @@ class BackendHardeningTests(unittest.TestCase):
         self.assertEqual(active["count"], 2)
         self.assertNotIn("user_phone", active["subscriptions"][0])
         dispatched = alerts.simulate_alert_trigger(first.subscription_id)
-        self.assertEqual(dispatched.recipient, "+919876543210")
+        self.assertEqual(dispatched.recipient, "***********10")
         with self.assertRaises(HTTPException) as missing:
             alerts.simulate_alert_trigger("sub_does_not_exist")
         self.assertEqual(missing.exception.status_code, 404)
@@ -99,6 +101,46 @@ class BackendHardeningTests(unittest.TestCase):
             _parse_status(stale, "12627")
         with self.assertRaises(LiveStatusInvalid):
             _parse_status({**stale, "train_number": "12951"}, "12627")
+
+    def test_provider_accepts_zero_padded_train_numbers(self):
+        payload = {
+            "train_number": "012627", "observed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+            "current_station": "SBC", "current_delay_minutes": 2,
+        }
+        self.assertEqual(_parse_status(payload, "12627").train_number, "12627")
+
+    def test_network_signal_boolean_strings_are_normalized(self):
+        self.assertFalse(_normalize_signal({"station_code": "NDLS", "maintenance_active": "false"})["maintenance_active"])
+        self.assertTrue(_normalize_signal({"station_code": "NDLS", "maintenance_active": "YES"})["maintenance_active"])
+        with self.assertRaises(NetworkSignalsInvalid):
+            _normalize_signal({"station_code": "NDLS", "maintenance_active": "maybe"})
+
+    def test_provider_date_without_year_handles_new_year_rollover(self):
+        journey_date = dt.date(2026, 1, 1)
+        parsed = parse_provider_datetime("23:50, 31 Dec", journey_date)
+        self.assertEqual(parsed.date(), dt.date(2025, 12, 31))
+
+    def test_feedback_resolves_all_prior_predictions_for_first_station_arrival(self):
+        feedback_db = os.path.join(self.tempdir.name, "multi_forecast.sqlite3")
+        with patch.dict(os.environ, {"RAILPULSE_FEEDBACK_DB": feedback_db}, clear=False), \
+             patch.object(feedback_store, "ONLINE_DATASET_PATH", Path(self.tempdir.name) / "online.csv"):
+            first = SimpleNamespace(
+                observed_at=dt.datetime(2026, 9, 3, 8, 0, tzinfo=dt.timezone.utc),
+                provider="TEST_PROVIDER", current_station="NDLS", next_station="BSB",
+                current_delay_minutes=15, latitude=None, longitude=None, speed_kmh=None,
+                raw_payload={}, observation_quality="provider_timestamp",
+            )
+            first_eta = get_train_eta("22436", date="2026-09-03", current_station="NDLS", current_delay=15)
+            record_live_cycle("22436", dt.date(2026, 9, 3), first, first_eta, model_version="test")
+            second = SimpleNamespace(**{**first.__dict__, "observed_at": dt.datetime(2026, 9, 3, 8, 30, tzinfo=dt.timezone.utc)})
+            second_eta = get_train_eta("22436", date="2026-09-03", current_station="NDLS", current_delay=15)
+            record_live_cycle("22436", dt.date(2026, 9, 3), second, second_eta, model_version="test")
+            next_station = first_eta.current_location["next_station_code"]
+            arrival = SimpleNamespace(**{**first.__dict__, "observed_at": dt.datetime(2026, 9, 3, 10, 0, tzinfo=dt.timezone.utc), "current_station": next_station, "current_delay_minutes": 19})
+            arrival_eta = get_train_eta("22436", date="2026-09-03", current_station=next_station, current_delay=19)
+            result = record_live_cycle("22436", dt.date(2026, 9, 3), arrival, arrival_eta, model_version="test")
+            self.assertEqual(result["latest_comparison"]["resolved_forecast_count"], 2)
+            self.assertEqual(get_train_history("22436", dt.date(2026, 9, 3))["comparison_count"], 2)
 
     def test_indian_rail_api_live_train_status_is_normalized(self):
         payload = {
@@ -221,6 +263,29 @@ class BackendHardeningTests(unittest.TestCase):
             self.assertEqual(history["observations"][0]["observation_quality"], "provider_timestamp")
             self.assertEqual(history["comparisons"][0]["model_version"], "test-model")
 
+    def test_live_feedback_does_not_score_same_station_as_an_arrival(self):
+        feedback_db = os.path.join(self.tempdir.name, "same_station.sqlite3")
+        with patch.dict(os.environ, {"RAILPULSE_FEEDBACK_DB": feedback_db}, clear=False), \
+             patch.object(feedback_store, "ONLINE_DATASET_PATH", Path(self.tempdir.name) / "online.csv"):
+            status = SimpleNamespace(
+                observed_at=dt.datetime(2026, 9, 3, 8, 0, tzinfo=dt.timezone.utc),
+                provider="TEST_PROVIDER", current_station="NDLS", next_station="BSB",
+                current_delay_minutes=15, latitude=None, longitude=None, speed_kmh=None,
+                raw_payload={"source": "unit-test"}, observation_quality="provider_timestamp",
+            )
+            eta_payload = get_train_eta("22436", date="2026-09-03", current_station="NDLS", current_delay=15)
+            record_live_cycle("22436", dt.date(2026, 9, 3), status, eta_payload, model_version="test-model")
+
+            repeated_status = SimpleNamespace(**{
+                **status.__dict__,
+                "observed_at": dt.datetime(2026, 9, 3, 8, 15, tzinfo=dt.timezone.utc),
+            })
+            repeated_eta = get_train_eta("22436", date="2026-09-03", current_station="NDLS", current_delay=15)
+            result = record_live_cycle("22436", dt.date(2026, 9, 3), repeated_status, repeated_eta, model_version="test-model")
+            self.assertIsNone(result["latest_comparison"])
+            history = get_train_history("22436", dt.date(2026, 9, 3))
+            self.assertEqual(history["comparison_count"], 0)
+
     def test_search_and_amenities_reject_invalid_input_safely(self):
         self.assertEqual(eta.search_trains(""), [])
         self.assertEqual(eta.search_trains(" "), [])
@@ -261,6 +326,29 @@ class BackendHardeningTests(unittest.TestCase):
 
         phase5_controls.load_phase5_calibration()
         phase5_controls.load_phase5_calibration()
+
+    def test_hot_reload_refreshes_all_model_tiers_and_calibration(self):
+        import api.main as main
+        from api.services import phase2_models, phase3_models, phase5_controls
+        fake_model = SimpleNamespace(feature_names_in_=("feature",))
+        with patch.object(main.joblib, "load", side_effect=[fake_model, fake_model, fake_model]), \
+             patch.object(main, "DelayExplainer", return_value=object()), \
+             patch.object(main, "load_feature_defaults") as defaults, \
+             patch.object(main, "load_historical_records") as history, \
+             patch.object(main, "load_model_metadata") as metadata, \
+             patch.object(main, "load_phase3_models") as phase3, \
+             patch.object(main, "load_phase2_models") as phase2, \
+             patch.object(main, "load_phase5_calibration") as calibration, \
+             patch.object(main, "set_models") as set_models, \
+             patch("os.path.exists", return_value=True):
+            main._hot_reload_models()
+        defaults.assert_called_once_with(force=True)
+        history.assert_called_once_with(force=True)
+        metadata.assert_called_once_with(force=True)
+        phase3.assert_called_once_with()
+        phase2.assert_called_once_with()
+        calibration.assert_called_once_with(force=True)
+        set_models.assert_called_once()
 
     def test_bounded_weather_and_schedule_cache_eviction(self):
         from api.services import weather
@@ -337,7 +425,12 @@ class BackendHardeningTests(unittest.TestCase):
             self.assertIn("Rate limit exceeded", r3.json()["detail"])
             self.assertIn("Retry-After", r3.headers)
 
+            # Forwarding headers are untrusted by default; rotating fake
+            # addresses must not bypass the limiter.
+            with patch.dict(os.environ, {"RATE_LIMIT_TRUST_PROXY_HEADERS": "false"}, clear=False):
+                limited = client.get("/api/test", headers={"X-Forwarded-For": "203.0.113.10"})
+                self.assertEqual(limited.status_code, 429)
+
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -65,7 +65,7 @@ export default function FeaturesPage() {
             {t('features_hero_title', 'System Capabilities & Design')}
           </h1>
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            {t('features_hero_subtitle', 'A comprehensive overview of the machine learning pipelines, geospatial algorithms, and telemetry services powering Namaste Rail.')}
+            {t('features_hero_subtitle', 'A comprehensive overview of the machine learning pipelines, geospatial algorithms, and telemetry services powering RailTrackr.')}
           </p>
         </div>
       </section>
@@ -110,7 +110,7 @@ export default function FeaturesPage() {
               {t('features_deep1_title', 'Multi-Quantile Forecasting (P10 / P50 / P90)')}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-              {t('features_deep1_desc', 'Standard transit APIs only report single-point arrival estimates that degrade when trains encounter congestion. Namaste Rail fits dedicated pinball loss regressors to compute empirical prediction intervals:')}
+              {t('features_deep1_desc', 'Standard transit APIs only report single-point arrival estimates that degrade when trains encounter congestion. RailTrackr fits dedicated pinball loss regressors to compute empirical prediction intervals:')}
             </p>
             <div className="bg-slate-50 dark:bg-[#0c1729]/90 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-xl font-mono text-xs text-slate-700 dark:text-slate-300 space-y-2.5">
               <div className="flex justify-between">

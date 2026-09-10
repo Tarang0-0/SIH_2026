@@ -56,6 +56,9 @@ function MapContent() {
     if (typeof window === 'undefined') return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((window as any).L) {
+      // Leaflet may already be loaded by another page; this is an intentional
+      // readiness update after the external script check.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLeafletReady(true);
       return;
     }
@@ -139,6 +142,8 @@ function MapContent() {
   }, []);
 
   useEffect(() => {
+    // This effect is the component's external-data subscription boundary.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTrainData(trainNumber);
   }, [trainNumber, fetchTrainData]);
 

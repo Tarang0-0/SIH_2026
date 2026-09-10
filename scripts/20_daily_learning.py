@@ -105,7 +105,7 @@ def run_command(name: str, command: list[str]) -> dict[str, Any]:
 def guarded_command(name: str, command: list[str], artifacts: Iterable[Path]) -> dict[str, Any]:
     """Run a trainer and restore artifacts if it fails or produces nothing."""
     artifact_paths = [path for path in artifacts if path.exists()]
-    with tempfile.TemporaryDirectory(prefix="namaste-rail-learning-") as backup_dir:
+    with tempfile.TemporaryDirectory(prefix="railtrackr-learning-") as backup_dir:
         backup_root = Path(backup_dir)
         backups: dict[Path, Path] = {}
         for index, path in enumerate(artifact_paths):
@@ -124,7 +124,7 @@ def guarded_command(name: str, command: list[str], artifacts: Iterable[Path]) ->
             return result
 
         expected = [path for path in artifacts if path.suffix in {".pkl", ".json"}]
-        if not any(path.exists() for path in expected):
+        if not expected or not all(path.exists() and path.stat().st_size > 0 for path in expected):
             for path, backup in backups.items():
                 shutil.copy2(backup, path)
             for path in artifacts:
@@ -238,11 +238,19 @@ def training_stages(datasets: dict[str, dict[str, Any]], previous: dict[str, Any
     ]
     if changed(datasets["completed_journeys"], previous, "completed_journeys", force):
         if not (ROOT_DIR / "data" / "ir_train.csv").exists():
-            stages.append({
-                "name": "main_eta_training",
-                "status": "blocked",
-                "message": "Missing data/ir_train.csv; the checked-in demo model was kept.",
-            })
+            # Full IR dataset unavailable (e.g. cloud deployment).
+            # Fall back to the online-only trainer which uses live feedback
+            # data only — no ir_train.csv dependency.
+            online_artifacts = [
+                ROOT_DIR / "models" / name
+                for name in ("eta_quantile_p10.pkl", "eta_regressor.pkl", "eta_quantile_p90.pkl",
+                             "feature_defaults.json", "model_metadata.json")
+            ]
+            stages.append(guarded_command(
+                "main_eta_training",
+                [python, str(scripts_dir / "21_train_online_only.py")],
+                online_artifacts,
+            ))
         else:
             stages.append(guarded_command(
                 "main_eta_training",
@@ -252,7 +260,12 @@ def training_stages(datasets: dict[str, dict[str, Any]], previous: dict[str, Any
     else:
         stages.append({"name": "main_eta_training", "status": "unchanged", "message": "No new completed journeys."})
 
-    phase2_artifacts = [*ROOT_DIR.glob("models/phase2_*.pkl"), ROOT_DIR / "models" / "phase2_model_metadata.json"]
+
+    phase2_artifacts = [
+        ROOT_DIR / "models" / f"phase2_{target}_{quantile}.pkl"
+        for target in ("travel", "delay")
+        for quantile in ("p10", "p50", "p90")
+    ] + [ROOT_DIR / "models" / "phase2_model_metadata.json"]
     if changed(datasets["station_level"], previous, "station_level", force):
         stages.append(guarded_command(
             "phase2_next_station_training",
@@ -262,7 +275,11 @@ def training_stages(datasets: dict[str, dict[str, Any]], previous: dict[str, Any
     else:
         stages.append({"name": "phase2_next_station_training", "status": "unchanged", "message": "No new station labels."})
 
-    phase3_artifacts = [*ROOT_DIR.glob("models/phase3_*.pkl"), ROOT_DIR / "models" / "phase3_model_metadata.json"]
+    phase3_artifacts = [
+        ROOT_DIR / "models" / f"phase3_{target}_{quantile}.pkl"
+        for target in ("travel", "delay_change")
+        for quantile in ("p10", "p50", "p90")
+    ] + [ROOT_DIR / "models" / "phase3_model_metadata.json"]
     if changed(datasets["phase3_movement"], previous, "phase3_movement", force):
         stages.append(guarded_command(
             "phase3_movement_training",
@@ -276,7 +293,15 @@ def training_stages(datasets: dict[str, dict[str, Any]], previous: dict[str, Any
 
 def write_report(report: dict[str, Any]) -> None:
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    REPORT_PATH.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=REPORT_PATH.parent,
+        prefix=f".{REPORT_PATH.name}.", suffix=".tmp", delete=False,
+    ) as temporary:
+        temporary.write(json.dumps(report, indent=2, sort_keys=True) + "\n")
+        temporary.flush()
+        os.fsync(temporary.fileno())
+        temporary_path = Path(temporary.name)
+    temporary_path.replace(REPORT_PATH)
 
 
 def main() -> None:

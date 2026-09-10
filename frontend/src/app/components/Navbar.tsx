@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 import { useLanguage } from './LanguageContext';
+import Logo from './Logo';
 
 interface NavbarProps {
   theme?: 'dark' | 'light';
@@ -45,14 +46,13 @@ export default function Navbar({ theme = 'dark' }: NavbarProps) {
         
         {/* Brand Logo & Title */}
         <Link href="/" className="flex items-center gap-3 group focus-visible:outline-2 focus-visible:outline-blue-500 rounded-xl shrink-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-5 h-5">
-              <path d="M10.621.515C8.647.02 7.353.02 5.38.515c-.924.23-1.982.766-2.78 1.22C1.566 2.322 1 3.432 1 4.582V13.5A2.5 2.5 0 0 0 3.5 16h9a2.5 2.5 0 0 0 2.5-2.5V4.583c0-1.15-.565-2.26-1.6-2.849-.797-.453-1.855-.988-2.779-1.22ZM6.5 2h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1m-2 2h7A1.5 1.5 0 0 1 13 5.5v2A1.5 1.5 0 0 1 11.5 9h-7A1.5 1.5 0 0 1 3 7.5v-2A1.5 1.5 0 0 1 4.5 4m.5 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0m0 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0m8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3-1a1 1 0 1 1 0 2 1 1 0 0 1 0-2M4 5.5a.5.5 0 0 1 .5-.5h3v3h-3a.5.5 0 0 1-.5-.5zM8.5 8V5h3a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5z"/>
-            </svg>
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/20 dark:from-sky-500/20 dark:to-blue-600/30 border border-blue-200/80 dark:border-sky-500/40 p-1 flex items-center justify-center shadow-xs group-hover:scale-105 transition-all duration-200">
+            <Logo variant="icon" size="md" priority className="w-full h-full object-contain" />
           </div>
           <div>
-            <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white block leading-tight">
-              {t('brand_name', 'Namaste Rail')}
+            <span className="text-lg sm:text-xl font-extrabold tracking-tight block leading-tight">
+              <span className="text-slate-900 dark:text-white">Rail</span>
+              <span className="text-blue-600 dark:text-sky-400">Trackr</span>
             </span>
             <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-medium hidden lg:block">
               {t('brand_tagline')}

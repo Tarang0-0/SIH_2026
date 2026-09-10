@@ -37,7 +37,7 @@ class TestPhase4Capabilities(unittest.TestCase):
     def test_health_check(self):
         res = health_check()
         self.assertEqual(res["status"], "healthy")
-        self.assertEqual(res["service"], "Namaste Rail Operations Engine")
+        self.assertEqual(res["service"], "RailTrackr Operations Engine")
         self.assertIn("timestamp", res)
 
     def test_station_amenities_catalog(self):

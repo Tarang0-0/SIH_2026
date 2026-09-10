@@ -8,49 +8,19 @@ interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
-  isMounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: 'light',
   toggleTheme: () => {},
   setTheme: () => {},
-  isMounted: false,
 });
 
 export const useTheme = () => useContext(ThemeContext);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
-  const [isMounted, setIsMounted] = useState(false);
   const [, startTransition] = useTransition();
-
-  useEffect(() => {
-    setIsMounted(true);
-    try {
-      const stored = localStorage.getItem('railpulse-theme') as Theme | null;
-      if (stored === 'light' || stored === 'dark') {
-        setThemeState(stored);
-        applyTheme(stored);
-      } else {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const initialTheme: Theme = prefersDark ? 'dark' : 'light';
-        setThemeState(initialTheme);
-        applyTheme(initialTheme);
-      }
-    } catch {
-      // Fallback if localStorage is disabled
-    }
-
-    const handleThemeChange = (e: Event) => {
-      const customEvt = e as CustomEvent<{ theme: Theme }>;
-      const nextTheme = customEvt.detail?.theme || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-      setThemeState(nextTheme);
-    };
-
-    window.addEventListener('theme-changed', handleThemeChange);
-    return () => window.removeEventListener('theme-changed', handleThemeChange);
-  }, []);
 
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
@@ -62,6 +32,34 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.setAttribute('data-theme', 'light');
     }
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = localStorage.getItem('railpulse-theme') as Theme | null;
+        const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+        const initialTheme: Theme = stored === 'light' || stored === 'dark'
+          ? stored
+          : prefersDark ? 'dark' : 'light';
+        setThemeState(initialTheme);
+        applyTheme(initialTheme);
+      } catch {
+        // Fallback if localStorage is disabled
+      }
+    }, 0);
+
+    const handleThemeChange = (e: Event) => {
+      const customEvt = e as CustomEvent<{ theme: Theme }>;
+      const nextTheme = customEvt.detail?.theme || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      setThemeState(nextTheme);
+    };
+
+    window.addEventListener('theme-changed', handleThemeChange);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('theme-changed', handleThemeChange);
+    };
+  }, []);
 
   const setTheme = (newTheme: Theme) => {
     startTransition(() => {
@@ -81,7 +79,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, isMounted }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

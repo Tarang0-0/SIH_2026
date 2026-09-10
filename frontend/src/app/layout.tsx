@@ -6,12 +6,16 @@ import LanguageModal from "./components/LanguageModal";
 import CookieConsent from "./components/CookieConsent";
 
 export const metadata: Metadata = {
-  title: "Namaste Rail | Indian Railways Transit Intelligence & Telemetry",
+  title: "RailTrackr | Indian Railways Transit Intelligence & Telemetry",
   description: "Next-generation dynamic train arrival prediction, RTIS live GPS telemetry, and explainable delay diagnosis for Indian Railways.",
   icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-64.png", sizes: "64x64", type: "image/png" },
+      { url: "/logo-icon-light.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/logo-icon-light.png",
   },
 };
 

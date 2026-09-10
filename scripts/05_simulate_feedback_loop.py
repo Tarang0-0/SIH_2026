@@ -32,7 +32,7 @@ def generate_mock_data(seed, shift_minutes=0):
     return df
 
 def run_feedback_loop():
-    print("=== NAMASTE RAIL CONTINUOUS LEARNING SIMULATION ===")
+    print("=== RAILTRACKR CONTINUOUS LEARNING SIMULATION ===")
     
     TRAIN_PATH = 'data/splits/train.parquet'
     TEST_PATH = 'data/splits/test.parquet'
@@ -105,7 +105,7 @@ def run_feedback_loop():
     plt.figure(figsize=(9, 6))
     bars = plt.bar(['V1 Model (Static)', 'V2 Model (Continuously Learned)'], [mae_before, mae_after], color=['#E63946', '#2A9D8F'])
     plt.ylabel('Mean Absolute Error (Minutes)', fontsize=12)
-    plt.title('Namaste Rail Continuous Learning Impact\n(Evaluated on Completely Unseen Holdout Trains)', fontsize=14, pad=15)
+    plt.title('RailTrackr Continuous Learning Impact\n(Evaluated on Completely Unseen Holdout Trains)', fontsize=14, pad=15)
     
     # Add text labels on bars
     for bar in bars:

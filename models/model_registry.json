@@ -1,8 +1,8 @@
 {
-  "current_model_version": "time-safe-eta-v2-all-compatible-data",
+  "current_model_version": "time-safe-eta-v3-journey-only",
   "history": [
     {
-      "model_version": "time-safe-eta-v2-all-compatible-data",
+      "model_version": "time-safe-eta-v3-journey-only",
       "status": "existing-baseline"
     }
   ]

@@ -4,7 +4,7 @@
 <div className="flex justify-between items-center w-full px-container-margin py-4 max-w-7xl mx-auto">
 <div className="flex items-center gap-2 text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed">
 <span className="material-symbols-outlined" style={{ fontVariationSettings: "\'FILL\' 1" }}>train</span>
-        Namaste Rail
+        RailTrackr
       </div>
 <nav className="hidden md:flex gap-8">
 {/* Not actively on these pages, so rendering inactive state */}
@@ -237,10 +237,10 @@
 <div className="flex flex-col md:flex-row justify-between items-center w-full px-container-margin py-8 max-w-7xl mx-auto">
 <div className="flex flex-col items-center md:items-start mb-6 md:mb-0 text-center md:text-left">
 <div className="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim mb-2">
-          Namaste Rail
+          RailTrackr
         </div>
 <div className="font-body-md text-body-md text-on-surface-variant max-w-xs">
-          © 2024 Namaste Rail India. Precision Transit Intelligence.
+          © 2024 RailTrackr India. Precision Transit Intelligence.
         </div>
 </div>
 <nav className="flex flex-wrap justify-center gap-6">

@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
               Our Privacy Commitment: Data Minimization First
             </h2>
             <p className="text-xs sm:text-sm text-sky-800 dark:text-sky-300/90">
-              Namaste Rail is an open engineering prototype developed for the <strong>Smart India Hackathon (SIH 2026)</strong>. We adhere strictly to the principle of <strong>Data Minimization</strong> under India&apos;s <em>Digital Personal Data Protection Act (DPDPA), 2023</em> and the <em>General Data Protection Regulation (GDPR)</em>. We do not sell, rent, monetize, or track your personal data. You do not need to create an account or provide any personal information to look up train schedules or ETA predictions.
+              RailTrackr is an open engineering prototype developed for the <strong>Smart India Hackathon (SIH 2026)</strong>. We adhere strictly to the principle of <strong>Data Minimization</strong> under India&apos;s <em>Digital Personal Data Protection Act (DPDPA), 2023</em> and the <em>General Data Protection Regulation (GDPR)</em>. We do not sell, rent, monetize, or track your personal data. You do not need to create an account or provide any personal information to look up train schedules or ETA predictions.
             </p>
           </div>
 
@@ -123,7 +123,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc list-inside space-y-1 pl-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
               <li><code>railpulse-theme</code>: Remembers whether you selected dark or light mode.</li>
               <li><code>railpulse-consent</code>: Remembers that you acknowledged our privacy and cookie notice.</li>
-              <li><code>railpulse_admin_authenticated</code>: Session flag for authorized railway control room operators.</li>
+              <li><code>railpulse_admin_token</code>: Short-lived session token for authorized railway control room operators.</li>
             </ul>
             <p>
               For complete details, please read our dedicated <Link href="/cookies" className="text-sky-600 dark:text-sky-400 underline font-medium hover:text-sky-500">Cookie Policy</Link>.
@@ -183,9 +183,9 @@ export default function PrivacyPolicyPage() {
               In accordance with the <em>Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021</em> and the <em>Digital Personal Data Protection Act, 2023</em>, for any inquiries, privacy concerns, or data deletion requests, please contact:
             </p>
             <div className="bg-slate-100 dark:bg-slate-800/70 p-4 rounded-xl text-xs font-mono space-y-1 text-slate-700 dark:text-slate-300">
-              <div><strong>Grievance & Privacy Officer:</strong> Technical Lead, Namaste Rail Project</div>
+              <div><strong>Grievance & Privacy Officer:</strong> Technical Lead, RailTrackr Project</div>
               <div><strong>Organization:</strong> Smart India Hackathon 2026 Team (SIH_202)</div>
-              <div><strong>Email:</strong> privacy@namaste-rail.internal (or project repository issues)</div>
+              <div><strong>Email:</strong> privacy@railtrackr.internal (or project repository issues)</div>
               <div><strong>Jurisdiction:</strong> New Delhi, India</div>
               <div><strong>Response Window:</strong> Within 48 hours for acknowledgment; 30 days for resolution</div>
             </div>

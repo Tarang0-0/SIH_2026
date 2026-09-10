@@ -1,4 +1,4 @@
-# 🚂 Namaste Rail: Technical Deep Dive & System Architecture
+# 🚂 RailTrackr: Technical Deep Dive & System Architecture
 ### *A Comprehensive Engineering Guide for Computer Science & Engineering Students*
 
 ---
@@ -24,8 +24,8 @@ $$\text{ETA}_{\text{target}} = t_{\text{current}} + \frac{d(\text{current}, \tex
 2. **Scheduled Recovery Buffers:** IR timetables embed intentional slack/buffer times into final legs preceding major terminals (e.g., 45 minutes of slack between Ghaziabad and New Delhi). A train running 40 minutes late at Ghaziabad often arrives on-time at New Delhi. The CDCF formula falsely predicts a 40-minute delay at the destination.
 3. **Bottleneck Compounding:** Delays propagate non-linearly near critical grade-separated junctions (e.g., Pt. Deen Dayal Upadhyaya / Mughalsarai, Itarsi, Kanpur Central) where headway spacing drops and platform occupancy bottlenecks cause cascading holds.
 
-### 1.3 The Namaste Rail Solution
-**Namaste Rail** is an end-to-end Machine Learning telemetry platform built for the **Smart India Hackathon (SIH 2026)** under the Ministry of Railways & CRIS. It replaces static heuristic carry-forward models with:
+### 1.3 The RailTrackr Solution
+**RailTrackr** is an end-to-end Machine Learning telemetry platform built for the **Smart India Hackathon (SIH 2026)** under the Ministry of Railways & CRIS. It replaces static heuristic carry-forward models with:
 - Multi-quantile Gradient Boosted Decision Trees (XGBoost).
 - Epistemic & aleatoric uncertainty intervals ($P_{10}, P_{50}, P_{90}$).
 - Real-time additive feature attribution (SHAP) for human-readable root-cause explanations.
@@ -82,7 +82,7 @@ The system follows a decoupled, cloud-ready **Two-Tier Architecture**:
 ### 3.1 Strict Temporal Data Splitting (Preventing Data Leakage)
 In time-series and transport modeling, standard $k$-fold cross-validation or random shuffling causes catastrophic **temporal lookahead bias** (training on future patterns to predict past events).
 
-Namaste Rail enforces a strict **Chronological Split Protocol**:
+RailTrackr enforces a strict **Chronological Split Protocol**:
 * **Training Set:** Months 1–4 (historical baseline).
 * **Validation Set:** Month 5 (hyperparameter tuning & early stopping).
 * **Test Set:** Month 6 (evaluation only, completely out-of-time).
@@ -110,7 +110,7 @@ This guarantees that an observation at time $t$ has zero knowledge of delay shoc
 ---
 
 ### 3.3 Multi-Quantile Regression & Asymmetric Pinball Loss
-A point estimate (single number) is irresponsible in mission-critical logistics because it fails to capture risk variance. Namaste Rail predicts a 3-point probability distribution:
+A point estimate (single number) is irresponsible in mission-critical logistics because it fails to capture risk variance. RailTrackr predicts a 3-point probability distribution:
 * $P_{10}$ (Optimistic scenario / green signals throughout)
 * $P_{50}$ (Median expected outcome)
 * $P_{90}$ (Pessimistic scenario / congestion, fog, freight precedence)
@@ -138,7 +138,7 @@ $$\mathcal{L}_{\alpha}(y, \hat{y}) = \max\Big(\alpha(y - \hat{y}),\, (1 - \alpha
 ### 3.4 Preventing Quantile Crossing
 Because $P_{10}, P_{50},$ and $P_{90}$ are trained as separate models, an empirical anomaly known as **Quantile Crossing** can occur where $\hat{y}_{P10} > \hat{y}_{P50}$ or $\hat{y}_{P50} > \hat{y}_{P90}$ due to local variance.
 
-Namaste Rail enforces a **Monotonic Preservation Guard**:
+RailTrackr enforces a **Monotonic Preservation Guard**:
 $$\hat{y}_{P10}^{\text{clamped}} = \min(\hat{y}_{P10}, \hat{y}_{P50}), \quad \hat{y}_{P90}^{\text{clamped}} = \max(\hat{y}_{P90}, \hat{y}_{P50})$$
 This guarantees $\hat{y}_{P10} \le \hat{y}_{P50} \le \hat{y}_{P90}$ at all times while keeping the median point estimate $P_{50}$ completely unaltered.
 
@@ -223,7 +223,7 @@ To maintain scientific and technical honesty, the project recognizes the followi
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                           NAMASTE RAIL IMPACT                           │
+│                           RAILTRACKR IMPACT                           │
 ├─────────────────────────┬─────────────────────────┬─────────────────────┤
 │      For Passengers     │   For Train Operators   │   For the Economy   │
 ├─────────────────────────┼─────────────────────────┼─────────────────────┤

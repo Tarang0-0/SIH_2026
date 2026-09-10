@@ -22,7 +22,7 @@ from api.main import _load_local_env
 _load_local_env()
 
 from api.routers import eta as eta_module
-from api.routers.eta import get_train_eta
+from api.routers.eta import get_train_eta, resolve_journey_date
 from api.services.feedback_store import record_live_cycle
 from api.services.official_status import (
     LiveStatusInvalid,
@@ -40,13 +40,14 @@ async def collect(train_numbers: list[str], interval: int, duration: int, journe
         recorded = 0
         for train_number in train_numbers:
             try:
-                status = await fetch_live_status(train_number, journey_date)
+                active_journey_date = resolve_journey_date(train_number, journey_date)
+                status = await fetch_live_status(train_number, active_journey_date)
                 route = runtime_route_from_status(status)
                 if route is not None:
                     eta_module.set_train_route(train_number, route)
                 eta = get_train_eta(
                     train_number=train_number,
-                    date=(journey_date or dt.date.today()).isoformat(),
+                    date=active_journey_date.isoformat(),
                     current_station=status.current_station,
                     current_delay=status.current_delay_minutes,
                     speed_kmh=status.speed_kmh,
@@ -55,7 +56,7 @@ async def collect(train_numbers: list[str], interval: int, duration: int, journe
                     observed_at=status.observed_at,
                 )
                 result = record_live_cycle(
-                    train_number, journey_date or dt.date.today(), status, eta,
+                    train_number, active_journey_date, status, eta,
                     model_version=eta_module.MODEL_VERSION,
                 )
                 recorded += 1

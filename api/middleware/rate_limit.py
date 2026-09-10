@@ -44,7 +44,19 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
         if path in {"/health", "/docs", "/redoc", "/openapi.json"} or not self._is_enabled():
             return await call_next(request)
 
-        client_ip = request.client.host if request.client else "unknown"
+        trust_proxy_headers = os.getenv("RATE_LIMIT_TRUST_PROXY_HEADERS", "false").strip().lower() in {
+            "1", "true", "yes", "on"
+        }
+        if trust_proxy_headers and request.headers.get("x-forwarded-for"):
+            client_ip = request.headers["x-forwarded-for"].split(",")[0].strip()
+        elif trust_proxy_headers and request.headers.get("cf-connecting-ip"):
+            client_ip = request.headers["cf-connecting-ip"].strip()
+        elif trust_proxy_headers and request.headers.get("x-real-ip"):
+            client_ip = request.headers["x-real-ip"].strip()
+        elif request.client:
+            client_ip = request.client.host
+        else:
+            client_ip = "unknown"
         now = time.monotonic()
         window_start = now - self.window_seconds
 

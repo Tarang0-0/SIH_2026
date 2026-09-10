@@ -13,7 +13,7 @@ import asyncio
 import datetime as dt
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.routers import eta as eta_router
 from api.routers.eta import resolve_journey_date
@@ -27,8 +27,13 @@ from api.services.official_status import (
 )
 from api.services.phase2_dataset import normalize_station_code, parse_delay_minutes
 from api.services.network_signals import NetworkSignalsInvalid, NetworkSignalsUnavailable, fetch_network_signals
+from api.services.admin_auth import require_admin
 
-router = APIRouter(prefix="/api/v1/control-room", tags=["Control Room & Cascade Prevention"])
+router = APIRouter(
+    prefix="/api/v1/control-room",
+    tags=["Control Room & Cascade Prevention"],
+    dependencies=[Depends(require_admin)],
+)
 
 
 def _live_network_unavailable():

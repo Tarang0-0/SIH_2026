@@ -20,6 +20,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Optional
 from urllib.parse import quote, urlparse
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -68,6 +69,7 @@ class LiveTrainStatus:
 
 INDIAN_RAIL_API_BASE = "https://indianrailapi.com/api/v2"
 RAILRADAR_API_BASE = "https://api.railradar.in/v1"
+INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
 
 
 def _railradar_api_key() -> str:
@@ -587,7 +589,7 @@ def _as_optional_float(value: Any, minimum: float, maximum: float, field: str) -
 def _parse_status(payload: Any, train_number: str) -> LiveTrainStatus:
     if not isinstance(payload, dict):
         raise LiveStatusInvalid("provider response must be a JSON object")
-    if str(payload.get("train_number", "")).strip() != train_number:
+    if not _same_train_number(payload.get("train_number"), train_number):
         raise LiveStatusInvalid("provider returned a different train number")
     try:
         observed_at = dt.datetime.fromisoformat(str(payload["observed_at"]).replace("Z", "+00:00"))
@@ -619,10 +621,11 @@ def _parse_status(payload: Any, train_number: str) -> LiveTrainStatus:
 
 async def fetch_live_status(train_number: str, journey_date: Optional[dt.date] = None) -> LiveTrainStatus:
     """Fetch a verified status from RailRadar, IndianRailAPI, or a generic provider."""
+    active_date = journey_date or dt.datetime.now(INDIA_TIMEZONE).date()
     if _railradar_api_key():
-        return await _fetch_railradar_live_status(train_number, journey_date or dt.date.today())
+        return await _fetch_railradar_live_status(train_number, active_date)
     if _indian_rail_api_key():
-        return await _fetch_indian_live_status(train_number, journey_date or dt.date.today())
+        return await _fetch_indian_live_status(train_number, active_date)
     endpoint = os.getenv("OFFICIAL_RAIL_STATUS_URL", "").strip()
     if not endpoint:
         raise LiveStatusUnavailable("No authorised live-status provider is configured")
@@ -633,9 +636,7 @@ async def fetch_live_status(train_number: str, journey_date: Optional[dt.date] =
     token = os.getenv("OFFICIAL_RAIL_STATUS_TOKEN", "").strip()
     if token:
         headers["Authorization"] = f"Bearer {token}"
-    params = {"train_number": train_number}
-    if journey_date:
-        params["journey_date"] = journey_date.isoformat()
+    params = {"train_number": train_number, "journey_date": active_date.isoformat()}
     try:
         client = get_http_client(10.0)
         response = await client.get(endpoint, params=params, headers=headers)

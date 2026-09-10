@@ -45,7 +45,7 @@ export const MercuryLogin: React.FC<MercuryLoginProps> = ({
   returnLabel,
 }) => {
   const { t } = useLanguage();
-  const displayTitle = title || t('admin_title', 'Namaste Rail');
+  const displayTitle = title || t('admin_title', 'RailTrackr');
   const displaySubtitle = subtitle || t('admin_subtitle', 'Indian Railways Transit Operations & Dispatch Console');
   const displaySystemNode = systemNode || t('admin_system_node', 'RailPulse Node: 0xIR-NDLS');
   const displayReturnLabel = returnLabel || t('admin_return_label', 'RETURN TO PASSENGER DIRECTORY');

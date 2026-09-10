@@ -366,6 +366,7 @@ async def stream_live_gps(train_number: str, request: Request, date: Optional[st
 
     async def event_generator():
         status = first_status
+        consecutive_errors = 0
         while not await request.is_disconnected():
             next_station = status.next_station or _next_station(stops, status.current_station)
             weather = await _weather_for_status(status)
@@ -397,12 +398,19 @@ async def stream_live_gps(train_number: str, request: Request, date: Optional[st
             await asyncio.sleep(POLL_SECONDS)
             try:
                 status = await fetch_live_status(train_key, journey_date)
+                consecutive_errors = 0
             except LiveStatusUnavailable:
-                yield "event: status\ndata: {\"availability\": \"unavailable\"}\n\n"
-                return
+                consecutive_errors += 1
+                if consecutive_errors >= 3:
+                    yield "event: status\ndata: {\"availability\": \"unavailable\"}\n\n"
+                    return
+                continue
             except LiveStatusInvalid:
-                yield "event: status\ndata: {\"availability\": \"invalid_provider_data\"}\n\n"
-                return
+                consecutive_errors += 1
+                if consecutive_errors >= 3:
+                    yield "event: status\ndata: {\"availability\": \"invalid_provider_data\"}\n\n"
+                    return
+                continue
 
     return StreamingResponse(event_generator(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})

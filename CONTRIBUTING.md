@@ -1,6 +1,6 @@
-# Contributing to Namaste Rail
+# Contributing to RailTrackr
 
-Namaste Rail uses a single root repository containing the FastAPI backend, the
+RailTrackr uses a single root repository containing the FastAPI backend, the
 Next.js frontend, model artifacts, and supporting scripts.
 
 ## First-time setup

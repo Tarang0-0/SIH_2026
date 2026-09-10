@@ -1,4 +1,4 @@
-# 🚂 The Magic Train Detective: Namaste Rail!
+# 🚂 The Magic Train Detective: RailTrackr!
 ### *A Fun Story Explaining Our Train Project for Curious Kids (Ages 5 to 10)*
 
 ---
@@ -19,13 +19,13 @@ Well, traditional railway apps do something very silly. If a train is 15 minutes
 
 **They think trains are like bicycles riding on an empty sidewalk!** But real trains run on giant metal tracks shared with big heavy cargo trains carrying coal, trains going through rainy storms, and trains waiting for green traffic lights.
 
-That is why we built **Namaste Rail**! 🚂✨
+That is why we built **RailTrackr**! 🚂✨
 
 ---
 
-## 🕵️‍♂️ 2. What is Namaste Rail?
+## 🕵️‍♂️ 2. What is RailTrackr?
 
-**Namaste Rail is like a super-smart robot detective that watches over every single train in India.**
+**RailTrackr is like a super-smart robot detective that watches over every single train in India.**
 
 Instead of just guessing, our detective looks at:
 - 🗺️ **Where the train is right now** (using special space satellites in the sky called GPS).
@@ -108,4 +108,4 @@ Here is how our project helps everyone:
 
 ---
 
-**And that is Namaste Rail! A super-smart digital brain helping millions of smiling passengers reach home safely, right on time!** 🚂❤️
+**And that is RailTrackr! A super-smart digital brain helping millions of smiling passengers reach home safely, right on time!** 🚂❤️

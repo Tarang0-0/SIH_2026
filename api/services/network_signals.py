@@ -77,6 +77,22 @@ def _number(value: Any, field: str, minimum: float, maximum: float) -> Optional[
     return result
 
 
+def _boolean(value: Any, field: str) -> bool:
+    """Normalize provider booleans without treating ``"false"`` as true."""
+    if isinstance(value, bool):
+        return value
+    if value is None or value == "":
+        return False
+    if isinstance(value, (int, float)) and value in (0, 1):
+        return bool(value)
+    text = str(value).strip().lower()
+    if text in {"true", "yes", "y", "1", "active", "on"}:
+        return True
+    if text in {"false", "no", "n", "0", "inactive", "off"}:
+        return False
+    raise NetworkSignalsInvalid(f"{field} must be boolean")
+
+
 def _normalize_signal(item: Any) -> dict[str, Any]:
     if not isinstance(item, dict):
         raise NetworkSignalsInvalid("network signal entries must be objects")
@@ -91,7 +107,10 @@ def _normalize_signal(item: Any) -> dict[str, Any]:
         "block_section": str(item.get("block_section") or item.get("blockSection") or "").strip() or None,
         "occupancy": occupancy,
         "signal_aspect": str(item.get("signal_aspect") or item.get("signalAspect") or "").strip() or None,
-        "maintenance_active": bool(item.get("maintenance_active", item.get("maintenanceActive", False))),
+        "maintenance_active": _boolean(
+            item.get("maintenance_active", item.get("maintenanceActive", False)),
+            "maintenance_active",
+        ),
         "speed_restriction_kmh": _number(item.get("speed_restriction_kmh", item.get("speedRestrictionKmh")), "speed_restriction_kmh", 0, 400),
         "preceding_train_delay_minutes": _number(item.get("preceding_train_delay_minutes", item.get("precedingTrainDelayMinutes")), "preceding_train_delay_minutes", -720, 720),
     }

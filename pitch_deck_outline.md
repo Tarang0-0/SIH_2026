@@ -1,4 +1,4 @@
-# Namaste Rail — SIH 2026 Pitch Deck & Presentation Guide
+# RailTrackr — SIH 2026 Pitch Deck & Presentation Guide
 ### Problem Statement: Dynamic Train ETA Prediction & Delay Propagation System
 **Ministry of Railways / CRIS** | Smart India Hackathon 2026
 
@@ -7,9 +7,9 @@
 ## 🎯 The 5-Minute Elevator Pitch Script
 
 ### Slide 1: Title & Vision
-* **Headline:** Namaste Rail — The Intelligent Operating System for Indian Railway ETAs
+* **Headline:** RailTrackr — The Intelligent Operating System for Indian Railway ETAs
 * **Presenter Dialogue:**  
-  *"Respected Jury, Indian Railways runs over 13,000 passenger trains daily. Yet in 2026, when a train is 40 minutes late, the existing NTES simply adds 40 minutes to every future stop. It assumes delays stay flat. In reality, delays compound dynamically as trains enter congested bottlenecks. Namaste Rail replaces static timetable math with an intelligent, continuously learning ML telemetry engine."*
+  *"Respected Jury, Indian Railways runs over 13,000 passenger trains daily. Yet in 2026, when a train is 40 minutes late, the existing NTES simply adds 40 minutes to every future stop. It assumes delays stay flat. In reality, delays compound dynamically as trains enter congested bottlenecks. RailTrackr replaces static timetable math with an intelligent, continuously learning ML telemetry engine."*
 
 ---
 
@@ -35,7 +35,7 @@
 
 ### Slide 4: Quantile Uncertainty & The Monotonic Guard
 * **The Problem:** Standard pinball loss quantile models suffer from "quantile crossing" ($P10 > P90$), which falsely reports narrow intervals on chaotic rows.
-* **The Namaste Rail Solution:** We implemented an algorithmic monotonic guard (`np.sort`) that guarantees:
+* **The RailTrackr Solution:** We implemented an algorithmic monotonic guard (`np.sort`) that guarantees:
   $$P10 \le P50 \le P90 \quad \text{for 100\% of predictions}$$
 * **Confidence Metric:** Inverse prediction interval width converted to an intuitive 0–100% Certainty Score ($100 \times e^{-0.02 \times \text{width}}$), achieving ~80% empirical calibration across test sets.
 
@@ -43,7 +43,7 @@
 
 ### Slide 5: Explainable AI (SHAP Waterfall Attribution)
 * **From Black Box to Passenger Clarity:**  
-  Instead of presenting an opaque "+24m" number, Namaste Rail's TreeExplainer breaks down exact feature contributions:
+  Instead of presenting an opaque "+24m" number, RailTrackr's TreeExplainer breaks down exact feature contributions:
   - *Previous Stop Delay:* `+16 mins`
   - *Preceding Freight Traffic:* `+5.2 mins`
   - *Fog / Speed Restriction:* `+3.1 mins`

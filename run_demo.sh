@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# 🚂 Namaste Rail - Single Command Unified Demo Launcher
+# 🚂 RailTrackr - Single Command Unified Demo Launcher
 # Smart India Hackathon 2026
 # ==============================================================================
 
@@ -28,7 +28,7 @@ else
 fi
 
 echo "========================================================"
-echo "  🚂 STARTING NAMASTE RAIL AI OPERATIONS & TELEMETRY ENGINE  "
+echo "  🚂 STARTING RAILTRACKR AI OPERATIONS & TELEMETRY ENGINE  "
 echo "========================================================"
 
 # Helper to cleanly reclaim a port if occupied by a stale/zombie process
@@ -65,7 +65,7 @@ FRONTEND_PID=""
 # Cleanup handler on exit (Ctrl+C or kill signal)
 cleanup() {
   echo ""
-  echo "🛑 Shutting down Namaste Rail services..."
+  echo "🛑 Shutting down RailTrackr services..."
 
   if [ -n "$BACKEND_PID" ] && kill -0 "$BACKEND_PID" 2>/dev/null; then
     kill -TERM "$BACKEND_PID" 2>/dev/null || true
@@ -154,7 +154,7 @@ fi
 
 echo ""
 echo "========================================================"
-echo "  🌟 NAMASTE RAIL IS READY FOR PRESENTATION & DEMO!"
+echo "  🌟 RAILTRACKR IS READY FOR PRESENTATION & DEMO!"
 echo "========================================================"
 echo "  • Passenger Web App:     http://localhost:3000"
 echo "  • Telemetry Dashboard:   http://localhost:3000/dashboard"

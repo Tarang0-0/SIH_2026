@@ -60,10 +60,44 @@ class Phase2DatasetTests(unittest.TestCase):
         self.assertEqual(events[0]["event_quality"], "provider_route_observation")
         self.assertIsNone(events[0]["actual_arrival_at"])
 
+    def test_station_labels_must_be_after_snapshot(self):
+        events = [
+            {
+                "train_number": "22436", "journey_date": "2026-09-08",
+                "observed_at": "2026-09-08T12:00:00+00:00", "provider": "TEST",
+                "station_code": "NDLS", "sequence": 1,
+                "actual_arrival_at": "2026-09-08T10:00:00+00:00",
+                "scheduled_arrival": "2026-09-08T09:55:00+00:00",
+                "delay_arrival_minutes": 5, "event_quality": "provider_actual_event",
+            },
+            {
+                "train_number": "22436", "journey_date": "2026-09-08",
+                "observed_at": "2026-09-08T12:00:00+00:00", "provider": "TEST",
+                "station_code": "BSB", "sequence": 2,
+                "actual_arrival_at": "2026-09-08T10:20:00+00:00",
+                "scheduled_arrival": "2026-09-08T10:15:00+00:00",
+                "delay_arrival_minutes": 5, "event_quality": "provider_actual_event",
+            },
+        ]
+        self.assertEqual(build_station_level_rows(events), [])
+
     def test_timezone_aware_provider_time_is_converted_to_utc(self):
         from api.services.phase2_dataset import parse_provider_datetime
         parsed = parse_provider_datetime("2026-09-08T10:00:00+05:30", dt.date(2026, 9, 8))
         self.assertEqual(parsed.isoformat(), "2026-09-08T04:30:00+00:00")
+
+    def test_indian_rail_clock_time_is_interpreted_as_ist(self):
+        payload = {
+            "TrainRoute": [{
+                "SerialNo": 1, "StationCode": "NDLS",
+                "ActualArrival": "10:00", "Status": "arrived",
+            }]
+        }
+        events = normalize_train_route(
+            payload, "22436", dt.date(2026, 9, 8),
+            dt.datetime(2026, 9, 8, 4, 30, tzinfo=dt.timezone.utc), "INDIAN_RAIL_API",
+        )
+        self.assertEqual(events[0]["actual_arrival_at"], "2026-09-08T04:30:00+00:00")
 
     def test_feedback_cycle_persists_station_events_and_exports_labels(self):
         with tempfile.TemporaryDirectory() as directory:

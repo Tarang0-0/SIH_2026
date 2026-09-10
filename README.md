@@ -1,4 +1,4 @@
-# Namaste Rail 🚂
+# RailTrackr 🚂
 ### Dynamic Train ETA Prediction & Network Cascading Delay Propagation Engine
 **Smart India Hackathon 2026** | Ministry of Railways / CRIS  
 **Theme:** Smart Automation, Transportation & Logistics  
@@ -6,9 +6,9 @@
 ---
 
 ## 🌟 Executive Overview
-**Namaste Rail** replaces static, schedule-based timetable estimates with a Machine Learning telemetry engine for the Indian Railways. It captures provider-backed feedback for a gated, auditable retraining loop.
+**RailTrackr** replaces static, schedule-based timetable estimates with a Machine Learning telemetry engine for the Indian Railways. It captures provider-backed feedback for a gated, auditable retraining loop.
 
-Unlike conventional railway tracking apps that merely carry forward current delays, Namaste Rail predicts downstream ETA intervals from historical delay patterns, timetable structure, and live signals available from configured providers. Network occupancy and dispatch causality remain explicitly data-gated.
+Unlike conventional railway tracking apps that merely carry forward current delays, RailTrackr predicts downstream ETA intervals from historical delay patterns, timetable structure, and live signals available from configured providers. Network occupancy and dispatch causality remain explicitly data-gated.
 
 Live weather is provided by OpenWeather when `OPENWEATHER_API_KEY` is set on
 the backend. It is stored as an external, explicitly tagged feature for Phase
@@ -242,6 +242,12 @@ in the timetable order, and creates the train marker only after receiving an
 authorised live coordinate. Configure an approved Railway/CRIS status provider
 to enable actual speed and location; the full contract is in
 [data/README.md](data/README.md).
+
+---
+
+## License
+
+This project is open-source software licensed under the [MIT License](LICENSE).
 
 ---
 

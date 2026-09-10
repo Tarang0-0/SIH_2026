@@ -6,10 +6,11 @@ The project contains two supervised sources:
   feature contract.
 * ``combined_delay_*.csv``: station-level observations from the newer feed.
 
-The station feed is ingested in chunks, invalid delay values are rejected, and
-all valid observations are reduced to the latest/highest station observation
-for each train/date. This prevents trains with more station rows from being
-overweighted while producing the same journey-level target used by the model.
+The station feed is deliberately excluded from this journey-level trainer.
+Its ``delay`` field is a delay at an arbitrary station, not a verified terminal
+arrival delay, so treating it as the destination target would create label
+semantics drift. It remains available for the dedicated station/movement
+pipelines.
 The final 10% of calendar dates remains a strict holdout for honest metrics;
 deployable artifacts are fit on the earlier 90% after validation.
 """
@@ -38,6 +39,7 @@ TARGET = "delay_minutes"
 RANDOM_STATE = 42
 MAX_DELAY_MINUTES = 720
 VALIDATION_ESTIMATORS = 400
+MODEL_VERSION = "time-safe-eta-v3-journey-only"
 
 FEATURE_COLS = [
     "distance_km", "num_scheduled_stops", "scheduled_travel_hours",
@@ -277,7 +279,9 @@ def load_online_completed_data(defaults: dict[str, float], route_summary: dict[s
     )
     for column in ("zone_fog_index", "zone_congestion_index", "track_doubled", "is_hdn_route", "is_electrified", "psr_count", "seat_utilisation_pct"):
         frame[column] = np.nan
-    frame["is_station_feed"] = 1.0
+    # These are verified terminal observations and share the journey-level
+    # target semantics of the legacy source.
+    frame["is_station_feed"] = 0.0
     for column in FEATURE_COLS:
         frame[column] = pd.to_numeric(frame[column], errors="coerce").fillna(defaults[column])
     return frame[columns]
@@ -330,21 +334,19 @@ def main() -> None:
     legacy = load_legacy_data()
     defaults = {column: float(pd.to_numeric(legacy[column], errors="coerce").median()) for column in FEATURE_COLS}
     route_summary = build_route_summaries()
-    combined, source_stats = aggregate_combined_delay_data(defaults, route_summary)
     online = load_online_completed_data(defaults, route_summary)
     legacy["_source_priority"] = 0
-    combined["_source_priority"] = 1
-    online["_source_priority"] = 2
+    online["_source_priority"] = 1
     # The legacy file can contain multiple valid records for one train/date;
-    # preserve those rows. Online terminal labels only need deduplication
-    # against the compatible combined-feed journey rows.
-    combined_online = pd.concat([combined, online], ignore_index=True)
-    combined_online = combined_online.sort_values(["departure_date", "_train_key", "_source_priority"])
-    combined_online = combined_online.drop_duplicates(["_train_key", "departure_date"], keep="last")
-    data = pd.concat([legacy, combined_online], ignore_index=True).sort_values("departure_date").reset_index(drop=True)
+    # preserve those rows. Online rows are verified terminal observations and
+    # are deduplicated only against other online rows.
+    online = online.sort_values(["departure_date", "_train_key", "_source_priority"])
+    online = online.drop_duplicates(["_train_key", "departure_date"], keep="last")
+    data = legacy.copy() if online.empty else pd.concat([legacy, online], ignore_index=True)
+    data = data.sort_values("departure_date").reset_index(drop=True)
     train_df, validation_df, test_df = temporal_split(data)
     print(f"Loaded {len(data):,} compatible journeys")
-    print(f"Legacy rows: {len(legacy):,}; combined journey rows: {len(combined):,}; online completed rows: {len(online):,}")
+    print(f"Legacy rows: {len(legacy):,}; online completed rows: {len(online):,}")
     print(f"Train/validation/test = {len(train_df):,}/{len(validation_df):,}/{len(test_df):,}")
 
     train_defaults = {column: float(pd.to_numeric(train_df[column], errors="coerce").median()) for column in FEATURE_COLS}
@@ -405,15 +407,15 @@ def main() -> None:
     (MODELS_DIR / "feature_defaults.json").write_text(json.dumps(train_defaults, indent=2) + "\n")
     build_historical_records()
     metadata = {
-        "model_version": "time-safe-eta-v2-all-compatible-data",
+        "model_version": MODEL_VERSION,
         "target": "destination_arrival_delay_minutes",
         "feature_columns": FEATURE_COLS,
         "excluded_leakage_columns": ["delay_minutes", "is_delayed", "primary_delay_cause", "current_delay"],
         "data_sources": {
             "legacy_training_file": str(DATA_PATH),
-            "combined_delay_pattern": COMBINED_PATTERN,
+            "excluded_station_feed_pattern": COMBINED_PATTERN,
+            "excluded_station_feed_reason": "station delay is not a verified terminal arrival target",
             "online_completed_file": str(ONLINE_HISTORY_PATH),
-            **source_stats,
             "legacy_rows": len(legacy),
             "online_completed_rows": len(online),
             "compatible_rows_total": len(data),

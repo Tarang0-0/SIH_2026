@@ -58,6 +58,12 @@ def _public_alert(alert: Dict[str, Any]) -> Dict[str, Any]:
     return {key: value for key, value in alert.items() if key != "user_phone"}
 
 
+def _masked_phone(value: str) -> str:
+    """Keep simulator responses useful without returning a full phone number."""
+    text = str(value or "")
+    return f"{'*' * max(0, len(text) - 2)}{text[-2:]}" if len(text) >= 2 else "**"
+
+
 @router.post("/subscribe", response_model=AlertSubscriptionResponse, status_code=201)
 def subscribe_to_alerts(subscription: AlertSubscriptionRequest):
     """Register an alert; actual message dispatch remains intentionally simulated."""
@@ -103,10 +109,10 @@ def simulate_alert_trigger(subscription_id: str):
         raise HTTPException(status_code=404, detail="Active alert subscription not found")
     train_number, station_code = sub["train_number"], sub["station_code"]
     return AlertTriggerResponse(
-        status="DISPATCHED", channel="SMS_GATEWAY_SIMULATOR", recipient=sub["user_phone"],
+        status="DISPATCHED", channel="SMS_GATEWAY_SIMULATOR", recipient=_masked_phone(sub["user_phone"]),
         dispatched_at=dt.datetime.now(IST).isoformat(timespec="seconds"),
         payload={
-            "title": f"🚨 Namaste Rail Alert: Train {train_number}",
-            "body": f"Your train #{train_number} is approaching {station_code}. Predicted arrival is updated by Namaste Rail AI.",
+            "title": f"🚨 RailTrackr Alert: Train {train_number}",
+            "body": f"Your train #{train_number} is approaching {station_code}. Predicted arrival is updated by RailTrackr AI.",
         },
     )

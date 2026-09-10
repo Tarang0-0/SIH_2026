@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useEffect } from "react";
+import { useId } from "react";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { MoonIcon, SunIcon } from "lucide-react";
@@ -8,17 +8,10 @@ import { useTheme } from "@/app/components/ThemeContext";
 
 const SwitchToggleThemeDemo = ({ className }: { className?: string }) => {
   const id = useId();
-  const { theme, setTheme, isMounted } = useTheme();
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    if (isMounted) {
-      setIsDark(theme === 'dark');
-    }
-  }, [theme, isMounted]);
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   const handleCheckedChange = (checked: boolean) => {
-    setIsDark(checked);
     setTheme(checked ? 'dark' : 'light');
   };
 

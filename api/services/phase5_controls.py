@@ -11,6 +11,7 @@ import datetime as dt
 import json
 import math
 import os
+import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
@@ -20,6 +21,7 @@ import numpy as np
 ROOT_DIR = Path(__file__).resolve().parents[2]
 CALIBRATION_PATH = ROOT_DIR / "models" / "phase5_calibration.json"
 REGISTRY_PATH = ROOT_DIR / "models" / "model_registry.json"
+MODEL_METADATA_PATH = ROOT_DIR / "models" / "model_metadata.json"
 DEFAULT_TARGET_COVERAGE = 0.80
 DEFAULT_MIN_PROMOTION_ROWS = 100
 _calibration: dict[str, Any] = {}
@@ -56,7 +58,11 @@ def load_phase5_calibration(path: Path = CALIBRATION_PATH, force: bool = False) 
     _calibration = {}
     try:
         loaded = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(loaded, dict) and float(loaded.get("global_radius_minutes", -1)) >= 0:
+        current_model = json.loads(MODEL_METADATA_PATH.read_text(encoding="utf-8"))
+        current_version = current_model.get("model_version") if isinstance(current_model, dict) else None
+        calibration_version = loaded.get("trained_model_version") if isinstance(loaded, dict) else None
+        radius = _finite(loaded.get("global_radius_minutes")) if isinstance(loaded, dict) else None
+        if radius is not None and radius >= 0 and current_version and calibration_version == current_version:
             _calibration = loaded
     except (OSError, ValueError, TypeError):
         pass
@@ -74,7 +80,7 @@ def phase5_status() -> dict[str, Any]:
     return {
         "calibration_active": bool(_calibration),
         "calibration_version": _calibration.get("version") if _calibration else None,
-        "target_coverage_percent": round(float(_calibration.get("target_coverage", 0)) * 100, 2) if _calibration else None,
+        "target_coverage_percent": round((_finite(_calibration.get("target_coverage")) or 0) * 100, 2) if _calibration else None,
         "model_registry_present": registry_path.exists(),
         "current_model_version": current,
     }
@@ -87,12 +93,18 @@ def apply_interval_calibration(
     if not _calibration:
         return p10, p50, p90, None
     bucket = calibration_bucket(features or {})
-    bucket_info = (_calibration.get("buckets") or {}).get(bucket, {})
-    radius = bucket_info.get("radius_minutes") if bucket_info.get("rows", 0) >= _calibration.get("min_bucket_rows", 250) else None
+    buckets = _calibration.get("buckets") if isinstance(_calibration.get("buckets"), dict) else {}
+    bucket_info = buckets.get(bucket) if isinstance(buckets.get(bucket), dict) else {}
+    bucket_rows = _finite(bucket_info.get("rows")) or 0
+    minimum_rows = _finite(_calibration.get("min_bucket_rows")) or 250
+    radius = bucket_info.get("radius_minutes") if bucket_rows >= minimum_rows else None
+    radius = _finite(radius)
     if radius is None:
-        radius = _calibration.get("global_radius_minutes", 0)
-    radius = max(0.0, float(radius or 0.0))
-    return max(0.0, p10 - radius), p50, max(p50, p90 + radius), bucket
+        radius = _finite(_calibration.get("global_radius_minutes")) or 0.0
+    radius = max(0.0, radius)
+    cal_p10 = min(p50, max(0.0, p10 - radius))
+    cal_p90 = max(p50, p90 + radius)
+    return cal_p10, p50, cal_p90, bucket
 
 
 def conformal_radius(y_true: np.ndarray, p10: np.ndarray, p90: np.ndarray, coverage: float) -> float:
@@ -191,7 +203,15 @@ def promote_model(
     history = registry.get("history") if isinstance(registry.get("history"), list) else []
     registry.update({"current_model_version": version, "current": entry, "history": [*history, entry]})
     registry_path.parent.mkdir(parents=True, exist_ok=True)
-    registry_path.write_text(json.dumps(registry, indent=2) + "\n", encoding="utf-8")
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=registry_path.parent,
+        prefix=f".{registry_path.name}.", suffix=".tmp", delete=False,
+    ) as temporary:
+        temporary.write(json.dumps(registry, indent=2) + "\n")
+        temporary.flush()
+        os.fsync(temporary.fileno())
+        temporary_path = Path(temporary.name)
+    temporary_path.replace(registry_path)
     return entry
 
 

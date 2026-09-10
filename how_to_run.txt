@@ -1,9 +1,9 @@
 ================================================================================
-🚂 Namaste Rail: Real-Time Dynamic ETA Prediction & Transit Intelligence System
+🚂 RailTrackr: Real-Time Dynamic ETA Prediction & Transit Intelligence System
 Smart India Hackathon 2026
 ================================================================================
 
-This guide walks you through setting up and running the Namaste Rail application,
+This guide walks you through setting up and running the RailTrackr application,
 including the FastAPI Machine Learning backend and Next.js 16 3D frontend.
 
 --------------------------------------------------------------------------------
@@ -190,7 +190,7 @@ A: Ensure your virtual environment is activated before running uvicorn:
    pip install -r ml/requirements.txt
 
 Q: "Can I run the project without any external API keys?"
-A: Yes! Namaste Rail includes built-in offline route catalogs (11,200+ routes),
+A: Yes! RailTrackr includes built-in offline route catalogs (11,200+ routes),
    pre-trained ML weights (models/*.pkl), and realistic fallback generators.
    External API keys are only necessary if you require real-time satellite RTIS
    locomotive GPS or live radar weather data.

@@ -1,15 +1,15 @@
 # Third-Party, Analytics & Data Minimization Audit
-**Project:** Namaste Rail (Transit Intelligence & Telemetry Gateway)  
+**Project:** RailTrackr (Transit Intelligence & Telemetry Gateway)  
 **Hackathon:** Smart India Hackathon (SIH 2026)  
 **Date of Audit:** September 10, 2026  
-**Auditor / Engineering Team:** Namaste Rail Core Engineering  
+**Auditor / Engineering Team:** RailTrackr Core Engineering  
 **Standard Benchmarks:** DPDPA 2023, IT Act 2000, GDPR Art. 5(1)(c), WCAG 2.1 AA  
 
 ---
 
 ## 1. Executive Summary
 
-This formal audit evaluates all third-party software development kits (SDKs), external network dependencies, client-side storage mechanisms, and data ingestion pipelines used across the Namaste Rail platform. 
+This formal audit evaluates all third-party software development kits (SDKs), external network dependencies, client-side storage mechanisms, and data ingestion pipelines used across the RailTrackr platform. 
 
 ### Audit Verdict: **PASSED (100% Data Minimization & Privacy-by-Design Verified)**
 - **Ad Trackers & Behavioral Analytics:** **Zero (0)** detected.
@@ -77,7 +77,7 @@ Users retain full sovereignty to inspect, block, or flush these keys at any time
 
 Under Section 6 of India's *Digital Personal Data Protection Act (DPDPA), 2023* and Article 5(1)(c) of the *GDPR*, data fiduciaries must only collect data that is strictly necessary for the stated purpose.
 
-### What Namaste Rail Collects vs. Rejects
+### What RailTrackr Collects vs. Rejects
 
 | Data Field | Collected? | Rationale & Protection |
 | :--- | :---: | :--- |
@@ -117,5 +117,5 @@ The backend runs on Python 3.9+ using FastAPI with ASGI asynchronous execution:
 - [x] All ML model inferences validated as anonymous statistical computations.
 
 **Audit Sign-off:**  
-Namaste Rail Architecture & Security Team  
+RailTrackr Architecture & Security Team  
 SIH 2026 Submission Protocol

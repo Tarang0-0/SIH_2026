@@ -17,7 +17,7 @@ export interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // Brand
-    brand_name: 'Namaste Rail',
+    brand_name: 'RailTrackr',
     brand_tagline: 'Indian Railways Transit Intelligence',
     brand_prototype: 'Smart India Hackathon 2026 Prototype',
 
@@ -33,7 +33,7 @@ const translations: Record<Language, Record<string, string>> = {
     hero_title_1: 'Find your train.',
     hero_title_2: 'Know what happens next.',
     hero_desc: 'Search by train number or name to see its live location, upcoming station, expected arrival, and delay.',
-    search_card_tag: 'Namaste Rail tracker',
+    search_card_tag: 'RailTrackr',
     search_card_title: 'Where is your train?',
     search_card_ready: 'Ready',
     search_input_label: 'Search train number or name',
@@ -196,7 +196,7 @@ const translations: Record<Language, Record<string, string>> = {
     op_critical_delay: 'critical',
 
     // Admin & Auth
-    admin_title: 'Namaste Rail',
+    admin_title: 'RailTrackr',
     admin_subtitle: 'Indian Railways Transit Operations & Dispatch Console',
     admin_system_node: 'RailPulse Node: 0xIR-NDLS',
     admin_return_label: 'RETURN TO PASSENGER DIRECTORY',
@@ -210,21 +210,21 @@ const translations: Record<Language, Record<string, string>> = {
     admin_submitting: 'SUBMITTING…',
     admin_restricted: 'RESTRICTED',
     admin_secure_session: 'SECURE SHA-256 SESSION',
-    admin_auth_failed: 'Authentication sequence rejected. Check operator credentials (admin / admin@2026).',
+    admin_auth_failed: 'Authentication sequence rejected. Verify the operator credentials configured by the administrator.',
     admin_enter_key: 'Enter Operator Passkey',
     admin_login_btn: 'Access Control Room',
     admin_back: 'Back to Passenger Search',
 
     // About Page
     about_hero_badge: 'SMART INDIA HACKATHON 2026',
-    about_hero_title: 'About Project Namaste Rail',
+    about_hero_title: 'About Project RailTrackr',
     about_hero_subtitle: 'Pioneering dynamic transit intelligence and transparent delay attribution for the world’s fourth largest railway network.',
     about_challenge_badge: 'The Challenge',
     about_challenge_title: 'Transit Uncertainty at Scale',
     about_challenge_desc: 'Large railway networks experience congestion and cascading delays that frequently render published timetables inaccurate. Standard enquiry systems often lack predictive depth and transparent explanations for passengers.',
     about_solution_badge: 'The Solution',
     about_solution_title: 'Data-Driven Precision',
-    about_solution_desc: 'Namaste Rail integrates real-time locomotive GPS streams from the Real-Time Train Information System (RTIS) with multi-quantile gradient boosting. The system continuously refines arrival estimates and uses explainable AI to transparently account for delays.',
+    about_solution_desc: 'RailTrackr integrates real-time locomotive GPS streams from the Real-Time Train Information System (RTIS) with multi-quantile gradient boosting. The system continuously refines arrival estimates and uses explainable AI to transparently account for delays.',
     about_specs_badge: 'Technical Specifications',
     about_specs_title: 'Stack & Infrastructure Matrix',
     about_ml_core_cat: 'Machine Learning Core',
@@ -233,10 +233,10 @@ const translations: Record<Language, Record<string, string>> = {
     about_explain_cat: 'Explainability Engine',
     about_explain_title: 'Tree SHAP Factor Isolation',
     about_explain_desc: 'Feature attribution isolating congestion, weather, and section headway.',
-    about_api_cat: 'High-Performance API',
-    about_api_title: 'FastAPI + Asynchronous SSE',
-    about_api_desc: 'Server-Sent Events streaming telemetry from the configured live provider.',
-    about_console_cat: 'Operational Console',
+    about_api_cat: 'High-Throughput API',
+    about_api_title: 'FastAPI + Async SSE',
+    about_api_desc: 'Server-Sent Events telemetry streaming from the configured live provider.',
+    about_console_cat: 'Operations Console',
     about_console_title: 'Next.js 16 + Leaflet GIS',
     about_console_desc: 'Dynamic route polyline interpolation with zero hardcoded coordinate tables.',
     about_launch_btn: 'Launch Operations Console',
@@ -246,7 +246,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Features Page
     features_hero_badge: 'ENGINEERING ARCHITECTURE',
     features_hero_title: 'System Capabilities & Design',
-    features_hero_subtitle: 'A comprehensive overview of the machine learning pipelines, geospatial algorithms, and telemetry services powering Namaste Rail.',
+    features_hero_subtitle: 'A comprehensive overview of the machine learning pipelines, geospatial algorithms, and telemetry services powering RailTrackr.',
     features_pipeline_badge: 'End-to-End Pipeline',
     features_pipeline_title: 'Data Flow & Predictive Stack',
     features_step1_badge: 'DATA INGESTION',
@@ -266,7 +266,7 @@ const translations: Record<Language, Record<string, string>> = {
     features_step4_desc: 'Streams live coordinates, speed, and revised downstream station arrival estimates to client dashboards with zero manual page refreshes.',
     features_step4_metric: 'Provider timestamped updates',
     features_deep1_title: 'Multi-Quantile Forecasting (P10 / P50 / P90)',
-    features_deep1_desc: 'Standard transit APIs only report single-point arrival estimates that degrade when trains encounter congestion. Namaste Rail fits dedicated pinball loss regressors to compute empirical prediction intervals:',
+    features_deep1_desc: 'Standard transit APIs only report single-point arrival estimates that degrade when trains encounter congestion. RailTrackr fits dedicated pinball loss regressors to compute empirical prediction intervals:',
     features_p10_label: 'P10 (Optimistic):',
     features_p10_desc: 'Lower-bound ETA interval',
     features_p50_label: 'P50 (Expected Median):',
@@ -286,12 +286,12 @@ const translations: Record<Language, Record<string, string>> = {
     footer_live_dashboard: 'Live Dashboard',
     footer_live_map: 'Live Map',
     footer_terms_privacy: 'Terms & Privacy',
-    footer_mit_license: 'Namaste Rail Contributors • MIT License',
+    footer_mit_license: 'RailTrackr Contributors • MIT License',
     footer_independent_note: 'Independent student research prototype. Not affiliated with Ministry of Railways or IRCTC.',
 
     // Cookie Notice
     cookie_title: 'Data Minimization & Storage Notice',
-    cookie_desc: 'Namaste Rail uses strictly functional local storage for theme settings and session state. We do not track you, profile your behavior, or use third-party advertising cookies. By using this service, you acknowledge our',
+    cookie_desc: 'RailTrackr uses strictly functional local storage for theme settings and session state. We do not track you, profile your behavior, or use third-party advertising cookies. By using this service, you acknowledge our',
     cookie_privacy_link: 'Privacy Policy',
     cookie_and: 'and',
     cookie_storage_link: 'Storage Policy',
@@ -306,18 +306,18 @@ const translations: Record<Language, Record<string, string>> = {
     last_updated: 'Last Updated: September 10, 2026 • Effective Date: September 10, 2026',
 
     // Modal
-    modal_welcome: 'Welcome to Namaste Rail',
+    modal_welcome: 'Welcome to RailTrackr',
     modal_subtitle: 'Select your preferred language / अपनी पसंदीदा भाषा चुनें',
     modal_en_title: 'English',
     modal_en_desc: 'Access Indian Railways Transit Intelligence, live RTIS telemetry & arrival predictions in English.',
     modal_hi_title: 'हिन्दी (Hindi)',
     modal_hi_desc: 'भारतीय रेल लाइव ट्रेन ट्रैकिंग, आगमन समय एवं देरी पूर्वानुमान हिन्दी में देखें।',
-    modal_confirm: 'Open Namaste Rail',
+    modal_confirm: 'Open RailTrackr',
     modal_change_anytime: 'You can change this anytime from the top navigation bar.',
   },
   hi: {
     // Brand
-    brand_name: 'नमस्ते रेल',
+    brand_name: 'RailTrackr',
     brand_tagline: 'भारतीय रेल ट्रांजिट इंटेलिजेंस',
     brand_prototype: 'स्मार्ट इंडिया हैकाथॉन 2026 प्रोटोटाइप',
 
@@ -333,7 +333,7 @@ const translations: Record<Language, Record<string, string>> = {
     hero_title_1: 'अपनी ट्रेन खोजें।',
     hero_title_2: 'जानिए आगे क्या होगा।',
     hero_desc: 'लाइव स्थान, आगामी स्टेशन, अनुमानित आगमन समय और संभावित देरी देखने के लिए ट्रेन नंबर या नाम से खोजें।',
-    search_card_tag: 'नमस्ते रेल ट्रैकर',
+    search_card_tag: 'RailTrackr',
     search_card_title: 'आपकी ट्रेन कहाँ है?',
     search_card_ready: 'तैयार',
     search_input_label: 'ट्रेन नंबर या नाम दर्ज करें',
@@ -496,7 +496,7 @@ const translations: Record<Language, Record<string, string>> = {
     op_critical_delay: 'गंभीर विलंब',
 
     // Admin & Auth
-    admin_title: 'नमस्ते रेल',
+    admin_title: 'RailTrackr',
     admin_subtitle: 'भारतीय रेल परिचालन एवं डिस्पैच कंसोल',
     admin_system_node: 'रेलपल्स नोड: 0xIR-NDLS',
     admin_return_label: 'यात्री निर्देशिका पर वापस जाएं',
@@ -510,21 +510,21 @@ const translations: Record<Language, Record<string, string>> = {
     admin_submitting: 'सत्यापन हो रहा है…',
     admin_restricted: 'प्रतिबंधित',
     admin_secure_session: 'सुरक्षित SHA-256 सत्र',
-    admin_auth_failed: 'प्रमाणीकरण अस्वीकृत। कृपया ऑपरेटर क्रेडेंशियल जांचें (admin / admin@2026)।',
+    admin_auth_failed: 'प्रमाणीकरण अस्वीकृत। प्रशासक द्वारा कॉन्फ़िगर किए गए ऑपरेटर क्रेडेंशियल जांचें।',
     admin_enter_key: 'ऑपरेटर पासकी दर्ज करें',
     admin_login_btn: 'कंट्रोल रूम में प्रवेश करें',
     admin_back: 'यात्री खोज पर वापस जाएं',
 
     // About Page
     about_hero_badge: 'स्मार्ट इंडिया हैकाथॉन 2026',
-    about_hero_title: 'प्रोजेक्ट नमस्ते रेल के बारे में',
+    about_hero_title: 'प्रोजेक्ट RailTrackr के बारे में',
     about_hero_subtitle: 'विश्व के चौथे सबसे बड़े रेल नेटवर्क के लिए गतिशील पारगमन विश्लेषण एवं पारदर्शी विलंब निदान।',
     about_challenge_badge: 'चुनौती',
     about_challenge_title: 'व्यापक स्तर पर पारगमन अनिश्चितता',
     about_challenge_desc: 'बड़े रेल नेटवर्कों में भीड़भाड़ और कैस्केडिंग देरी के कारण अक्सर प्रकाशित समय सारणी प्रभावित होती है। सामान्य पूछताछ प्रणालियों में भविष्यसूचक गहराई और पारदर्शी कारणों की कमी होती है।',
     about_solution_badge: 'समाधान',
     about_solution_title: 'डेटा-संचालित सटीकता',
-    about_solution_desc: 'नमस्ते रेल वास्तविक समय लोकोमोटिव आरटीआईएस जीपीएस स्ट्रीम को मल्टी-क्वांटाइल ग्रेडिएंट बूस्टिंग के साथ एकीकृत करता है और पारदर्शी एआई द्वारा देरी के कारणों का विश्लेषण करता है।',
+    about_solution_desc: 'RailTrackr वास्तविक समय लोकोमोटिव आरटीआईएस जीपीएस स्ट्रीम को मल्टी-क्वांटाइल ग्रेडिएंट बूस्टिंग के साथ एकीकृत करता है और पारदर्शी एआई द्वारा देरी के कारणों का विश्लेषण करता है।',
     about_specs_badge: 'तकनीकी विवरण',
     about_specs_title: 'स्टैक एवं इंफ्रास्ट्रक्चर मैट्रिक्स',
     about_ml_core_cat: 'मशीन लर्निंग कोर',
@@ -546,7 +546,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Features Page
     features_hero_badge: 'इंजीनियरिंग आर्किटेक्चर',
     features_hero_title: 'सिस्टम क्षमताएं एवं डिज़ाइन',
-    features_hero_subtitle: 'नमस्ते रेल को संचालित करने वाली मशीन लर्निंग पाइपलाइन, भू-स्थानिक एल्गोरिदम एवं टेलीमेट्री सेवाओं का संपूर्ण विवरण।',
+    features_hero_subtitle: 'RailTrackr को संचालित करने वाली मशीन लर्निंग पाइपलाइन, भू-स्थानिक एल्गोरिदम एवं टेलीमेट्री सेवाओं का संपूर्ण विवरण।',
     features_pipeline_badge: 'एंड-टू-एंड पाइपलाइन',
     features_pipeline_title: 'डेटा प्रवाह एवं भविष्यसूचक स्टैक',
     features_step1_badge: 'डेटा अंतर्ग्रहण',
@@ -566,7 +566,7 @@ const translations: Record<Language, Record<string, string>> = {
     features_step4_desc: 'क्लाइंट डैशबोर्ड पर लाइव निर्देशांक, गति एवं संशोधित डाउनस्ट्रीम स्टेशन आगमन अनुमान स्ट्रीम करता है, बिना रिफ्रेश किए।',
     features_step4_metric: 'प्रदाता टाइमस्टैम्प्ड अपडेट',
     features_deep1_title: 'मल्टी-क्वांटाइल पूर्वानुमान (P10 / P50 / P90)',
-    features_deep1_desc: 'पारंपरिक ट्रांजिट एपीआई केवल एकल-बिंदु आगमन अनुमान प्रदान करते हैं जो भीड़भाड़ के समय अप्रभावी हो जाते हैं। नमस्ते रेल समर्पित पिनबॉल लॉस रिग्रेशन का उपयोग करता है:',
+    features_deep1_desc: 'पारंपरिक ट्रांजिट एपीआई केवल एकल-बिंदु आगमन अनुमान प्रदान करते हैं जो भीड़भाड़ के समय अप्रभावी हो जाते हैं। RailTrackr समर्पित पिनबॉल लॉस रिग्रेशन का उपयोग करता है:',
     features_p10_label: 'P10 (आशावादी):',
     features_p10_desc: 'न्यूनतम ईटीए अंतराल',
     features_p50_label: 'P50 (अपेक्षित माध्यिका):',
@@ -586,12 +586,12 @@ const translations: Record<Language, Record<string, string>> = {
     footer_live_dashboard: 'लाइव डैशबोर्ड',
     footer_live_map: 'लाइव मैप',
     footer_terms_privacy: 'नियम एवं गोपनीयता',
-    footer_mit_license: 'नमस्ते रेल योगदानकर्ता • एमआईटी लाइसेंस',
+    footer_mit_license: 'RailTrackr योगदानकर्ता • एमआईटी लाइसेंस',
     footer_independent_note: 'स्वतंत्र छात्र अनुसंधान प्रोटोटाइप। रेल मंत्रालय या आईआरसीटीसी से संबद्ध नहीं।',
 
     // Cookie Notice
     cookie_title: 'डेटा न्यूनीकरण एवं संग्रहण सूचना',
-    cookie_desc: 'नमस्ते रेल थीम सेटिंग्स और सत्र स्थिति के लिए केवल कार्यात्मक स्थानीय संग्रहण का उपयोग करता है। हम आपको ट्रैक नहीं करते, न ही विज्ञापन कुकीज़ का उपयोग करते हैं। इस सेवा का उपयोग करके, आप हमारी',
+    cookie_desc: 'RailTrackr थीम सेटिंग्स और सत्र स्थिति के लिए केवल कार्यात्मक स्थानीय संग्रहण का उपयोग करता है। हम आपको ट्रैक नहीं करते, न ही विज्ञापन कुकीज़ का उपयोग करते हैं। इस सेवा का उपयोग करके, आप हमारी',
     cookie_privacy_link: 'गोपनीयता नीति',
     cookie_and: 'एवं',
     cookie_storage_link: 'संग्रहण नीति',
@@ -606,13 +606,13 @@ const translations: Record<Language, Record<string, string>> = {
     last_updated: 'अंतिम अद्यतन: 10 सितंबर 2026 • प्रभावी तिथि: 10 सितंबर 2026',
 
     // Modal
-    modal_welcome: 'नमस्ते रेल में आपका स्वागत है',
+    modal_welcome: 'RailTrackr में आपका स्वागत है',
     modal_subtitle: 'Select your preferred language / अपनी पसंदीदा भाषा चुनें',
     modal_en_title: 'English',
     modal_en_desc: 'Access Indian Railways Transit Intelligence, live RTIS telemetry & arrival predictions in English.',
     modal_hi_title: 'हिन्दी (Hindi)',
     modal_hi_desc: 'भारतीय रेल लाइव ट्रेन ट्रैकिंग, आगमन समय एवं देरी पूर्वानुमान हिन्दी में देखें।',
-    modal_confirm: 'नमस्ते रेल खोलें',
+    modal_confirm: 'RailTrackr खोलें',
     modal_change_anytime: 'आप इसे शीर्ष नेविगेशन बार से कभी भी बदल सकते हैं।',
   },
 };
@@ -632,22 +632,22 @@ const STORAGE_KEY = 'railpulse-lang';
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en');
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
-    setIsMounted(true);
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as Language | null;
-      if (stored === 'en' || stored === 'hi') {
-        setLanguageState(stored);
-        document.documentElement.lang = stored;
-      } else {
-        // First visit: show the language selection modal
-        setIsLanguageModalOpen(true);
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY) as Language | null;
+        if (stored === 'en' || stored === 'hi') {
+          setLanguageState(stored);
+          document.documentElement.lang = stored;
+        } else {
+          // First visit: show the language selection modal
+          setIsLanguageModalOpen(true);
+        }
+      } catch {
+        // Ignore localStorage issues
       }
-    } catch {
-      // Ignore localStorage issues
-    }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const setLanguage = (lang: Language) => {

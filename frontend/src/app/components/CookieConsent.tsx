@@ -18,7 +18,6 @@ export default function CookieConsent() {
       }
     } catch {
       // In case localStorage is blocked in incognito
-      setVisible(false);
     }
   }, []);
 
@@ -54,7 +53,7 @@ export default function CookieConsent() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              {t('cookie_desc', 'Namaste Rail uses strictly functional local storage for theme settings and session state. We do not track you, profile your behavior, or use third-party advertising cookies. By using this service, you acknowledge our')}{' '}
+              {t('cookie_desc', 'RailTrackr uses strictly functional local storage for theme settings and session state. We do not track you, profile your behavior, or use third-party advertising cookies. By using this service, you acknowledge our')}{' '}
               <Link
                 href="/privacy"
                 className="font-semibold text-sky-700 dark:text-sky-400 underline hover:text-sky-800 dark:hover:text-sky-300 focus-visible:outline-2 focus-visible:outline-sky-500"

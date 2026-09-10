@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt fastapi uvicorn pydantic
 # Copy project source code
 COPY api/ ./api/
 COPY src/ ./src/
+COPY scripts/ ./scripts/
 COPY models/ ./models/
 COPY data/ ./data/
 

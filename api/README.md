@@ -1,6 +1,6 @@
-# Namaste Rail ETA API
+# RailTrackr ETA API
 
-This directory contains the FastAPI service that serves the Machine Learning ETA models for the Namaste Rail platform.
+This directory contains the FastAPI service that serves the Machine Learning ETA models for the RailTrackr platform.
 
 ## Features
 - **FastAPI Framework:** High performance and automatic OpenAPI documentation.
@@ -163,9 +163,17 @@ curl -X POST "http://localhost:8000/api/v1/alerts/simulate-trigger/${SUBSCRIPTIO
 
 ### 9. Control-room cascade data
 ```bash
-curl -X GET "http://localhost:8000/api/v1/control-room/cascade-risk"
-curl "http://localhost:8000/api/v1/control-room/impact/${TRAIN_NUMBER}?date=${YYYY_MM_DD}&lookahead_stations=4"
+TOKEN=$(curl -s -X POST "http://localhost:8000/api/v1/admin/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"'"${RAILPULSE_ADMIN_USERNAME}"'","password":"'"${RAILPULSE_ADMIN_PASSWORD}"'"}' | python -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
+curl -H "Authorization: Bearer ${TOKEN}" -X GET "http://localhost:8000/api/v1/control-room/cascade-risk"
+curl -H "Authorization: Bearer ${TOKEN}" "http://localhost:8000/api/v1/control-room/impact/${TRAIN_NUMBER}?date=${YYYY_MM_DD}&lookahead_stations=4"
 ```
+
+Set `RAILPULSE_ADMIN_TOKEN`, `RAILPULSE_ADMIN_USERNAME`, and
+`RAILPULSE_ADMIN_PASSWORD` on the backend. The login endpoint returns a
+short-lived signed session token; control-room and model-reload endpoints
+reject unauthenticated requests.
 
 The `impact` endpoint fetches the incident train's verified live status and
 live boards for its next downstream stations. It returns potential station-

@@ -1,6 +1,6 @@
 # Windows setup
 
-Namaste Rail runs locally on Windows through PowerShell. Install these tools
+RailTrackr runs locally on Windows through PowerShell. Install these tools
 before cloning:
 
 - Git for Windows
@@ -84,7 +84,7 @@ is on and connected to the internet:
 ```powershell
 $action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-ExecutionPolicy Bypass -File `"$PWD\scripts\run_daily_learning.ps1`" -Collect"
 $trigger = New-ScheduledTaskTrigger -Daily -At 3:30am
-Register-ScheduledTask -TaskName "Namaste Rail Daily Learning" -Action $action -Trigger $trigger -Description "Refresh verified Namaste Rail data and retrain eligible models"
+Register-ScheduledTask -TaskName "RailTrackr Daily Learning" -Action $action -Trigger $trigger -Description "Refresh verified RailTrackr data and retrain eligible models"
 ```
 
 The job always rebuilds the exported datasets. It retrains only when a dataset

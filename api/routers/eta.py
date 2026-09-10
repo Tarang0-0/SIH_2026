@@ -43,9 +43,9 @@ def load_train_index(force: bool = False) -> None:
     try:
         with open(INDEX_PATH) as file:
             TRAIN_ROUTES_INDEX = json.load(file)
-        print(f"✅ [Namaste Rail] Loaded {len(TRAIN_ROUTES_INDEX)} train routes from index.")
+        print(f"✅ [RailTrackr] Loaded {len(TRAIN_ROUTES_INDEX)} train routes from index.")
     except (OSError, json.JSONDecodeError) as error:
-        print(f"⚠️ [Namaste Rail] Failed to load train index: {error}")
+        print(f"⚠️ [RailTrackr] Failed to load train index: {error}")
 
 
 def load_feature_defaults(force: bool = False) -> None:
@@ -63,7 +63,7 @@ def load_feature_defaults(force: bool = False) -> None:
             if np.isfinite(float(value))
         }
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
-        print(f"⚠️ [Namaste Rail] Failed to load feature defaults: {error}")
+        print(f"⚠️ [RailTrackr] Failed to load feature defaults: {error}")
 
 
 def load_historical_records(force: bool = False) -> None:
@@ -148,9 +148,13 @@ def _elapsed_schedule_minutes(stops: list[dict[str, Any]]) -> list[int]:
     elapsed, previous, day_offset = [0], clocks[0], 0
     for clock in clocks[1:]:
         candidate = clock + day_offset
+        iterations = 0
         while candidate < previous:
             day_offset += 1440
             candidate = clock + day_offset
+            iterations += 1
+            if iterations > 7:
+                raise ValueError(f"Route timetable clock sequence appears corrupt near value {clock}")
         elapsed.append(candidate - clocks[0])
         previous = candidate
     return elapsed
@@ -189,7 +193,10 @@ def resolve_journey_date(
     # A small grace window covers a late terminal arrival without making an
     # old journey steal a new day's search.
     journey_end_grace = 6 * 60
-    for candidate in (today, today - dt.timedelta(days=1)):
+    # Allow candidate departure dates back to the full scheduled trip duration (up to 5 days)
+    max_days_back = min(5, max(1, (duration_minutes + journey_end_grace) // 1440 + 1))
+    for days_back in range(max_days_back + 1):
+        candidate = today - dt.timedelta(days=days_back)
         start = dt.datetime.combine(candidate, dt.time()) + dt.timedelta(minutes=departure_minutes)
         start = start.replace(tzinfo=INDIA_TIMEZONE)
         end = start + dt.timedelta(minutes=duration_minutes + journey_end_grace)
@@ -233,7 +240,11 @@ def _historical_prior(train_number: str, query_date: dt.date) -> Tuple[Optional[
 
 def _model_quantiles(features: dict[str, float]) -> tuple[float, float, float, str]:
     if "p50" not in models_ref or models_ref["p50"] is None:
-        return 0.0, 0.0, 15.0, "No trained model is loaded; using the reported delay only."
+        reported = max(0.0, float(features.get("current_delay", 0.0)))
+        p10 = max(0.0, reported - 5.0)
+        p50 = reported
+        p90 = reported + 15.0
+        return p10, p50, p90, "No trained model is loaded; using the reported delay only."
     model = models_ref["p50"]
     expected = list(model.feature_names_in_)
     X = pd.DataFrame([{name: features.get(name, 0.0) for name in expected}], columns=expected)
@@ -309,7 +320,7 @@ def get_train_eta(train_number: str, date: Optional[str] = None, current_station
     total_distance, total_minutes = max(max(distances), 1.0), max(elapsed[-1], 1)
     departure_hour = _parse_clock(stops[0].get("sched", "00:00")) // 60
     features = _build_features(total_distance, len(stops), total_minutes / 60, departure_hour,
-                               journey_date.weekday(), journey_date.month, float(current_delay), station)
+                               journey_date.weekday(), journey_date.month, float(current_delay), current_station or None)
     p10, p50, p90, reason = _model_quantiles(features)
     historic_delay, historic_count = _historical_prior(train_key, journey_date)
     if historic_delay is not None:
@@ -325,7 +336,9 @@ def get_train_eta(train_number: str, date: Optional[str] = None, current_station
     destination = [current_delay + remaining_fraction * (prediction - current_delay) for prediction in (p10, p50, p90)]
     destination = [max(0., prediction) for prediction in destination]
     destination[0], destination[2] = min(destination[0], destination[1]), max(destination[2], destination[1])
-    journey_start = dt.datetime.combine(journey_date, dt.time()) + dt.timedelta(minutes=_parse_clock(stops[0].get("sched", "00:00")))
+    journey_start = dt.datetime.combine(
+        journey_date, dt.time(), tzinfo=INDIA_TIMEZONE
+    ) + dt.timedelta(minutes=_parse_clock(stops[0].get("sched", "00:00")))
     remaining_minutes = max(total_minutes - elapsed[current_index], 1)
     station_responses = []
     for index in range(current_index, len(stops)):

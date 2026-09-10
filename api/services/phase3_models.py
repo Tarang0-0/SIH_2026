@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any, Optional
 
@@ -18,6 +19,7 @@ MODELS_DIR = ROOT_DIR / "models"
 DATA_PATH = ROOT_DIR / "data" / "phase3_movement_training.csv"
 _models: dict[str, Any] = {}
 _metadata: dict[str, Any] = {}
+logger = logging.getLogger(__name__)
 
 
 def load_phase3_models() -> tuple[dict[str, Any], dict[str, Any]]:
@@ -43,7 +45,8 @@ def load_phase3_models() -> tuple[dict[str, Any], dict[str, Any]]:
         if not isinstance(metadata, dict) or metadata.get("features") != PHASE3_FEATURES:
             raise ValueError("Phase 3 metadata feature contract is invalid")
         _models, _metadata = loaded, metadata
-    except (OSError, ValueError, TypeError, EOFError):
+    except Exception:
+        logger.exception("Phase 3 model artifacts are invalid; disabling Phase 3")
         _models, _metadata = {}, {}
     return _models, _metadata
 

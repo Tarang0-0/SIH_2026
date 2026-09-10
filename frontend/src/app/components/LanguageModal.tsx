@@ -11,6 +11,8 @@ export default function LanguageModal() {
   // Sync candidate selection with active language when modal opens
   useEffect(() => {
     if (isLanguageModalOpen) {
+      // Reset the draft only when the dialog opens.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelected(language);
     }
   }, [language, isLanguageModalOpen]);
@@ -84,7 +86,7 @@ export default function LanguageModal() {
                     {selected === 'hi' ? 'भाषा का चयन करें' : 'Select Language'}
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-sans mt-0.5">
-                    Namaste Rail • भारतीय रेल लाइव ट्रैकिंग
+                    RailTrackr • भारतीय रेल लाइव ट्रैकिंग
                   </p>
                 </div>
               </div>
@@ -262,4 +264,3 @@ export default function LanguageModal() {
     </AnimatePresence>
   );
 }
-

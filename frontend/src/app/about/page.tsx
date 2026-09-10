@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import TiltCard from '../components/TiltCard';
 import { useLanguage } from '../components/LanguageContext';
+import Logo from '../components/Logo';
 
 export default function AboutPage() {
   const { t } = useLanguage();
@@ -19,12 +20,15 @@ export default function AboutPage() {
         <section className="relative bg-gradient-to-b from-sky-100/60 to-[#f7f9fc] dark:from-[#0b1c38]/50 dark:via-[#09162e]/40 dark:to-transparent border-b border-sky-200/70 dark:border-sky-900/60 py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
           <div className="absolute top-0 right-1/4 w-96 h-96 bg-sky-400/10 dark:bg-sky-500/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="max-w-4xl mx-auto text-center relative z-10">
+            <div className="flex justify-center mb-6">
+              <Logo variant="horizontal" size="xl" className="h-16 sm:h-20 w-auto" />
+            </div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 dark:bg-sky-950/80 border border-sky-200 dark:border-sky-800/80 text-sky-700 dark:text-sky-300 text-xs font-mono mb-4 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
               <span>{t('about_hero_badge', 'SMART INDIA HACKATHON 2026')}</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white mb-4">
-              {t('about_hero_title', 'About Project Namaste Rail')}
+              {t('about_hero_title', 'About Project RailTrackr')}
             </h1>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
               {t('about_hero_subtitle', "Pioneering dynamic transit intelligence and transparent delay attribution for the world's fourth largest railway network.")}
@@ -57,7 +61,7 @@ export default function AboutPage() {
                 {t('about_solution_title', 'Data-Driven Precision')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                {t('about_solution_desc', 'Namaste Rail integrates real-time locomotive GPS streams from the Real-Time Train Information System (RTIS) with multi-quantile gradient boosting. The system continuously refines arrival estimates and uses explainable AI to transparently account for delays.')}
+                {t('about_solution_desc', 'RailTrackr integrates real-time locomotive GPS streams from the Real-Time Train Information System (RTIS) with multi-quantile gradient boosting. The system continuously refines arrival estimates and uses explainable AI to transparently account for delays.')}
               </p>
             </TiltCard>
           </div>

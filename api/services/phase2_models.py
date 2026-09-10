@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any, Optional
 
@@ -20,6 +21,7 @@ PHASE2_FEATURES = [
 ]
 _models: dict[str, Any] = {}
 _metadata: dict[str, Any] = {}
+logger = logging.getLogger(__name__)
 
 
 def load_phase2_models() -> tuple[dict[str, Any], dict[str, Any]]:
@@ -45,7 +47,8 @@ def load_phase2_models() -> tuple[dict[str, Any], dict[str, Any]]:
         if not isinstance(metadata, dict) or metadata.get("features") != PHASE2_FEATURES:
             raise ValueError("Phase 2 metadata feature contract is invalid")
         _models, _metadata = loaded, metadata
-    except (OSError, ValueError, TypeError, EOFError, json.JSONDecodeError):
+    except Exception:
+        logger.exception("Phase 2 model artifacts are invalid; disabling Phase 2")
         _models, _metadata = {}, {}
     return _models, _metadata
 

@@ -13,6 +13,10 @@ type AnimatedThemeTogglerProps = {
   className?: string
 }
 
+type DocumentWithViewTransition = Document & {
+  startViewTransition?: (update: () => void) => { ready: Promise<void> }
+}
+
 export const AnimatedThemeToggler = ({ className }: AnimatedThemeTogglerProps) => {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [darkMode, setDarkMode] = useState(() =>
@@ -36,7 +40,7 @@ export const AnimatedThemeToggler = ({ className }: AnimatedThemeTogglerProps) =
   const onToggle = useCallback(async () => {
     if (!buttonRef.current) return
 
-    const doc = document as any
+    const doc = document as DocumentWithViewTransition
 
     const applyThemeChange = () => {
       const toggled = !darkMode

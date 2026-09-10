@@ -1,4 +1,7 @@
+import logging
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 FEATURE_DESCRIPTIONS = {
     # Journey-level features from the IR dataset
@@ -51,19 +54,24 @@ class DelayExplainer:
             import shap
             self.explainer = shap.TreeExplainer(model)
             self.has_shap_lib = True
-        except ImportError:
+        except (ImportError, Exception) as error:
             self.explainer = None
+            logger.debug("SHAP TreeExplainer unavailable (%s); using XGBoost native tree contribs or heuristic fallback", error)
         
     def get_shap_values(self, X):
         """Returns SHAP values array for the dataset X."""
         if self.has_shap_lib and self.explainer:
             return self.explainer.shap_values(X)
         elif hasattr(self.model, "get_booster"):
-            import xgboost as xgb
-            dmat = xgb.DMatrix(X)
-            # pred_contribs returns [N, num_features + 1] where last col is base value
-            contribs = self.model.get_booster().predict(dmat, pred_contribs=True)
-            return contribs[:, :-1]
+            try:
+                import xgboost as xgb
+                dmat = xgb.DMatrix(X)
+                # pred_contribs returns [N, num_features + 1] where last col is base value
+                contribs = self.model.get_booster().predict(dmat, pred_contribs=True)
+                return contribs[:, :-1]
+            except Exception as error:
+                logger.debug("XGBoost pred_contribs failed (%s); falling back to heuristic explainer", error)
+                return np.zeros(X.shape)
         else:
             # Fallback uniform proxy
             return np.zeros(X.shape)
@@ -90,6 +98,28 @@ class DelayExplainer:
         feature_data.sort(key=lambda x: x[2], reverse=True)
         
         if not feature_data:
+            # Fallback heuristic: derive primary factors directly from prominent input features
+            val_map = {name: val for name, val in zip(feature_names, feature_values)}
+            reasons = []
+            if val_map.get("current_delay", 0) >= 10:
+                reasons.append(f"{val_map['current_delay']:.0f} min delay carried over from current position")
+            if val_map.get("fog_risk_score", 0) >= 0.3:
+                reasons.append("fog risk severity on route")
+            if val_map.get("is_monsoon_season", 0) == 1:
+                reasons.append("monsoon weather conditions")
+            if val_map.get("is_peak_hour", 0) == 1:
+                reasons.append("peak-hour corridor congestion")
+            if val_map.get("distance_km", 0) >= 800:
+                reasons.append(f"long-distance route transit ({val_map['distance_km']:.0f} km)")
+            if val_map.get("num_scheduled_stops", 0) >= 25:
+                reasons.append("high scheduled stopping frequency")
+            if val_map.get("seat_utilisation_pct", 0) >= 80:
+                reasons.append(f"high passenger load ({val_map['seat_utilisation_pct']:.0f}%)")
+
+            if reasons:
+                primary = reasons[0]
+                secondary = f"; secondary: {reasons[1]}" if len(reasons) > 1 else ""
+                return f"Predicted {predicted_delay:.0f}-min delay — primary factor: {primary}{secondary}."
             return f"Predicted {predicted_delay:.0f}-min delay — due to baseline route factors."
             
         def format_desc(name, val):

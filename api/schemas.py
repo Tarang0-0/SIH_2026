@@ -3,6 +3,15 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+class AdminLoginRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=128)
+    password: str = Field(..., min_length=1, max_length=256)
+
+class AdminLoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
 class AlertSubscriptionRequest(BaseModel):
     train_number: str = Field(..., min_length=3, max_length=10, pattern=r"^\d+$", description="IR train number")
     station_code: str = Field(..., min_length=2, max_length=8, pattern=r"^[A-Za-z0-9]+$", description="Target destination station code")

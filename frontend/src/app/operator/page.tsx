@@ -44,7 +44,7 @@ interface ImpactResponse {
   };
 }
 
-const ADMIN_SESSION_KEY = 'railpulse_admin_authenticated';
+const ADMIN_TOKEN_KEY = 'railpulse_admin_token';
 
 const displayTime = (value?: string | null): string => {
   if (!value) return '—';
@@ -76,7 +76,7 @@ export default function OperatorPage() {
   ];
 
   useEffect(() => {
-    if (window.sessionStorage.getItem(ADMIN_SESSION_KEY) !== 'true') {
+    if (!window.sessionStorage.getItem(ADMIN_TOKEN_KEY)) {
       router.replace('/admin/login?next=/operator');
       return;
     }
@@ -95,8 +95,20 @@ export default function OperatorPage() {
     setImpact(null);
     try {
       const query = new URLSearchParams({ lookahead_stations: stationsLookahead });
-      const response = await fetch(apiUrl(`/api/v1/control-room/impact/${encodeURIComponent(key)}?${query.toString()}`));
+      const token = window.sessionStorage.getItem(ADMIN_TOKEN_KEY);
+      if (!token) {
+        router.replace('/admin/login?next=/operator');
+        return;
+      }
+      const response = await fetch(apiUrl(`/api/v1/control-room/impact/${encodeURIComponent(key)}?${query.toString()}`), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const body = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        window.sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+        router.replace('/admin/login?next=/operator');
+        return;
+      }
       if (!response.ok) throw new Error(body.detail || 'The live control-room analysis is unavailable.');
       setImpact(body as ImpactResponse);
     } catch (caught) {
@@ -194,7 +206,7 @@ export default function OperatorPage() {
             <button
               type="button"
               onClick={() => {
-                window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
+                window.sessionStorage.removeItem(ADMIN_TOKEN_KEY);
                 router.replace('/admin/login?next=/operator');
               }}
               className="rounded-xl border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-rose-950/20 px-4 py-2 text-xs font-semibold text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/40 hover:border-rose-300 dark:hover:border-rose-700 shadow-xs transition cursor-pointer"

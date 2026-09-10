@@ -282,7 +282,7 @@ def _record_station_events(
                 event.get("status"), event.get("event_quality"), json_payload(event.get("raw_payload")),
             ),
         )
-        recorded += 1
+        recorded += int(connection.execute("SELECT changes()").fetchone()[0] or 0)
     return recorded
 
 
@@ -444,19 +444,19 @@ def record_live_cycle(
     try:
         # Resolve the previous forecast before inserting this cycle's forecast
         # for the same station. This prevents a poll from scoring itself.
-        prior = connection.execute(
+        prior_rows = connection.execute(
             """
             SELECT id, predicted_delay_minutes
             FROM forecasts
             WHERE train_number = ? AND journey_date = ? AND station_code = ?
+              AND current_station <> ?
               AND resolved_at IS NULL AND created_at < ?
             ORDER BY created_at DESC
-            LIMIT 1
             """,
-            (train_key, date_key, current_station, observed_at),
-        ).fetchone()
+            (train_key, date_key, current_station, current_station, observed_at),
+        ).fetchall()
         resolved = None
-        if prior is not None:
+        for prior in prior_rows:
             error = int(status.current_delay_minutes) - int(prior["predicted_delay_minutes"])
             connection.execute(
                 """
@@ -467,14 +467,16 @@ def record_live_cycle(
                 """,
                 (observed_at, int(status.current_delay_minutes), observed_at, float(error), int(prior["id"])),
             )
-            resolved = {
-                "forecast_id": int(prior["id"]),
-                "station_code": current_station,
-                "predicted_delay_minutes": int(prior["predicted_delay_minutes"]),
-                "actual_delay_minutes": int(status.current_delay_minutes),
-                "error_minutes": error,
-                "actual_time_quality": "first_provider_observation_at_station",
-            }
+            if resolved is None:
+                resolved = {
+                    "forecast_id": int(prior["id"]),
+                    "station_code": current_station,
+                    "predicted_delay_minutes": int(prior["predicted_delay_minutes"]),
+                    "actual_delay_minutes": int(status.current_delay_minutes),
+                    "error_minutes": error,
+                    "resolved_forecast_count": len(prior_rows),
+                    "actual_time_quality": "first_provider_observation_at_station",
+                }
 
         connection.execute(
             """
@@ -503,17 +505,23 @@ def record_live_cycle(
             SELECT id FROM live_observations
             WHERE train_number = ? AND journey_date = ? AND observed_at = ?
               AND provider = ? AND current_station = ? AND current_delay_minutes = ?
+            ORDER BY id DESC LIMIT 1
             """,
             (train_key, date_key, observed_at, provider, current_station, int(status.current_delay_minutes)),
         ).fetchone()
         if observation_row is None:
-            raise RuntimeError("failed to persist live observation")
+            # The insert above and this lookup use the same normalized values.
+            # Never attach forecasts to an unrelated observation as a recovery
+            # fallback; that silently corrupts feedback labels.
+            raise RuntimeError("persisted live observation could not be recovered")
         observation_id = int(observation_row["id"])
 
         forecast_count = 0
         for station in stations:
             station_code = str(station.get("station_code") or "").strip().upper()
-            if not station_code:
+            # The current station is already an observed fact, not a future
+            # arrival target. Only downstream stations can resolve a forecast.
+            if not station_code or station_code == current_station:
                 continue
             connection.execute(
                 """
@@ -535,7 +543,8 @@ def record_live_cycle(
                     str(model_version or "unknown"),
                 ),
             )
-            forecast_count += 1
+            inserted = connection.execute("SELECT changes()").fetchone()[0]
+            forecast_count += int(inserted or 0)
 
         connection.commit()
         dataset_exported = False

@@ -1,5 +1,5 @@
 # Product Requirements Document (PRD)
-## Namaste Rail — Real-Time Dynamic ETA Prediction System for Indian Railways
+## RailTrackr — Real-Time Dynamic ETA Prediction System for Indian Railways
 **Smart India Hackathon 2026**
 
 | | |
@@ -14,7 +14,7 @@
 
 ## 1. Executive Summary
 
-Namaste Rail is a real-time, machine-learning-driven ETA (Expected Time of Arrival) prediction platform for Indian Railways coaching trains. It replaces static, schedule-based ETA logic with a continuously-learning system that ingests live GPS location data, signalling information, weather, congestion, and historical running patterns to predict arrival times at every upcoming station — with a self-reported **confidence score** and a **plain-language delay reason**.
+RailTrackr is a real-time, machine-learning-driven ETA (Expected Time of Arrival) prediction platform for Indian Railways coaching trains. It replaces static, schedule-based ETA logic with a continuously-learning system that ingests live GPS location data, signalling information, weather, congestion, and historical running patterns to predict arrival times at every upcoming station — with a self-reported **confidence score** and a **plain-language delay reason**.
 
 The platform serves four consumer surfaces from one prediction core:
 1. **Public Website / Web App** (the primary SIH deliverable) — train search, live map, favorites & notifications, station amenities finder.
@@ -150,7 +150,7 @@ Indian Railways currently estimates ETA using static schedules + current delay +
 ### 7.2 Below-the-Fold Sections (minimal, card-based, generous white space)
 1. **Live Network Snapshot** — small stat strip: trains tracked live, average network punctuality today, zones covered.
 2. **How It Works** — 3-step visual: Search → Live Predict → Get Notified.
-3. **Why Namaste Rail** — 3 feature cards: "AI-Powered ETA," "Explainable Delays," "Real-Time Map (2-min refresh)."
+3. **Why RailTrackr** — 3 feature cards: "AI-Powered ETA," "Explainable Delays," "Real-Time Map (2-min refresh)."
 4. **Live Map Teaser** — mini embedded India map with a few live-moving train dots, "Explore Full Map" CTA.
 5. **Trust/Transparency strip** — "Every prediction comes with a confidence score" with a sample mini-widget.
 6. **Footer** — API docs link, About, Zones covered, Contact, language switch, dark/light mode toggle.
@@ -341,7 +341,7 @@ Indian Railways currently estimates ETA using static schedules + current delay +
 
 ## 17. Competitive Reference
 
-RailRadar.in and NTES (National Train Enquiry System) currently provide live running status primarily based on last-reported delay + static recovery margins, with a clean map-based UI. **Namaste Rail differentiates by:**
+RailRadar.in and NTES (National Train Enquiry System) currently provide live running status primarily based on last-reported delay + static recovery margins, with a clean map-based UI. **RailTrackr differentiates by:**
 - Genuinely predictive (not just "current delay carried forward") ML modeling.
 - Transparent confidence scores and human-readable delay reasoning (neither competitor currently exposes *why* a delay is predicted).
 - Proactive, favorite-based notification system tied to the user's specific boarding/alighting station.

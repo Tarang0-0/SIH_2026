@@ -1,5 +1,5 @@
 {
-  "model_version": "time-safe-eta-v2-all-compatible-data",
+  "model_version": "time-safe-eta-v3-journey-only",
   "target": "destination_arrival_delay_minutes",
   "feature_columns": [
     "distance_km",
@@ -33,41 +33,40 @@
   ],
   "data_sources": {
     "legacy_training_file": "data/ir_train.csv",
-    "combined_delay_pattern": "combined_delay_*.csv",
-    "files": 39,
-    "raw_rows": 38428703,
-    "valid_observations": 35725370,
-    "journey_rows": 1860954,
+    "excluded_station_feed_pattern": "combined_delay_*.csv",
+    "excluded_station_feed_reason": "station delay is not a verified terminal arrival target",
+    "online_completed_file": "data/online_completed_journeys.csv",
     "legacy_rows": 1500000,
-    "compatible_rows_total": 3360954
+    "online_completed_rows": 0,
+    "compatible_rows_total": 1500000
   },
   "split": {
     "type": "chronological whole-date",
-    "train_end": "2024-05-24",
-    "validation_end": "2025-04-20",
-    "test_start": "2025-04-21",
-    "test_end": "2026-02-07"
+    "train_end": "2023-08-06",
+    "validation_end": "2024-04-18",
+    "test_start": "2024-04-19",
+    "test_end": "2024-12-30"
   },
   "best_rounds": {
-    "p10": 20,
-    "p50": 97,
-    "p90": 34
+    "p10": 400,
+    "p50": 400,
+    "p90": 385
   },
   "metrics": {
-    "test_mae_minutes": 33.84745788574219,
-    "test_rmse_minutes": 66.82311436382811,
-    "test_median_baseline_mae_minutes": 92.93798065185547,
-    "test_p10_pinball_loss": 3.375051975250244,
-    "test_p90_pinball_loss": 16.044160842895508,
-    "test_p10_p90_coverage_percent": 72.73123799011948
+    "test_mae_minutes": 38.88634490966797,
+    "test_rmse_minutes": 54.35887647083846,
+    "test_median_baseline_mae_minutes": 50.498870849609375,
+    "test_p10_pinball_loss": 7.347653865814209,
+    "test_p90_pinball_loss": 9.922576904296875,
+    "test_p10_p90_coverage_percent": 79.92935259838748
   },
   "validation_selected_metrics": {
-    "test_mae_minutes": 91.63738250732422,
-    "test_rmse_minutes": 106.06999918243848,
-    "test_median_baseline_mae_minutes": 92.93798065185547,
-    "test_p10_pinball_loss": 9.3172025680542,
-    "test_p90_pinball_loss": 18.955732345581055,
-    "test_p10_p90_coverage_percent": 43.923681988337535
+    "test_mae_minutes": 38.88511657714844,
+    "test_rmse_minutes": 54.34578507546606,
+    "test_median_baseline_mae_minutes": 50.498870849609375,
+    "test_p10_pinball_loss": 7.3450846672058105,
+    "test_p90_pinball_loss": 9.923602104187012,
+    "test_p10_p90_coverage_percent": 79.8774646762992
   },
-  "trained_at_utc": "2026-09-07T19:12:14.005856+00:00"
+  "trained_at_utc": "2026-09-10T22:32:36.646142+00:00"
 }

@@ -62,6 +62,7 @@ def parse_provider_datetime(
     value: Any,
     journey_date: dt.date,
     previous: Optional[dt.datetime] = None,
+    default_timezone: dt.tzinfo = dt.timezone.utc,
 ) -> Optional[dt.datetime]:
     """Parse a provider time and roll it over midnight in route order."""
     if value in (None, "", "-"):
@@ -75,32 +76,46 @@ def parse_provider_datetime(
             return parsed_iso.astimezone(dt.timezone.utc)
     except ValueError:
         pass
-    for fmt in (
+    formats_with_year = (
         "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%d %b %Y %H:%M",
-        "%H:%M:%S, %d %b %Y", "%H:%M, %d %b %Y", "%H:%M:%S, %d %b",
-        "%H:%M, %d %b",
-    ):
+        "%H:%M:%S, %d %b %Y", "%H:%M, %d %b %Y",
+    )
+    for fmt in formats_with_year:
         try:
             parsed = dt.datetime.strptime(text, fmt)
-            if parsed.year == 1900:
-                parsed = parsed.replace(year=journey_date.year)
             if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=dt.timezone.utc)
-            if fmt.endswith("%b") and parsed.month < journey_date.month - 6:
-                parsed = parsed.replace(year=journey_date.year + 1)
-            elif fmt.endswith("%b"):
-                parsed = parsed.replace(year=journey_date.year)
-            return parsed
+                parsed = parsed.replace(tzinfo=default_timezone)
+            return parsed.astimezone(dt.timezone.utc)
         except ValueError:
             continue
+    # Some railway responses omit the year (for example ``23:50, 31 Dec``).
+    # Comparing only month numbers breaks around January and December. Build
+    # nearby candidates and choose the one that fits route chronology.
+    for fmt in ("%H:%M:%S, %d %b", "%H:%M, %d %b"):
+        try:
+            parsed = dt.datetime.strptime(text, fmt)
+        except ValueError:
+            continue
+        candidates = [
+            parsed.replace(year=journey_date.year + offset, tzinfo=default_timezone)
+            for offset in (-1, 0, 1)
+        ]
+        if previous is not None:
+            previous_local = previous.astimezone(default_timezone)
+            after_previous = [candidate for candidate in candidates if candidate >= previous_local]
+            parsed = min(after_previous or candidates, key=lambda candidate: abs(candidate - previous_local))
+        else:
+            journey_start = dt.datetime.combine(journey_date, dt.time(), tzinfo=default_timezone)
+            parsed = min(candidates, key=lambda candidate: abs(candidate - journey_start))
+        return parsed.astimezone(dt.timezone.utc)
     clock = _clock_from_text(text)
     if clock is None:
         return None
-    parsed = dt.datetime.combine(journey_date, dt.time(*clock), tzinfo=dt.timezone.utc)
+    parsed = dt.datetime.combine(journey_date, dt.time(*clock), tzinfo=default_timezone)
     if previous is not None:
         while parsed < previous:
             parsed += dt.timedelta(days=1)
-    return parsed
+    return parsed.astimezone(dt.timezone.utc)
 
 
 def _route_items(payload: Any) -> list[dict[str, Any]]:
@@ -157,6 +172,14 @@ def normalize_train_route(
         key=lambda value: (value[2], value[0]),
     )
     normalized: list[dict[str, Any]] = []
+    # IndianRailAPI returns timetable and actual event times as clock-only
+    # values in IST. Other adapters currently provide UTC or timezone-aware
+    # timestamps, so retain UTC as their default for backwards compatibility.
+    default_timezone = (
+        dt.timezone(dt.timedelta(hours=5, minutes=30))
+        if str(provider).strip().upper() == "INDIAN_RAIL_API"
+        else dt.timezone.utc
+    )
     previous_scheduled_arrival: Optional[dt.datetime] = None
     previous_scheduled_departure: Optional[dt.datetime] = None
     previous_actual_arrival: Optional[dt.datetime] = None
@@ -167,19 +190,19 @@ def normalize_train_route(
             continue
         scheduled_arrival = parse_provider_datetime(
             _first(item, "ScheduleArrival", "scheduledArrival", "ScheduledArrival", "ArrivalTime", "scheduled_arrival"),
-            journey_date, previous_scheduled_arrival,
+            journey_date, previous_scheduled_arrival, default_timezone,
         )
         scheduled_departure = parse_provider_datetime(
             _first(item, "ScheduleDeparture", "scheduledDeparture", "ScheduledDeparture", "DepartureTime", "scheduled_departure"),
-            journey_date, previous_scheduled_departure,
+            journey_date, previous_scheduled_departure, default_timezone,
         )
         actual_arrival = parse_provider_datetime(
             _first(item, "ActualArrival", "actualArrival", "ActualArrivalTime", "ActualArrTime", "actual_arrival"),
-            journey_date, previous_actual_arrival,
+            journey_date, previous_actual_arrival, default_timezone,
         )
         actual_departure = parse_provider_datetime(
             _first(item, "ActualDeparture", "actualDeparture", "ActualDepartureTime", "ActualDepTime", "actual_departure"),
-            journey_date, previous_actual_departure,
+            journey_date, previous_actual_departure, default_timezone,
         )
         status_value = str(_first(item, "Status", "status") or "").strip().lower()
         # Some live providers populate planned-looking actual fields on future
@@ -247,6 +270,13 @@ def build_station_level_rows(events: Iterable[dict[str, Any]]) -> list[dict[str,
             current_arrival = _as_datetime(current.get("actual_arrival_at"))
             next_arrival = _as_datetime(following.get("actual_arrival_at"))
             if current_arrival is None or next_arrival is None:
+                continue
+            snapshot_at = _as_datetime(current.get("observed_at"))
+            # A provider route contains the train's already-completed events as
+            # well as the current/future route. Only the next arrival strictly
+            # after the snapshot can be a supervised target; otherwise a late
+            # poll would turn historical events into leaked labels.
+            if snapshot_at is not None and next_arrival <= snapshot_at:
                 continue
             minutes_to_next = (next_arrival - current_arrival).total_seconds() / 60.0
             if not 0 < minutes_to_next <= 24 * 60:

@@ -42,6 +42,22 @@ def predict(models, frame: pd.DataFrame, training_module, defaults: dict[str, fl
     return np.minimum(p10, p50), p50, np.maximum(p90, p50)
 
 
+def load_deployed_data(trainer) -> pd.DataFrame:
+    """Rebuild the same compatible population used by the deployed trainer."""
+    legacy = trainer.load_legacy_data()
+    defaults = {
+        column: float(pd.to_numeric(legacy[column], errors="coerce").median())
+        for column in trainer.FEATURE_COLS
+    }
+    route_summary = trainer.build_route_summaries()
+    online = trainer.load_online_completed_data(defaults, route_summary)
+    online["_source_priority"] = 1
+    online = online.sort_values(["departure_date", "_train_key", "_source_priority"])
+    online = online.drop_duplicates(["_train_key", "departure_date"], keep="last")
+    data = legacy.copy() if online.empty else pd.concat([legacy, online], ignore_index=True)
+    return data.sort_values("departure_date").reset_index(drop=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--max-rows", type=int, default=100000)
@@ -52,17 +68,13 @@ def main() -> None:
         raise SystemExit("--target-coverage must be between 0.5 and 1")
 
     trainer = load_training_module()
-    legacy = trainer.load_legacy_data()
-    if len(legacy) < args.min_calibration_rows * 2:
-        raise SystemExit("not enough complete rows for chronological calibration and holdout")
-    dates = np.sort(legacy["departure_date"].dt.normalize().unique())
-    if len(dates) < 30:
-        raise SystemExit("at least 30 dates are required for calibration")
-    split = max(1, int(len(dates) * 0.80))
-    calibration_dates = dates[:split]
-    holdout_dates = dates[split:]
-    calibration = legacy[legacy["departure_date"].dt.normalize().isin(calibration_dates)].copy()
-    holdout = legacy[legacy["departure_date"].dt.normalize().isin(holdout_dates)].copy()
+    data = load_deployed_data(trainer)
+    if len(data) < args.min_calibration_rows * 2:
+        raise SystemExit("not enough compatible rows for chronological calibration and holdout")
+    try:
+        _, calibration, holdout = trainer.temporal_split(data)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
     if len(calibration) > args.max_rows:
         calibration = calibration.sort_values("departure_date").iloc[::max(1, len(calibration) // args.max_rows)].head(args.max_rows)
     if len(holdout) > args.max_rows:
@@ -70,7 +82,10 @@ def main() -> None:
     if len(calibration) < args.min_calibration_rows or len(holdout) < args.min_calibration_rows:
         raise SystemExit("calibration and untouched holdout each need the configured minimum rows")
 
-    train_defaults = {
+    metadata_path = ROOT_DIR / "models" / "model_metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    defaults_path = ROOT_DIR / "models" / "feature_defaults.json"
+    train_defaults = json.loads(defaults_path.read_text(encoding="utf-8")) if defaults_path.exists() else {
         column: float(pd.to_numeric(calibration[column], errors="coerce").median())
         for column in trainer.FEATURE_COLS
     }
@@ -83,34 +98,42 @@ def main() -> None:
     global_radius = conformal_radius(y_cal, cal_p10, cal_p90, args.target_coverage)
     buckets: dict[str, dict[str, float | int]] = {}
     bucket_values: dict[str, list[float]] = {}
-    bucket_features = calibration.apply(
-        lambda row: calibration_bucket({
-            "current_delay": row.get("delay_at_previous_station"),
-            "scheduled_travel_hours": row.get("scheduled_travel_hours"),
-        }), axis=1
-    )
+    # The compatible journey-level sources do not carry a pre-snapshot delay.
+    # Do not silently classify every row as delay:high; use the global radius
+    # until a real current-delay calibration population is available.
+    bucket_features = None
+    if "delay_at_previous_station" in calibration.columns:
+        bucket_features = calibration.apply(
+            lambda row: calibration_bucket({
+                "current_delay": row.get("delay_at_previous_station"),
+                "scheduled_travel_hours": row.get("scheduled_travel_hours"),
+            }), axis=1
+        )
     nonconformity = np.maximum.reduce([cal_p10 - y_cal, y_cal - cal_p90, np.zeros(len(y_cal))])
-    for key, value in zip(bucket_features, nonconformity):
-        bucket_values.setdefault(str(key), []).append(float(value))
+    if bucket_features is not None:
+        for key, value in zip(bucket_features, nonconformity):
+            bucket_values.setdefault(str(key), []).append(float(value))
     for key, values in bucket_values.items():
         if len(values) >= 250:
             buckets[key] = {
                 "rows": len(values),
                 "radius_minutes": conformal_radius(
-                    np.zeros(len(values)), -np.asarray(values), np.zeros(len(values)), args.target_coverage
+                    np.asarray(values), np.zeros(len(values)), np.zeros(len(values)), args.target_coverage
                 ),
             }
 
     hold_p10_cal = hold_p10.copy()
     hold_p90_cal = hold_p90.copy()
-    hold_features = holdout.apply(
-        lambda row: calibration_bucket({
-            "current_delay": row.get("delay_at_previous_station"),
-            "scheduled_travel_hours": row.get("scheduled_travel_hours"),
-        }), axis=1
-    )
-    for index, key in enumerate(hold_features):
-        radius = buckets.get(str(key), {}).get("radius_minutes", global_radius)
+    hold_features = None
+    if "delay_at_previous_station" in holdout.columns:
+        hold_features = holdout.apply(
+            lambda row: calibration_bucket({
+                "current_delay": row.get("delay_at_previous_station"),
+                "scheduled_travel_hours": row.get("scheduled_travel_hours"),
+            }), axis=1
+        )
+    for index, key in enumerate(hold_features if hold_features is not None else [None] * len(holdout)):
+        radius = buckets.get(str(key), {}).get("radius_minutes", global_radius) if hold_features is not None else global_radius
         hold_p10_cal[index] = max(0.0, hold_p10_cal[index] - float(radius))
         hold_p90_cal[index] = max(hold_p50[index], hold_p90_cal[index] + float(radius))
     before = calibration_metrics(y_hold, hold_p10, hold_p50, hold_p90)
@@ -121,14 +144,14 @@ def main() -> None:
         "global_radius_minutes": global_radius,
         "min_bucket_rows": 250,
         "buckets": buckets,
-        "source": "data/ir_train.csv",
+        "source": "deployed_compatible_population",
         "calibration_period": {"start": str(calibration.departure_date.min().date()), "end": str(calibration.departure_date.max().date())},
         "untouched_holdout_period": {"start": str(holdout.departure_date.min().date()), "end": str(holdout.departure_date.max().date())},
         "calibration_rows": len(calibration),
         "holdout_rows": len(holdout),
         "holdout_metrics_before": before,
         "holdout_metrics_after": after,
-        "trained_model_version": json.loads((ROOT_DIR / "models" / "model_metadata.json").read_text()).get("model_version", "unknown"),
+        "trained_model_version": metadata.get("model_version", "unknown"),
     }
     (ROOT_DIR / "models" / "phase5_calibration.json").write_text(json.dumps(artifact, indent=2) + "\n")
     registry_path = ROOT_DIR / "models" / "model_registry.json"

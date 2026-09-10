@@ -45,10 +45,10 @@ export default function TermsPage() {
               1. Acceptance of Terms & Nature of the Service
             </h2>
             <p>
-              By accessing, browsing, or utilizing the <strong>Namaste Rail</strong> website, API, or dashboards, you acknowledge and agree to be bound by these Terms and Conditions.
+              By accessing, browsing, or utilizing the <strong>RailTrackr</strong> website, API, or dashboards, you acknowledge and agree to be bound by these Terms and Conditions.
             </p>
             <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-xs sm:text-sm text-amber-900 dark:text-amber-300/90 leading-relaxed">
-              <strong>Crucial Disclaimer:</strong> Namaste Rail is an innovative software prototype built for the <strong>Smart India Hackathon (SIH 2026)</strong> under the Ministry of Railways / CRIS theme. It provides machine learning-driven statistical estimates of railway transit times. It is <strong>not</strong> an official railway signaling system or an authoritative government communication channel.
+              <strong>Crucial Disclaimer:</strong> RailTrackr is an innovative software prototype built for the <strong>Smart India Hackathon (SIH 2026)</strong> under the Ministry of Railways / CRIS theme. It provides machine learning-driven statistical estimates of railway transit times. It is <strong>not</strong> an official railway signaling system or an authoritative government communication channel.
             </div>
           </section>
 
@@ -89,7 +89,7 @@ export default function TermsPage() {
                 <strong>Trademark Notice:</strong> <em>Indian Railways, IRCTC, NTES, CRIS (Centre for Railway Information Systems), and RTIS (Real-Time Train Information System)</em> are registered trademarks and property of the Ministry of Railways, Government of India.
               </p>
               <p>
-                <strong>Non-Affiliation:</strong> Namaste Rail is an independent, non-commercial hackathon submission and research project. It is <strong>not affiliated with, sponsored by, authorized by, or endorsed by</strong> the Ministry of Railways, IRCTC, or CRIS.
+                <strong>Non-Affiliation:</strong> RailTrackr is an independent, non-commercial hackathon submission and research project. It is <strong>not affiliated with, sponsored by, authorized by, or endorsed by</strong> the Ministry of Railways, IRCTC, or CRIS.
               </p>
               <p>
                 <strong>Software License:</strong> The software, predictive pipelines, and UI source code are made available under the <strong>MIT License</strong>. You are free to inspect, audit, and modify the code in accordance with the license.
@@ -142,7 +142,7 @@ export default function TermsPage() {
               7. Contact for Legal Inquiries
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              If you have any questions or notice any intellectual property concerns regarding these Terms, please contact our team lead at <code>legal@namaste-rail.internal</code> or open an issue on the public project repository.
+              If you have any questions or notice any intellectual property concerns regarding these Terms, please contact our team lead at <code>legal@railtrackr.internal</code> or open an issue on the public project repository.
             </p>
           </section>
         </div>

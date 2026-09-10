@@ -1,5 +1,5 @@
 # Compliance Framework, Business Information & Risk Register
-**Project:** Namaste Rail (Indian Railways Transit Intelligence & Telemetry Gateway)  
+**Project:** RailTrackr (Indian Railways Transit Intelligence & Telemetry Gateway)  
 **Initiative:** Smart India Hackathon (SIH 2026)  
 **Document Version:** 1.0.0 (Production Pre-Deployment Release)  
 **Effective Date:** September 10, 2026  
@@ -11,14 +11,14 @@
 
 | Attribute | Specification |
 | :--- | :--- |
-| **Project Name** | **Namaste Rail** (formerly referred to in engineering sprints as RailPulse) |
-| **Consortium / Team** | Team Namaste Rail (SIH 2026 Engineering Finalists) |
+| **Project Name** | **RailTrackr** (formerly referred to in engineering sprints as RailPulse) |
+| **Consortium / Team** | Team RailTrackr (SIH 2026 Engineering Finalists) |
 | **Classification** | Academic, Open-Source & Research Prototype (Non-Commercial) |
 | **Repository** | `https://github.com/Tarang0-0/SIH_2026` |
 | **Open-Source License** | **MIT License** (Permissive Free Software License) |
-| **Copyright Notice** | Copyright © 2026 Namaste Rail Contributors. All rights reserved. |
-| **Grievance Officer** | Grievance Redressal Officer, Project Namaste Rail |
-| **Contact Email** | `compliance@namasterail.internal` / `support@namasterail.internal` |
+| **Copyright Notice** | Copyright © 2026 RailTrackr Contributors. All rights reserved. |
+| **Grievance Officer** | Grievance Redressal Officer, Project RailTrackr |
+| **Contact Email** | `compliance@railtrackr.internal` / `support@railtrackr.internal` |
 | **Headquarters / Domain** | New Delhi / National Capital Region, Republic of India |
 
 ---
@@ -26,14 +26,14 @@
 ## 2. Applicable Legal & Regulatory Frameworks
 
 ### 2.1 Digital Personal Data Protection Act (DPDPA), 2023 (India)
-As an informational transit service operating within the territory of India, Namaste Rail complies with the mandates of the *Digital Personal Data Protection Act, 2023*:
+As an informational transit service operating within the territory of India, RailTrackr complies with the mandates of the *Digital Personal Data Protection Act, 2023*:
 - **Data Minimization (Section 6(1)):** The public transit predictor operates completely anonymously. Passengers search trains without creating accounts, logging in, or providing personal identifying data.
 - **Notice & Consent (Section 5 & 6):** For optional disruption notifications (SMS/WhatsApp), explicit consent is captured prior to storing the phone number, and the specific purpose is declared.
 - **Data Principal Rights (Sections 11–14):** Users have the absolute right to withdraw notification consent, request erasure of stored contact numbers, and access grievance redressal within 7 calendar days.
 
 ### 2.2 Information Technology Act, 2000 & 2021 Rules (India)
 - **Section 43A (Reasonable Security Practices):** Strict input sanitization, rate limiting (60 requests/minute sliding window), TLS-encrypted communication, and ephemeral memory processing prevent unauthorized disclosure.
-- **Section 79 (Intermediary Safe Harbor):** Namaste Rail acts as an automated algorithmic aggregator processing real-time telemetry from external providers. Clear statutory disclaimers are placed across all footers and API payloads.
+- **Section 79 (Intermediary Safe Harbor):** RailTrackr acts as an automated algorithmic aggregator processing real-time telemetry from external providers. Clear statutory disclaimers are placed across all footers and API payloads.
 
 ### 2.3 General Data Protection Regulation (GDPR - Regulation (EU) 2016/679)
 For international reviewers, diaspora travellers, or cross-border users, the platform adheres to global gold-standard privacy principles:
@@ -42,8 +42,8 @@ For international reviewers, diaspora travellers, or cross-border users, the pla
 
 ### 2.4 Trade Marks Act, 1999 (India) & Intellectual Property Notice
 - **Trademarks Acknowledged:** "Indian Railways", "IRCTC", "CRIS", "NTES", "RTIS", and associated logos are registered trademarks belonging to the **Ministry of Railways, Government of India**, and the **Centre for Railway Information Systems (CRIS)**.
-- **Nominative Fair Use (Section 30(2) Trade Marks Act, 1999):** The use of these terms within Namaste Rail is strictly nominative and descriptive, necessary to identify the public transport services, train routes, and telemetry infrastructure being simulated or analyzed.
-- **Non-Affiliation Notice:** Namaste Rail is an independent, non-commercial engineering prototype developed solely for educational and research demonstration in SIH 2026. It is **not** affiliated with, authorized by, sponsored by, or operated by Indian Railways, CRIS, IRCTC, or the Government of India.
+- **Nominative Fair Use (Section 30(2) Trade Marks Act, 1999):** The use of these terms within RailTrackr is strictly nominative and descriptive, necessary to identify the public transport services, train routes, and telemetry infrastructure being simulated or analyzed.
+- **Non-Affiliation Notice:** RailTrackr is an independent, non-commercial engineering prototype developed solely for educational and research demonstration in SIH 2026. It is **not** affiliated with, authorized by, sponsored by, or operated by Indian Railways, CRIS, IRCTC, or the Government of India.
 
 ---
 
@@ -107,5 +107,5 @@ Before deploying this application to a public staging or production domain:
 - [x] Next.js production build (`npm run build`) passing with zero lint or type errors.
 
 **Approved by:**  
-Namaste Rail Engineering & Compliance Board  
+RailTrackr Engineering & Compliance Board  
 Smart India Hackathon 2026

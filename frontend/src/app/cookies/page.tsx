@@ -45,7 +45,7 @@ export default function CookiePolicyPage() {
               Summary: We Respect Your Digital Privacy
             </h2>
             <p className="text-xs sm:text-sm text-sky-800 dark:text-sky-300/90">
-              Namaste Rail does <strong>not</strong> use advertising cookies, marketing pixels, cross-site trackers, or third-party behavioral profiling mechanisms. We only store minimal, strictly functional preferences inside your browser&apos;s local storage (<code className="font-mono text-xs bg-sky-100 dark:bg-sky-900 px-1 py-0.5 rounded">localStorage</code>) to remember your chosen display theme and acknowledgement status.
+              RailTrackr does <strong>not</strong> use advertising cookies, marketing pixels, cross-site trackers, or third-party behavioral profiling mechanisms. We only store minimal, strictly functional preferences inside your browser&apos;s local storage (<code className="font-mono text-xs bg-sky-100 dark:bg-sky-900 px-1 py-0.5 rounded">localStorage</code>) to remember your chosen display theme and acknowledgement status.
             </p>
           </div>
 
@@ -65,7 +65,7 @@ export default function CookiePolicyPage() {
               2. Complete Inventory of Client-Side Storage Keys
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              Under our commitment to data transparency, below is an exhaustive list of every key written to your browser by Namaste Rail:
+              Under our commitment to data transparency, below is an exhaustive list of every key written to your browser by RailTrackr:
             </p>
 
             <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
@@ -95,7 +95,7 @@ export default function CookiePolicyPage() {
                     <td className="px-4 py-3 font-sans text-emerald-700 dark:text-emerald-400 font-semibold">Strictly Functional</td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 font-semibold text-sky-700 dark:text-sky-300">railpulse_admin_authenticated</td>
+                    <td className="px-4 py-3 font-semibold text-sky-700 dark:text-sky-300">railpulse_admin_token</td>
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-400">localStorage</td>
                     <td className="px-4 py-3 font-sans text-slate-600 dark:text-slate-400">Used solely in the operator control room to retain operator session authentication state.</td>
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-400">Until operator logs out / browser reset</td>

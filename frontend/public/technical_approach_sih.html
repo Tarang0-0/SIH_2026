@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RailTrackr — Technical Approach & Architecture Flowchart (SIH 2026)</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background: #090f1d;
+      color: #f1f5f9;
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .top-bar {
+      width: 100%;
+      max-width: 1540px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .top-bar h1 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .top-bar p {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .btn-export {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-export:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+    }
+    
+    /* Presentation Slide Container */
+    #slide-canvas {
+      width: 100%;
+      max-width: 1540px;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 16px;
+      padding: 32px 40px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Slide Header */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .team-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px;
+      border-radius: 30px;
+      border: 2px solid #0284c7;
+      font-weight: 800;
+      color: #0369a1;
+      font-size: 17px;
+      background: #f0f9ff;
+    }
+    .slide-title {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #0f172a;
+      text-transform: uppercase;
+      font-family: 'Arial Black', sans-serif;
+    }
+    .sih-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: right;
+    }
+    .sih-badge img {
+      height: 48px;
+    }
+    .sih-text {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.2;
+    }
+    .sih-text span {
+      color: #ea580c;
+    }
+
+    /* Main 2-Column Grid Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 28px;
+      margin-bottom: 24px;
+    }
+
+    /* Column Cards */
+    .section-box {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 20px;
+      background: #f8fafc;
+      position: relative;
+    }
+    .section-title-badge {
+      display: inline-block;
+      background: #ea580c;
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 6px 16px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+
+    /* Tech Stack Mindmap Panel */
+    .tech-stack-tree {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .tech-category-card {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      border-left: 5px solid #0284c7;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      border-top: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .tech-category-card.frontend { border-left-color: #f97316; }
+    .tech-category-card.backend { border-left-color: #ef4444; }
+    .tech-category-card.ai { border-left-color: #8b5cf6; }
+    .tech-category-card.data { border-left-color: #10b981; }
+    .tech-category-card.infra { border-left-color: #0284c7; }
+    .tech-category-card.apis { border-left-color: #06b6d4; }
+
+    .cat-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .cat-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .pill {
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* Bottom Logo Ribbon */
+    .bottom-ribbon {
+      border-top: 2px solid #e2e8f0;
+      padding-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+    }
+    .tech-badges-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+    }
+    .logo-badge i {
+      font-size: 16px;
+    }
+    .slide-footer-tag {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+    }
+
+    /* Mermaid Container Tweaks */
+    .mermaid {
+      font-size: 11.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div>
+      <h1>RailTrackr — Technical Approach Slide</h1>
+      <p>Official Smart India Hackathon (SIH 2026) Architecture Workflow & Technology Stack Diagram</p>
+    </div>
+    <button class="btn-export" onclick="exportSlideAsPNG()">
+      <i class="fa-solid fa-download"></i>
+      Download Slide as PNG (High-Res)
+    </button>
+  </div>
+
+  <!-- SLIDE CANVAS -->
+  <div id="slide-canvas">
+    
+    <!-- HEADER -->
+    <div class="slide-header">
+      <div class="team-badge">
+        <i class="fa-solid fa-train-subway"></i>
+        RailTrackr
+      </div>
+      <div class="slide-title">TECHNICAL APPROACH</div>
+      <div class="sih-badge">
+        <div class="sih-text">
+          SMART INDIA<br/>
+          <span>HACKATHON 2026</span>
+        </div>
+        <div style="font-size: 32px; color: #ea580c;">
+          <i class="fa-solid fa-lightbulb"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN 2-COLUMN GRID -->
+    <div class="main-grid">
+      
+      <!-- LEFT: WORKFLOW -->
+      <div class="section-box">
+        <div class="section-title-badge">Complete Platform Workflow</div>
+        <div class="mermaid">
+flowchart TD
+    %% 1. DATA SOURCES
+    subgraph S1["1. MULTI-SOURCE INGESTION LAYER"]
+        DS_RR["RailRadar Live GPS API\n(Track Coordinates, Speed, Halts)"]
+        DS_IR["IndianRailAPI v2\n(Station Delays, Schedules, Status)"]
+        DS_OW["OpenWeather Current API\n(Rain, Fog, Wind, Visibility)"]
+        DS_NET["CRIS / RTIS Network Signals\n(Block Occupancy, Signal Aspects)"]
+    end
+
+    %% 2. INGESTION & PIPELINE
+    subgraph S2["2. REAL-TIME PROCESSING & RESILIENCE"]
+        RT_HTTP["Async HTTP Client Pool\n(Connection Pooling, SSL Keep-Alive)"]
+        RT_RL["Sliding Window Rate Limiter\n(Proxy IP Forwarding: X-Forwarded-For)"]
+        RT_SSE["Server-Sent Events (SSE)\n(Auto-Reconnection, Resilient Live GPS Stream)"]
+    end
+
+    %% 3. STORAGE & STATE
+    subgraph S3["3. DATA & FEEDBACK STORAGE"]
+        DB_SQL["SQLite WAL Feedback Store\n(Live Observations, Actual Delays, Station Events)"]
+        DB_IDX["JSON Route & Spatial Index\n(12,000+ Trains, Station Coordinates)"]
+        DB_EXP["Dataset Exporter\n(Online Completed Journeys, Station Level Records)"]
+    end
+
+    %% 4. AI & ML CABINET
+    subgraph S4["4. MULTI-PHASE AI/ML PREDICTION CABINET"]
+        ML_P1["Phase 1: Multi-Quantile XGBoost\n• P10: Optimistic Arrival\n• P50: Expected Median ETA\n• P90: Conservative Horizon"]
+        ML_P2["Phase 2: Next-Station Delta Model\n(Inter-Station Delay Transitions)"]
+        ML_P3["Phase 3: Real-Time Movement Model\n(Live GPS Velocity & Dwell Dynamics)"]
+        ML_P5["Phase 5: Conformal Calibration\n(Finite-Sample 80% Coverage Guarantee)"]
+    end
+
+    %% 5. EXPLAINABILITY & CONTINUOUS LEARNING
+    subgraph S5["5. CONSENSUS & CONTINUOUS LEARNING"]
+        AI_SHAP["SHAP TreeExplainer & Heuristics\n(Fog, Congestion, Weather Factor Attribution)"]
+        AI_RETRAIN["APScheduler Daily Learning Job\n(02:00 IST Nightly Retrain + Hot Reload)"]
+        AI_CTRL["Control Room Cascade Engine\n(Downstream Knock-on Exposure & Congestion Index)"]
+    end
+
+    %% 6. DASHBOARDS & INTERFACES
+    subgraph S6["6. DASHBOARD INTERFACE & STAKEHOLDERS"]
+        UI_PASS["Passenger Portal (Next.js 16)\n(Live ETA, Route Map, Delay Forecast)"]
+        UI_CTRL["Operator Console\n(Incident Tracking, Station Board Signals)"]
+        UI_ALERT["Notification Engine\n(Simulated SMS & Delay Threshold Alerts)"]
+    end
+
+    %% FLOW CONNECTIONS
+    DS_RR --> RT_HTTP
+    DS_IR --> RT_HTTP
+    DS_OW --> RT_HTTP
+    DS_NET --> RT_HTTP
+
+    RT_HTTP --> RT_RL
+    RT_RL --> RT_SSE
+
+    RT_HTTP --> DB_SQL
+    DB_IDX --> ML_P1
+    DB_SQL --> DB_EXP
+    DB_EXP --> AI_RETRAIN
+
+    RT_SSE --> ML_P3
+    RT_RL --> ML_P1
+
+    ML_P1 --> ML_P5
+    ML_P2 --> ML_P5
+    ML_P3 --> ML_P5
+
+    ML_P5 --> AI_SHAP
+    AI_SHAP --> AI_CTRL
+
+    AI_RETRAIN -.->|Automated Hot-Reload| ML_P1
+    AI_RETRAIN -.->|Artifact Promotion| ML_P5
+
+    ML_P5 --> UI_PASS
+    AI_CTRL --> UI_CTRL
+    ML_P1 --> UI_ALERT
+        </div>
+      </div>
+
+      <!-- RIGHT: CORE TECH STACK OVERVIEW -->
+      <div class="section-box">
+        <div class="section-title-badge" style="background: #0284c7;">Core Technology Stack Overview</div>
+        
+        <div class="tech-stack-tree">
+          
+          <!-- Frontend -->
+          <div class="tech-category-card frontend">
+            <div class="cat-header">
+              <i class="fa-solid fa-desktop" style="color: #f97316;"></i>
+              Frontend Platform
+            </div>
+            <div class="cat-pills">
+              <span class="pill">Next.js 16 (App Router)</span>
+              <span class="pill">React 19</span>
+              <span class="pill">TypeScript 5</span>
+              <span class="pill">Tailwind CSS v4</span>
+              <span class="pill">Framer Motion</span>
+              <span class="pill">Bilingual i18n (EN / HI)</span>
+              <span class="pill">Lucide React Icons</span>
+            </div>
+          </div>
+
+          <!-- Backend -->
+          <div class="tech-category-card backend">
+            <div class="cat-header">
+              <i class="fa-solid fa-server" style="color: #ef4444;"></i>
+              Backend API & Microservices
+            </div>
+            <div class="cat-pills">
+              <span class="pill">FastAPI 0.110</span>
+              <span class="pill">Python 3.9+</span>
+              <span class="pill">Uvicorn 0.27</span>
+              <span class="pill">AsyncIO HTTPX</span>
+              <span class="pill">APScheduler (Cron Engine)</span>
+              <span class="pill">Starlette Middleware</span>
+            </div>
+          </div>
+
+          <!-- AI / ML -->
+          <div class="tech-category-card ai">
+            <div class="cat-header">
+              <i class="fa-solid fa-brain" style="color: #8b5cf6;"></i>
+              AI & Machine Learning Core
+            </div>
+            <div class="cat-pills">
+              <span class="pill">XGBoost 2.0+ (Quantile)</span>
+              <span class="pill">Scikit-Learn 1.4</span>
+              <span class="pill">SHAP TreeExplainer</span>
+              <span class="pill">Conformal Prediction</span>
+              <span class="pill">NumPy & Pandas</span>
+              <span class="pill">Joblib Model Registry</span>
+            </div>
+          </div>
+
+          <!-- Data & Storage -->
+          <div class="tech-category-card data">
+            <div class="cat-header">
+              <i class="fa-solid fa-database" style="color: #10b981;"></i>
+              Data Storage & Feedback DB
+            </div>
+            <div class="cat-pills">
+              <span class="pill">SQLite 3 (WAL Mode)</span>
+              <span class="pill">Spatial Route Index JSON</span>
+              <span class="pill">Historical CSV Records</span>
+              <span class="pill">Audit Event Logs</span>
+            </div>
+          </div>
+
+          <!-- External Feeds -->
+          <div class="tech-category-card apis">
+            <div class="cat-header">
+              <i class="fa-solid fa-satellite-dish" style="color: #06b6d4;"></i>
+              Live Feeds & Providers
+            </div>
+            <div class="cat-pills">
+              <span class="pill">RailRadar API v1</span>
+              <span class="pill">IndianRailAPI v2</span>
+              <span class="pill">OpenWeather REST API</span>
+              <span class="pill">CRIS / RTIS Network Signals</span>
+            </div>
+          </div>
+
+          <!-- Cloud & DevOps -->
+          <div class="tech-category-card infra">
+            <div class="cat-header">
+              <i class="fa-solid fa-cloud" style="color: #0284c7;"></i>
+              Deployment & Infrastructure
+            </div>
+            <div class="cat-pills">
+              <span class="pill">Vercel (Frontend Edge)</span>
+              <span class="pill">Render / Railway (API)</span>
+              <span class="pill">Docker Container</span>
+              <span class="pill">GitHub CI/CD Actions</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM RIBBON: TECH LOGOS -->
+    <div class="bottom-ribbon">
+      <div class="tech-badges-list">
+        <div class="logo-badge"><i class="fa-brands fa-react" style="color: #06b6d4;"></i> React 19</div>
+        <div class="logo-badge"><i class="fa-solid fa-code" style="color: #0f172a;"></i> Next.js 16</div>
+        <div class="logo-badge"><i class="fa-solid fa-bolt" style="color: #10b981;"></i> FastAPI</div>
+        <div class="logo-badge"><i class="fa-brands fa-python" style="color: #3b82f6;"></i> Python 3</div>
+        <div class="logo-badge"><i class="fa-solid fa-network-wired" style="color: #ea580c;"></i> XGBoost</div>
+        <div class="logo-badge"><i class="fa-solid fa-database" style="color: #0284c7;"></i> SQLite WAL</div>
+        <div class="logo-badge"><i class="fa-brands fa-docker" style="color: #2563eb;"></i> Docker</div>
+        <div class="logo-badge"><i class="fa-solid fa-wind" style="color: #38bdf8;"></i> Tailwind CSS v4</div>
+      </div>
+      <div class="slide-footer-tag">
+        @SIH 2026 Submission • Ministry of Railways Problem Statement
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      flowchart: {
+        curve: 'basis',
+        htmlLabels: true
+      }
+    });
+
+    async function exportSlideAsPNG() {
+      const btn = document.querySelector('.btn-export');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating PNG...';
+      btn.disabled = true;
+
+      try {
+        const element = document.getElementById('slide-canvas');
+        const canvas = await html2canvas(element, {
+          scale: 2, // Retinal high resolution
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+
+        const link = document.createElement('a');
+        link.download = 'RailTrackr_Technical_Approach_SIH2026.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        alert('Failed to generate PNG: ' + err.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
