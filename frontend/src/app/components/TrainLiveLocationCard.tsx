@@ -25,7 +25,7 @@ export interface TrainLiveLocationCardProps {
 
 export default function TrainLiveLocationCard({
   trainNumber,
-  trainName = 'Express Service',
+  trainName = '',
   currentStationCode = '',
   delayMinutes,
   nextStationCode,
@@ -86,7 +86,7 @@ export default function TrainLiveLocationCard({
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 truncate max-w-[200px] sm:max-w-[240px]">
-                {trainName}
+                {trainName || t('card_train_name_unavailable', 'Train name unavailable')}
               </p>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function TrainLiveLocationCard({
                 ? `${t('card_distance_to_stop', 'Distance to stop')}: ${distanceKmToNext.toFixed(1)} km`
                 : currentStationCode
                 ? `${t('card_last_station', 'Last station')}: ${currentStationCode}`
-                : 'En route'}
+                : t('card_en_route', 'En route')}
             </span>
             <span>
               {speedKmH !== null && speedKmH !== undefined && speedKmH > 0

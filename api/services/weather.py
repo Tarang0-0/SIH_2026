@@ -21,9 +21,6 @@ import httpx
 from api.services.http_client import get_http_client
 
 
-OPENWEATHER_CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather"
-
-
 class WeatherUnavailable(Exception):
     """Raised when OpenWeather is not configured or cannot be reached."""
 
@@ -86,6 +83,10 @@ MAX_WEATHER_CACHE_SIZE = 500
 
 def _api_key() -> str:
     return os.getenv("OPENWEATHER_API_KEY", "").strip()
+
+
+def _endpoint() -> str:
+    return os.getenv("OPENWEATHER_API_URL", "").strip().rstrip("/")
 
 
 def _cache_seconds() -> int:
@@ -212,13 +213,16 @@ async def _fetch_openweather_json(latitude: float, longitude: float) -> Any:
     key = _api_key()
     if not key:
         raise WeatherUnavailable("OPENWEATHER_API_KEY is not configured")
-    parsed = urlparse(OPENWEATHER_CURRENT_URL)
+    endpoint = _endpoint()
+    if not endpoint:
+        raise WeatherUnavailable("OPENWEATHER_API_URL is not configured")
+    parsed = urlparse(endpoint)
     if parsed.scheme != "https" or not parsed.netloc:
         raise WeatherUnavailable("OpenWeather endpoint must use HTTPS")
     try:
         client = get_http_client(15.0)
         response = await client.get(
-            OPENWEATHER_CURRENT_URL,
+            endpoint,
             params={"lat": latitude, "lon": longitude, "appid": key, "units": "metric"},
             headers={"Accept": "application/json"},
         )

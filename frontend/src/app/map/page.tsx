@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import TrainLiveLocationCard from '../components/TrainLiveLocationCard';
 import { useLanguage } from '../components/LanguageContext';
 import { apiUrl } from '../../lib/api';
+import { frontendConfig } from '../../lib/config';
 
 interface StationRecord {
   code: string;
@@ -27,11 +28,10 @@ function MapContent() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const trainFromQuery = searchParams.get('train') || '12951';
+  const trainFromQuery = searchParams.get('train')?.trim() || '';
 
-  const [trainNumber, setTrainNumber] = useState(trainFromQuery);
   const [searchInput, setSearchInput] = useState(trainFromQuery);
-  const [trainName, setTrainName] = useState('Mumbai Rajdhani Express');
+  const [trainName, setTrainName] = useState('');
   const [stations, setStations] = useState<StationRecord[]>([]);
   const [currentStationCode, setCurrentStationCode] = useState('');
   const [currentStationName, setCurrentStationName] = useState('');
@@ -40,8 +40,8 @@ function MapContent() {
   const [scheduledArrival, setScheduledArrival] = useState('--:--');
   const [predictedArrival, setPredictedArrival] = useState('--:--');
   const [delayMinutes, setDelayMinutes] = useState(0);
-  const [speedKmH] = useState<number | null>(92);
-  const [routeProgressPercent, setRouteProgressPercent] = useState(35);
+  const [speedKmH, setSpeedKmH] = useState<number | null>(null);
+  const [routeProgressPercent, setRouteProgressPercent] = useState(0);
 
   const [isLocationCardOpen, setIsLocationCardOpen] = useState(true);
   const [leafletReady, setLeafletReady] = useState(false);
@@ -63,18 +63,19 @@ function MapContent() {
       return;
     }
 
+    if (!frontendConfig.leafletCssUrl || !frontendConfig.leafletScriptUrl) return;
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css';
       link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.href = frontendConfig.leafletCssUrl;
       document.head.appendChild(link);
     }
 
     if (!document.getElementById('leaflet-js')) {
       const script = document.createElement('script');
       script.id = 'leaflet-js';
-      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.src = frontendConfig.leafletScriptUrl;
       script.async = true;
       script.onload = () => setLeafletReady(true);
       document.body.appendChild(script);
@@ -83,12 +84,13 @@ function MapContent() {
 
   // Fetch Train ETA and Route details
   const fetchTrainData = useCallback(async (trainNo: string) => {
+    if (!trainNo.trim()) return;
     try {
       const res = await fetch(apiUrl(`/api/v1/trains/${encodeURIComponent(trainNo)}/eta`));
       if (!res.ok) throw new Error('Train details unavailable');
       const data = await res.json();
 
-      setTrainName(data.train_name || 'Express Corridor Service');
+      setTrainName(data.train_name || '');
       const stns: StationRecord[] = (data.stations || []).map((s: {
         station_code: string;
         station_name?: string;
@@ -134,7 +136,10 @@ function MapContent() {
         }
       }
 
-      setRouteProgressPercent(currLoc.route_progress_percent || 30);
+      setSpeedKmH(typeof currLoc.speed_kmh === 'number' && Number.isFinite(currLoc.speed_kmh) ? currLoc.speed_kmh : null);
+      setRouteProgressPercent(typeof currLoc.route_progress_percent === 'number' && Number.isFinite(currLoc.route_progress_percent)
+        ? currLoc.route_progress_percent
+        : 0);
       setIsLocationCardOpen(true);
     } catch {
       // Ignore network errors on initial render
@@ -144,8 +149,8 @@ function MapContent() {
   useEffect(() => {
     // This effect is the component's external-data subscription boundary.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchTrainData(trainNumber);
-  }, [trainNumber, fetchTrainData]);
+    if (trainFromQuery) fetchTrainData(trainFromQuery);
+  }, [trainFromQuery, fetchTrainData]);
 
   // Render Map
   useEffect(() => {
@@ -173,15 +178,14 @@ function MapContent() {
     mapInstanceRef.current = map;
 
     // Base OSM layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(map);
-
-    // OpenRailwayMap layer
-    L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenRailwayMap',
-      maxZoom: 19,
-    }).addTo(map);
+    if (frontendConfig.mapTileUrl) {
+      L.tileLayer(frontendConfig.mapTileUrl, { attribution: frontendConfig.mapTileAttribution }).addTo(map);
+    }
+    if (frontendConfig.railwayTileUrl) {
+      L.tileLayer(frontendConfig.railwayTileUrl, {
+        attribution: frontendConfig.railwayTileAttribution, maxZoom: 19,
+      }).addTo(map);
+    }
 
     L.control.zoom({ position: 'topright' }).addTo(map);
 
@@ -230,14 +234,14 @@ function MapContent() {
     const marker = L.marker(trainCoords, { icon: trainIcon, zIndexOffset: 1000 }).addTo(map);
     marker.bindPopup(`
       <div style="font-family: monospace; font-size: 12px; padding: 4px;">
-        <div style="font-weight: bold; color: #0284c7; margin-bottom: 4px;">Train #${trainNumber}</div>
+        <div style="font-weight: bold; color: #0284c7; margin-bottom: 4px;">Train #${trainFromQuery}</div>
         <div>${currStn.code} - ${currStn.name}</div>
         <div>Delay: <b>${delayMinutes > 0 ? `+${delayMinutes} min` : 'On Time'}</b></div>
       </div>
     `);
     trainMarkerRef.current = marker;
 
-  }, [leafletReady, stations, currentStationCode, trainNumber, delayMinutes]);
+  }, [leafletReady, stations, currentStationCode, trainFromQuery, delayMinutes]);
 
   const handleLocateTrain = () => {
     if (!mapInstanceRef.current || stations.length === 0) return;
@@ -263,7 +267,7 @@ function MapContent() {
     e.preventDefault();
     const clean = searchInput.trim();
     if (!clean) return;
-    setTrainNumber(clean);
+    setSearchInput(clean);
     router.push(`/map?train=${encodeURIComponent(clean)}`);
   };
 
@@ -288,7 +292,7 @@ function MapContent() {
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder={t('map_search_placeholder', 'Search train (e.g. 12951, 12002)')}
+              placeholder={t('map_search_placeholder', 'Search train by number or name')}
               className="flex-1 bg-transparent text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white placeholder-slate-400 outline-none pr-2"
             />
             <button
@@ -324,42 +328,16 @@ function MapContent() {
           </div>
         </div>
 
-        {/* Quick Corridor Selection Chips */}
-        <div className="absolute top-20 left-4 z-[400] flex flex-wrap gap-1.5 pointer-events-auto">
-          {[
-            { no: '12951', label: '12951 Mumbai Rajdhani' },
-            { no: '12002', label: '12002 Bhopal Shatabdi' },
-            { no: '22436', label: '22436 Vande Bharat' },
-          ].map((item) => (
-            <button
-              key={item.no}
-              type="button"
-              onClick={() => {
-                setSearchInput(item.no);
-                setTrainNumber(item.no);
-                router.push(`/map?train=${item.no}`);
-              }}
-              className={`px-2.5 py-1 rounded-xl text-[11px] font-mono font-bold transition shadow-xs cursor-pointer ${
-                trainNumber === item.no
-                  ? 'bg-sky-600 text-white border border-sky-500 shadow-sky-500/20'
-                  : 'bg-white/90 dark:bg-[#0b1528]/90 text-slate-700 dark:text-slate-300 border border-sky-200/80 dark:border-sky-800 hover:border-sky-400'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
         {/* Floating Train Live Location Card */}
         <div className="absolute top-32 left-4 z-[450] max-w-[calc(100%-2rem)]">
           <TrainLiveLocationCard
-            trainNumber={trainNumber}
+            trainNumber={trainFromQuery}
             trainName={trainName}
             currentStationCode={currentStationCode}
             currentStationName={currentStationName}
             delayMinutes={delayMinutes}
-            nextStationCode={nextStationCode || 'Next Station'}
-            nextStationName={nextStationName || 'Upcoming Halt'}
+            nextStationCode={nextStationCode}
+            nextStationName={nextStationName}
             scheduledArrival={scheduledArrival}
             predictedArrival={predictedArrival}
             speedKmH={speedKmH}

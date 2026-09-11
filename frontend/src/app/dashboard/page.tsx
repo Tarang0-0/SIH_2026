@@ -9,6 +9,7 @@ import TrainLiveLocationCard from '../components/TrainLiveLocationCard';
 import { useLanguage } from '../components/LanguageContext';
 import { Calendar } from '@/components/ui/calendar';
 import { apiUrl } from '../../lib/api';
+import { frontendConfig } from '../../lib/config';
 
 interface StationRecord {
   code: string;
@@ -56,6 +57,7 @@ interface NextStationPrediction {
   predicted_arrival_datetime?: string | null;
   scheduled_minutes_to_next: number;
   predicted_minutes_to_next: number;
+  distance_km?: number | null;
   predicted_delay_minutes: number;
   p10_delay_minutes?: number | null;
   p90_delay_minutes?: number | null;
@@ -213,8 +215,8 @@ export default function DashboardPage() {
   const [trainDetails, setTrainDetails] = useState({
     train_number: trainFromQuery,
     train_name: '',
-    origin: 'Origin Station',
-    dest: 'Destination Station',
+    origin: '',
+    dest: '',
   });
 
   const [stations, setStations] = useState<StationRecord[]>([]);
@@ -251,7 +253,7 @@ export default function DashboardPage() {
   // SSE telemetry
   const [liveGps, setLiveGps] = useState({
     speed: null as number | null,
-    status: 'Live provider unavailable',
+    status: '',
     lat: null as number | null,
     lon: null as number | null,
     positionAvailable: false,
@@ -311,8 +313,8 @@ export default function DashboardPage() {
         const location = data.current_location ?? {};
         const firstStop = etaStations[0];
         const lastStop = etaStations[etaStations.length - 1];
-        const originResolved = data.origin_station || firstStop?.station_name || 'Origin';
-        const destResolved = data.destination_station || lastStop?.station_name || 'Destination';
+        const originResolved = data.origin_station || firstStop?.station_name || '';
+        const destResolved = data.destination_station || lastStop?.station_name || '';
 
         setTrainDetails({
           train_number: data.train_number,
@@ -338,7 +340,7 @@ export default function DashboardPage() {
         setLiveGps((prev) => ({
           ...prev,
           speed: finiteNumber(location.speed_kmh),
-          status: location.position_available ? 'Live GPS position available' : 'Live provider connected; GPS unavailable',
+          status: location.position_available ? 'available' : 'unavailable',
           lat: finiteNumber(location.latitude),
           lon: finiteNumber(location.longitude),
           positionAvailable: Boolean(location.position_available),
@@ -485,13 +487,14 @@ export default function DashboardPage() {
       const readyTimer = window.setTimeout(() => setLeafletReady(true), 0);
       return () => window.clearTimeout(readyTimer);
     }
+    if (!frontendConfig.leafletCssUrl || !frontendConfig.leafletScriptUrl) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.href = frontendConfig.leafletCssUrl;
     document.head.appendChild(link);
 
     const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.src = frontendConfig.leafletScriptUrl;
     script.onload = () => setLeafletReady(true);
     document.body.appendChild(script);
   }, []);
@@ -518,20 +521,20 @@ export default function DashboardPage() {
     });
     mapInstanceRef.current = map;
 
-    // OpenStreetMap base layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 18,
-    }).addTo(map);
+    if (frontendConfig.mapTileUrl) {
+      L.tileLayer(frontendConfig.mapTileUrl, {
+        attribution: frontendConfig.mapTileAttribution, maxZoom: 18,
+      }).addTo(map);
+    }
 
     // Keep the real railway network visible underneath the timetable corridor.
     // The selected route remains highlighted, while this layer prevents the
     // map from implying that a straight station-to-station line is the track.
-    L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openrailwaymap.org" target="_blank" rel="noreferrer">OpenRailwayMap</a>',
-      maxZoom: 19,
-      opacity: 0.78,
-    }).addTo(map);
+    if (frontendConfig.railwayTileUrl) {
+      L.tileLayer(frontendConfig.railwayTileUrl, {
+        attribution: frontendConfig.railwayTileAttribution, maxZoom: 19, opacity: 0.78,
+      }).addTo(map);
+    }
 
     L.control.zoom({ position: 'topright' }).addTo(map);
 
@@ -706,7 +709,7 @@ export default function DashboardPage() {
             const newLon = data.gps.longitude;
             setLiveGps({
               speed: Number.isFinite(data.gps.speed_kmh) ? data.gps.speed_kmh : null,
-              status: data.gps.data_source || 'Live provider connected; GPS unavailable',
+              status: data.gps.data_source || 'unavailable',
               lat: newLat,
               lon: newLon,
               positionAvailable: Boolean(Number.isFinite(newLat) && Number.isFinite(newLon)),
@@ -765,6 +768,7 @@ export default function DashboardPage() {
           scheduled_arrival: fallbackUpcomingStation.sched,
           predicted_arrival: fallbackUpcomingStation.pred,
           predicted_minutes_to_next: null,
+          distance_km: null,
           predicted_delay_minutes: fallbackUpcomingStation.delay,
         }
       : null
@@ -772,11 +776,15 @@ export default function DashboardPage() {
   const currentStation = stations.find((station) => station.code === currentLocation.station_code) || stations[0];
   const currentStationLabel = currentStation
     ? `${currentStation.code} · ${currentStation.name}`
-    : currentLocation.station_code || 'Current location unavailable';
+    : currentLocation.station_code || t('dash_location_unavailable', 'Current location unavailable');
   const facilityStation = stations.find((station) => station.code === facilityStationCode) || currentStation;
-  const facilityStationName = facilityStation?.name || facilityStationCode || 'Selected station';
-  const waitingAreaSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${facilityStationName} railway station waiting room`)}`;
-  const canteenSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${facilityStationName} railway station canteen`)}`;
+  const facilityStationName = facilityStation?.name || facilityStationCode || t('dash_selected_station', 'Selected station');
+  const waitingAreaSearchUrl = frontendConfig.mapSearchUrl
+    ? `${frontendConfig.mapSearchUrl}${encodeURIComponent(`${facilityStationName} railway station waiting room`)}`
+    : '';
+  const canteenSearchUrl = frontendConfig.mapSearchUrl
+    ? `${frontendConfig.mapSearchUrl}${encodeURIComponent(`${facilityStationName} railway station canteen`)}`
+    : '';
 
   const handleLocateTrain = () => {
     const hasGps = liveGps.positionAvailable && liveGps.lat !== null && liveGps.lon !== null;
@@ -799,7 +807,7 @@ export default function DashboardPage() {
   };
   const overallDelay = currentLocation.reported_delay_minutes ?? currentSelectedStation?.delay ?? 0;
   const isDelayed = overallDelay > 0;
-  const delayReason = currentSelectedStation?.reason || 'Corridor operates within normal dispatch tolerance.';
+  const delayReason = currentSelectedStation?.reason || t('dash_normal_dispatch', 'No provider delay reason is available.');
 
   if (!trainFromQuery) {
     return (
@@ -1205,16 +1213,16 @@ export default function DashboardPage() {
               <div className="absolute top-14 left-4 z-[450] max-w-[calc(100%-2rem)]">
                 <TrainLiveLocationCard
                   trainNumber={inputTrainNo || trainDetails.train_number}
-                  trainName={trainDetails.train_name || 'Express Service'}
+                  trainName={trainDetails.train_name || t('dash_train_name_unavailable', 'Train name unavailable')}
                   currentStationCode={currentStation?.code}
                   currentStationName={currentStation?.name}
                   delayMinutes={overallDelay}
-                  nextStationCode={upcomingStation?.station_code || 'Next Station'}
-                  nextStationName={upcomingStation?.station_name || 'Upcoming Stop'}
+                  nextStationCode={upcomingStation?.station_code || t('dash_next_station_unavailable', 'Not available')}
+                  nextStationName={upcomingStation?.station_name || t('dash_next_stop_unavailable', 'Next stop unavailable')}
                   scheduledArrival={upcomingStation?.scheduled_arrival || '--:--'}
                   predictedArrival={upcomingStation?.predicted_arrival || '--:--'}
                   speedKmH={liveGps.speed}
-                  distanceKmToNext={upcomingStation?.predicted_minutes_to_next ? upcomingStation.predicted_minutes_to_next * 1.4 : null}
+                  distanceKmToNext={upcomingStation?.distance_km ?? null}
                   routeProgressPercent={currentLocation.route_progress_percent}
                   isOpen={isLocationCardOpen}
                   onClose={() => setIsLocationCardOpen(false)}
@@ -1227,7 +1235,7 @@ export default function DashboardPage() {
               <div className="absolute bottom-4 left-4 z-[400] bg-white/95 dark:bg-[#0b1528]/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl text-[10px] font-mono text-slate-700 dark:text-slate-300 shadow-xs space-y-1">
                 <div className="flex items-center gap-2"><span className="w-5 border-t-[3px] border-blue-500" /> {t('dash_planned_corridor', 'Planned train corridor')}</div>
                 <div className="flex items-center gap-2"><span className="w-5 border-t-[3px] border-emerald-500" /> {t('dash_completed_section', 'Completed section')}</div>
-                <div className="text-slate-500 dark:text-slate-400 pt-0.5">{routeGeometry ? `Track geometry: ${routeGeometry.source || 'provider'}` : 'Track geometry unavailable; timetable fallback'}</div>
+                <div className="text-slate-500 dark:text-slate-400 pt-0.5">{routeGeometry ? `${t('dash_track_geometry', 'Track geometry')}: ${routeGeometry.source || t('dash_provider', 'provider')}` : t('dash_track_geometry_unavailable', 'Track geometry unavailable; timetable fallback')}</div>
               </div>
             </div>
 
@@ -1326,17 +1334,17 @@ export default function DashboardPage() {
                 {stationAmenities.amenities.map((amenity) => (
                   <div key={amenity.id} className="rounded-xl border border-sky-200/80 dark:border-sky-800/60 bg-white/90 dark:bg-[#0c1729]/90 p-3.5 shadow-sm">
                     <div className="flex items-start justify-between gap-3"><div className="font-semibold text-slate-900 dark:text-white">{amenity.name}</div><span className="rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-500/40 px-2 py-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-300">{amenity.status}</span></div>
-                    <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">{amenity.type} · {amenity.platform || 'Station concourse'}</div>
+                    <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">{amenity.type} · {amenity.platform || t('dash_station_concourse', 'Station concourse')}</div>
                     <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-mono text-slate-500 dark:text-slate-400">{amenity.occupancy && <span>{amenity.occupancy}</span>}{amenity.cost && <span>{amenity.cost}</span>}{amenity.amenities.map((item) => <span key={item} className="text-sky-700 dark:text-sky-400">{item}</span>)}</div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <a href={waitingAreaSearchUrl} target="_blank" rel="noreferrer" className="group rounded-xl border border-sky-200/80 dark:border-sky-800/60 bg-white/90 dark:bg-[#0c1729]/90 p-4 shadow-sm transition hover:border-sky-400 dark:hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-[#122340]">
+                <a href={waitingAreaSearchUrl || undefined} aria-disabled={!waitingAreaSearchUrl} onClick={(event) => { if (!waitingAreaSearchUrl) event.preventDefault(); }} target="_blank" rel="noreferrer" className="group rounded-xl border border-sky-200/80 dark:border-sky-800/60 bg-white/90 dark:bg-[#0c1729]/90 p-4 shadow-sm transition hover:border-sky-400 dark:hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-[#122340]">
                   <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400"><svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4v16M19 4v16M5 5h14M5 12h14M7 20h-3M20 20h-3"/><path d="M8 12v8M16 12v8"/></svg></span><div><div className="text-sm font-bold text-slate-900 dark:text-white">{t('dash_waiting_area', 'Waiting area')}</div><div className="mt-1 text-xs text-slate-600 dark:text-slate-400">{t('dash_find_nearest_waiting', 'Find the nearest mapped option')}</div></div></div><svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-sky-500 transition group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
                 </a>
-                <a href={canteenSearchUrl} target="_blank" rel="noreferrer" className="group rounded-xl border border-amber-200/80 dark:border-amber-800/60 bg-white/90 dark:bg-[#0c1729]/90 p-4 shadow-sm transition hover:border-amber-400 dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-[#1f2618]/40">
+                <a href={canteenSearchUrl || undefined} aria-disabled={!canteenSearchUrl} onClick={(event) => { if (!canteenSearchUrl) event.preventDefault(); }} target="_blank" rel="noreferrer" className="group rounded-xl border border-amber-200/80 dark:border-amber-800/60 bg-white/90 dark:bg-[#0c1729]/90 p-4 shadow-sm transition hover:border-amber-400 dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-[#1f2618]/40">
                   <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400"><svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10h12a1 1 0 0 1 1 1c0 3-2.5 5-7 5s-7-2-7-5a1 1 0 0 1 1-1Z"/><path d="M8 18h8M9 20h6M12 7v3M9 7c0-2 1.5-3 3-3s3 1 3 3"/></svg></span><div><div className="text-sm font-bold text-slate-900 dark:text-white">{t('dash_canteen_food', 'Canteen & food')}</div><div className="mt-1 text-xs text-slate-600 dark:text-slate-400">{t('dash_find_nearby_food', 'Find nearby food options')}</div></div></div><svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-amber-500 transition group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
                 </a>
               </div>

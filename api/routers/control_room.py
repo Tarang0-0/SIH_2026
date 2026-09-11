@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import os
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -21,6 +22,7 @@ from api.services.official_status import (
     LiveStationInvalid,
     LiveStatusInvalid,
     LiveStatusUnavailable,
+    LiveTrainStatus,
     fetch_live_station,
     fetch_live_status,
     runtime_route_from_status,
@@ -80,6 +82,77 @@ def _halt_status(speed_kmh: Optional[float]) -> str:
     return "halted" if speed_kmh <= 1 else "moving"
 
 
+def _live_provider_configured() -> bool:
+    """Return whether at least one live-status adapter has credentials/config."""
+    return any(
+        os.getenv(name, "").strip()
+        for name in (
+            "RAILRADAR_API_KEY",
+            "INDIAN_RAIL_API_KEY",
+            "OFFICIAL_RAIL_STATUS_URL",
+        )
+    )
+
+
+def _offline_timetable_status(
+    train_number: str,
+    journey_date: dt.date,
+) -> Optional[LiveTrainStatus]:
+    """Build a clearly labeled schedule-only status for local demos.
+
+    This path is intentionally conservative: it uses the checked-in timetable
+    only, reports no delay or speed, and never presents schedule data as live
+    telemetry. It keeps the operator console usable when no provider key is
+    available while preserving the live-provider path for real deployments.
+    """
+    route = eta_router.TRAIN_ROUTES_INDEX.get(train_number)
+    if not isinstance(route, dict) or not isinstance(route.get("stops"), list):
+        return None
+    stops = [stop for stop in route["stops"] if isinstance(stop, dict)]
+    if len(stops) < 2:
+        return None
+    try:
+        stops.sort(key=lambda stop: int(stop.get("seq", 0)))
+        elapsed = eta_router._elapsed_schedule_minutes(stops)
+        departure = eta_router._parse_clock(stops[0].get("sched", "00:00"))
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+    now = dt.datetime.now(eta_router.INDIA_TIMEZONE)
+    journey_start = dt.datetime.combine(
+        journey_date, dt.time(), tzinfo=eta_router.INDIA_TIMEZONE
+    ) + dt.timedelta(minutes=departure)
+    elapsed_now = (now - journey_start).total_seconds() / 60
+    current_index = 0
+    for index, stop_elapsed in enumerate(elapsed):
+        if stop_elapsed <= elapsed_now:
+            current_index = index
+    current_station = normalize_station_code(stops[current_index].get("code"))
+    if not current_station:
+        return None
+    next_station = (
+        normalize_station_code(stops[current_index + 1].get("code"))
+        if current_index + 1 < len(stops)
+        else None
+    )
+    return LiveTrainStatus(
+        train_number=train_number,
+        observed_at=now.astimezone(dt.timezone.utc),
+        current_station=current_station,
+        current_delay_minutes=0,
+        latitude=None,
+        longitude=None,
+        speed_kmh=None,
+        next_station=next_station,
+        provider="LOCAL_TIMETABLE_PREVIEW",
+        raw_payload={
+            "mode": "offline_timetable_preview",
+            "route_name": route.get("name") or f"Train {train_number}",
+        },
+        observation_quality="local_timetable",
+    )
+
+
 async def _station_board(code: str) -> tuple[str, list[dict[str, Optional[str]]] | Exception]:
     try:
         return code, await fetch_live_station(code, hours=2)
@@ -99,10 +172,16 @@ async def get_control_room_impact(
         raise HTTPException(status_code=422, detail="train_number must contain only digits")
     requested_date = _journey_date(date)
     resolved_date = requested_date or resolve_journey_date(train_key)
+    offline_preview = False
     try:
         status = await fetch_live_status(train_key, resolved_date)
     except LiveStatusUnavailable as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
+        if _live_provider_configured():
+            raise HTTPException(status_code=503, detail=str(error)) from error
+        status = _offline_timetable_status(train_key, resolved_date)
+        if status is None:
+            raise HTTPException(status_code=503, detail=str(error)) from error
+        offline_preview = True
     except LiveStatusInvalid as error:
         raise HTTPException(status_code=502, detail=str(error)) from error
 
@@ -114,7 +193,10 @@ async def get_control_room_impact(
             detail="The live provider did not return a usable downstream route for this train",
         )
 
-    board_results = await asyncio.gather(*(_station_board(normalize_station_code(stop.get("code"))) for stop in stations))
+    if offline_preview:
+        board_results = []
+    else:
+        board_results = await asyncio.gather(*(_station_board(normalize_station_code(stop.get("code"))) for stop in stations))
     network_signals = None
     try:
         network_signals = await fetch_network_signals(
@@ -130,7 +212,11 @@ async def get_control_room_impact(
         if isinstance(row, dict)
     }
     affected: list[dict[str, Any]] = []
-    failed_stations: list[str] = []
+    failed_stations: list[str] = (
+        [normalize_station_code(stop.get("code")) for stop in stations]
+        if offline_preview
+        else []
+    )
     for station_code, board_or_error in board_results:
         if isinstance(board_or_error, Exception):
             failed_stations.append(station_code)
@@ -180,8 +266,23 @@ async def get_control_room_impact(
         "affected_station_codes": [normalize_station_code(stop.get("code")) for stop in stations],
         "affected_trains": list(unique.values()),
         "data_quality": {
-            "source": "live train status plus live station boards",
+            "source": (
+                "local timetable route catalog"
+                if offline_preview
+                else "live train status plus live station boards"
+            ),
             "provider": status.provider,
+            "mode": "offline_timetable_preview" if offline_preview else "live",
+            "live_status_available": not offline_preview,
+            "station_board_data_available": not offline_preview and not failed_stations,
+            "limitations": (
+                [
+                    "No live-status provider is configured; incident values come from the local timetable.",
+                    "Live station boards, delay, speed, occupancy, and affected-train correlation are unavailable.",
+                ]
+                if offline_preview
+                else []
+            ),
             "occupancy_data_available": False,
             "blockage_causality_confirmed": False,
             "failed_station_boards": failed_stations,

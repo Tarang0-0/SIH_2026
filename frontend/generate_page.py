@@ -9,7 +9,7 @@ input_replacement = """<input className="w-full pl-12 pr-4 py-4 rounded-xl borde
     onChange={(e) => {
         setSearchQuery(e.target.value);
         if (e.target.value.length >= 2) {
-            fetch(`http://localhost:8000/api/v1/trains/search?q=${e.target.value}`)
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/trains/search?q=${encodeURIComponent(e.target.value)}`)
                 .then(res => res.json())
                 .then(data => setSearchResults(data))
                 .catch(() => setSearchResults([]));
@@ -70,7 +70,7 @@ jsx = re.sub(r'<div className="bg-\[#00e5ff\] h-full w-\[85%\] rounded-full shad
              r'<div className="bg-[#00e5ff] h-full rounded-full shadow-[0_0_10px_#00e5ff]" style={{ width: `${heroData.progress_pct}%` }}></div>', jsx)
 
 # Replace <a href="#">Live Map</a>
-jsx = re.sub(r'<a.*?Live Map.*?</a>', r'<Link href={`/map?train=${searchQuery || \'12951\'}`} className="text-on-primary font-label-md nav-link transition-colors duration-200">Live Map</Link>', jsx)
+jsx = re.sub(r'<a.*?Live Map.*?</a>', r'<Link href={`/map?train=${encodeURIComponent(searchQuery)}`} className="text-on-primary font-label-md nav-link transition-colors duration-200">Live Map</Link>', jsx)
 
 # Links inside "Quick Links" - PNR Status, Live Station, Schedule
 jsx = jsx.replace('href="#"', 'href="/"')
@@ -85,7 +85,7 @@ import ApiKeyModal from './components/ApiKeyModal';
 
 export default function Home() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('12951');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [heroLoading, setHeroLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState("");
@@ -100,21 +100,21 @@ export default function Home() {
   }, []);
 
   const [heroData, setHeroData] = useState({
-    train_number: '12951',
-    train_name: 'Mumbai Rajdhani Express',
-    origin: 'New Delhi (NDLS)',
-    dest: 'Mumbai Central (MMCT)',
-    distance_km: 1384,
-    current_delay: 24,
-    confidence: 92,
-    origin_halt: 'NDLS (16:55)',
-    target_halt: 'KOTA JN (ETA 22:54)',
-    dest_halt: 'MMCT (Destination)',
-    speed: 122,
-    signal: 'DOUBLE GREEN (CLEAR)',
-    sector: 'Mathura-Kota Chord',
-    platform: 'Platform 1A',
-    progress_pct: 42
+    train_number: '',
+    train_name: '',
+    origin: '',
+    dest: '',
+    distance_km: null,
+    current_delay: null,
+    confidence: null,
+    origin_halt: '',
+    target_halt: '',
+    dest_halt: '',
+    speed: null,
+    signal: '',
+    sector: '',
+    platform: '',
+    progress_pct: 0
   });
 
   const fetchHeroPreview = async (trainNo: string) => {
@@ -122,7 +122,8 @@ export default function Home() {
     if (!cleanNo) return;
     try {
       setHeroLoading(true);
-      const res = await fetch(`http://localhost:8000/api/v1/trains/${encodeURIComponent(cleanNo)}/eta?date=2026-09-03&current_station=NDLS&current_delay=15`);
+      const journeyDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/trains/${encodeURIComponent(cleanNo)}/eta?date=${encodeURIComponent(journeyDate)}`);
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.stations && data.stations.length > 0) {
@@ -134,18 +135,18 @@ export default function Home() {
         setHeroData({
           train_number: data.train_number,
           train_name: data.train_name,
-          origin: data.origin_station || first.station_name || 'Origin',
-          dest: data.destination_station || last.station_name || 'Destination',
-          distance_km: Math.round(last.distance_km || 1384),
-          current_delay: mid.delay_minutes || 15,
-          confidence: mid.confidence_percent || 90,
+          origin: data.origin_station || first.station_name || '',
+          dest: data.destination_station || last.station_name || '',
+          distance_km: last.distance_km ?? null,
+          current_delay: mid.delay_minutes ?? null,
+          confidence: mid.confidence_percent ?? null,
           origin_halt: `${first.station_code} (${first.scheduled_arrival})`,
           target_halt: `${mid.station_code} (ETA ${mid.predicted_arrival})`,
-          dest_halt: `${last.station_code} (Dest)`,
-          speed: 120,
-          signal: 'DOUBLE GREEN (CLEAR)',
+          dest_halt: `${last.station_code}`,
+          speed: null,
+          signal: '',
           sector: `${first.station_code}-${mid.station_code} Corridor`,
-          platform: mid.platform_prediction || 'Platform 1',
+          platform: mid.platform_prediction || '',
           progress_pct: Math.round((midIdx / (data.stations.length - 1)) * 100)
         });
       }
@@ -157,11 +158,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchHeroPreview('12951');
   }, []);
 
   const handleSearch = () => {
-    const target = searchQuery.trim() || '12951';
+    const target = searchQuery.trim();
     router.push(`/dashboard?train=${encodeURIComponent(target)}`);
   };
 

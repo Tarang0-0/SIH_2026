@@ -73,6 +73,27 @@ class TestPhase4Capabilities(unittest.TestCase):
             get_control_room_cascade_risk()
         self.assertEqual(unavailable.exception.status_code, 503)
 
+    def test_control_room_uses_explicit_offline_preview_without_live_provider(self):
+        with patch.dict(
+            os.environ,
+            {
+                "RAILRADAR_API_KEY": "",
+                "INDIAN_RAIL_API_KEY": "",
+                "OFFICIAL_RAIL_STATUS_URL": "",
+            },
+            clear=False,
+        ):
+            result = asyncio.run(
+                get_control_room_impact("12301", date="2026-09-11", lookahead_stations=4)
+            )
+
+        self.assertEqual(result["incident"]["provider"], "LOCAL_TIMETABLE_PREVIEW")
+        self.assertEqual(result["data_quality"]["mode"], "offline_timetable_preview")
+        self.assertFalse(result["data_quality"]["live_status_available"])
+        self.assertEqual(result["affected_station_codes"], ["HWH", "DHN", "PNME", "GAYA"])
+        self.assertEqual(result["affected_trains"], [])
+        self.assertEqual(result["data_quality"]["failed_station_boards"], ["HWH", "DHN", "PNME", "GAYA"])
+
     def test_control_room_impact_uses_live_station_boards(self):
         observed_at = dt.datetime(2026, 9, 8, 8, 0, tzinfo=dt.timezone.utc)
         status = LiveTrainStatus(

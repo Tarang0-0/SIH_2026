@@ -129,7 +129,7 @@ export default function AboutPage() {
           {/* Action Button */}
           <div className="text-center pt-4">
             <Link
-              href="/dashboard?train=12951"
+              href="/dashboard"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs font-mono px-7 py-3.5 rounded-xl transition-all shadow-sm shadow-sky-500/20"
             >
               <span>{t('about_launch_btn', 'Launch Operations Console')}</span>

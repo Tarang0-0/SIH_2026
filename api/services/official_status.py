@@ -67,8 +67,6 @@ class LiveTrainStatus:
     observation_quality: str = "provider_timestamp"
 
 
-INDIAN_RAIL_API_BASE = "https://indianrailapi.com/api/v2"
-RAILRADAR_API_BASE = "https://api.railradar.in/v1"
 INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
 
 
@@ -77,7 +75,9 @@ def _railradar_api_key() -> str:
 
 
 def _railradar_api_base() -> str:
-    configured = os.getenv("RAILRADAR_API_BASE_URL", RAILRADAR_API_BASE).strip().rstrip("/")
+    configured = os.getenv("RAILRADAR_API_BASE_URL", "").strip().rstrip("/")
+    if not configured:
+        raise LiveStatusUnavailable("RAILRADAR_API_BASE_URL is not configured")
     parsed = urlparse(configured)
     if parsed.scheme != "https" or not parsed.netloc:
         raise LiveStatusUnavailable("RAILRADAR_API_BASE_URL must be an HTTPS URL")
@@ -90,7 +90,9 @@ def _indian_rail_api_key() -> str:
 
 
 def _indian_rail_api_base() -> str:
-    configured = os.getenv("INDIAN_RAIL_API_BASE_URL", INDIAN_RAIL_API_BASE).strip().rstrip("/")
+    configured = os.getenv("INDIAN_RAIL_API_BASE_URL", "").strip().rstrip("/")
+    if not configured:
+        raise LiveStatusUnavailable("INDIAN_RAIL_API_BASE_URL is not configured")
     parsed = urlparse(configured)
     if parsed.scheme != "https" or not parsed.netloc:
         raise LiveStatusUnavailable("INDIAN_RAIL_API_BASE_URL must be an HTTPS URL")

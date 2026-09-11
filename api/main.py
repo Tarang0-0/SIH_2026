@@ -235,13 +235,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# This service has no cookie/session authentication. Explicit local development
-# origins are safer and valid with future credentialed browser requests.
-cors_origins = [origin.strip() for origin in os.getenv(
-    "CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
-).split(",") if origin.strip()]
+# This service has no cookie/session authentication. Origins are supplied by
+# deployment configuration so production deployments do not inherit local URLs.
+cors_origins = [origin.strip() for origin in os.getenv("CORS_ALLOW_ORIGINS", "").split(",") if origin.strip()]
 
-# Enable CORS for all frontends (Next.js, Vite, or future Figma prototypes)
+# Enable CORS only for configured frontends.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
@@ -282,8 +280,14 @@ def health_check():
             "INDIAN_RAIL_API" if os.getenv("INDIAN_RAIL_API_KEY") else
             "GENERIC" if os.getenv("OFFICIAL_RAIL_STATUS_URL") else None
         ),
-        "weather_provider_configured": bool(os.getenv("OPENWEATHER_API_KEY", "").strip()),
-        "weather_provider": "OPENWEATHER" if os.getenv("OPENWEATHER_API_KEY", "").strip() else None,
+        "weather_provider_configured": bool(
+            os.getenv("OPENWEATHER_API_KEY", "").strip()
+            and os.getenv("OPENWEATHER_API_URL", "").strip()
+        ),
+        "weather_provider": "OPENWEATHER" if (
+            os.getenv("OPENWEATHER_API_KEY", "").strip()
+            and os.getenv("OPENWEATHER_API_URL", "").strip()
+        ) else None,
         "network_signals_provider_configured": network_provider_configured(),
         "network_signals_provider": network_provider_name(),
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()

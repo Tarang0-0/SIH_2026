@@ -154,7 +154,7 @@ export default function FeaturesPage() {
             {t('features_cta_desc', 'Experience the dual-pane operational dashboard with live corridor tracks and real-time GIS route maps.')}
           </p>
           <Link
-            href="/dashboard?train=12951"
+              href="/dashboard"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs font-mono px-6 py-3 rounded-xl transition-all shadow-sm shadow-sky-500/20 relative z-10"
           >
             <span>{t('features_cta_btn', 'Open Operations Dashboard')}</span>

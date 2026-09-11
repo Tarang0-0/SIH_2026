@@ -12,7 +12,7 @@ input_replacement = """<input className="w-full pl-12 pr-4 py-4 rounded-xl borde
     onChange={(e) => {
         setSearchQuery(e.target.value);
         if (e.target.value.length >= 2) {
-            fetch(`http://localhost:8000/api/v1/trains/search?q=${e.target.value}`)
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/trains/search?q=${encodeURIComponent(e.target.value)}`)
                 .then(res => res.json())
                 .then(data => setSearchResults(data))
                 .catch(() => setSearchResults([]));
@@ -115,7 +115,8 @@ export default function Home() {
     if (!cleanNo) return;
     try {
       setHeroLoading(true);
-      const res = await fetch(`http://localhost:8000/api/v1/trains/${encodeURIComponent(cleanNo)}/eta?date=2026-09-03&current_station=NDLS&current_delay=15`);
+      const journeyDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/trains/${encodeURIComponent(cleanNo)}/eta?date=${encodeURIComponent(journeyDate)}`);
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.stations && data.stations.length > 0) {
@@ -127,18 +128,18 @@ export default function Home() {
         setHeroData({
           train_number: data.train_number,
           train_name: data.train_name,
-          origin: data.origin_station || first.station_name || 'Origin',
-          dest: data.destination_station || last.station_name || 'Destination',
-          distance_km: Math.round(last.distance_km || 1384),
-          current_delay: mid.delay_minutes || 15,
-          confidence: mid.confidence_percent || 90,
+          origin: data.origin_station || first.station_name || '',
+          dest: data.destination_station || last.station_name || '',
+          distance_km: last.distance_km ?? null,
+          current_delay: mid.delay_minutes ?? null,
+          confidence: mid.confidence_percent ?? null,
           origin_halt: `${first.station_code} (${first.scheduled_arrival})`,
           target_halt: `${mid.station_code} (ETA ${mid.predicted_arrival})`,
-          dest_halt: `${last.station_code} (Dest)`,
-          speed: 120,
-          signal: 'DOUBLE GREEN (CLEAR)',
+          dest_halt: `${last.station_code}`,
+          speed: null,
+          signal: '',
           sector: `${first.station_code}-${mid.station_code} Corridor`,
-          platform: mid.platform_prediction || 'Platform 1',
+          platform: mid.platform_prediction || '',
           progress_pct: Math.round((midIdx / (data.stations.length - 1)) * 100)
         });
       }

@@ -64,7 +64,6 @@ export default function AdminLoginPage() {
           defaultUsername=""
           title={t('admin_title', 'RailTrackr')}
           subtitle={t('admin_subtitle', 'Indian Railways Transit Operations & Dispatch Console')}
-          systemNode={t('admin_system_node', 'RailPulse Node: 0xIR-NDLS')}
           returnLink="/"
           returnLabel={t('admin_return_label', 'RETURN TO PASSENGER DIRECTORY')}
         />

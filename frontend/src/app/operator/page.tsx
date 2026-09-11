@@ -36,6 +36,10 @@ interface ImpactResponse {
   affected_trains: AffectedTrain[];
   data_quality: {
     provider: string;
+    mode?: 'live' | 'offline_timetable_preview';
+    live_status_available?: boolean;
+    station_board_data_available?: boolean;
+    limitations?: string[];
     occupancy_data_available: boolean;
     blockage_causality_confirmed: boolean;
     failed_station_boards: string[];
@@ -66,14 +70,6 @@ export default function OperatorPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [impact, setImpact] = useState<ImpactResponse | null>(null);
-
-  const sampleTrains = [
-    { number: '12951', name: 'Mumbai Tejas Rajdhani' },
-    { number: '12002', name: 'Bhopal Shatabdi' },
-    { number: '12301', name: 'Howrah Rajdhani' },
-    { number: '12259', name: 'Sealdah Duronto' },
-    { number: '22436', name: 'Vande Bharat Exp' },
-  ];
 
   useEffect(() => {
     if (!window.sessionStorage.getItem(ADMIN_TOKEN_KEY)) {
@@ -121,11 +117,6 @@ export default function OperatorPage() {
   const analyzeImpact = async (event: React.FormEvent) => {
     event.preventDefault();
     await executeAnalysis(trainNumber, lookahead);
-  };
-
-  const handleSelectSample = (number: string) => {
-    setTrainNumber(number);
-    void executeAnalysis(number, lookahead);
   };
 
   const incident = impact?.incident;
@@ -224,7 +215,7 @@ export default function OperatorPage() {
               <input
                 value={trainNumber}
                 onChange={(event) => setTrainNumber(event.target.value)}
-                placeholder={t('op_inspect_placeholder', 'Enter 5-digit train number (e.g. 12951)')}
+                placeholder={t('op_inspect_placeholder', 'Enter a train number')}
                 inputMode="numeric"
                 className="w-full bg-slate-50 dark:bg-[#071827]/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition-all font-mono"
               />
@@ -264,25 +255,16 @@ export default function OperatorPage() {
             </button>
           </form>
 
-          {/* Quick-test Preset Trains */}
-          <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">{t('op_quick_preset', 'Quick Preset:')}</span>
-            {sampleTrains.map((sample) => (
-              <button
-                key={sample.number}
-                type="button"
-                onClick={() => handleSelectSample(sample.number)}
-                className={`text-xs font-mono px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                  trainNumber === sample.number
-                    ? 'bg-sky-500 text-white border-sky-600 dark:bg-cyan-500 dark:text-slate-950 dark:border-cyan-400 font-bold shadow-xs'
-                    : 'bg-slate-50 dark:bg-[#0c1729] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-sky-300 dark:hover:border-cyan-500/50'
-                }`}
-              >
-                <span className="font-bold">{sample.number}</span> <span className="opacity-75 hidden sm:inline">• {sample.name}</span>
-              </button>
-            ))}
-          </div>
         </div>
+
+        {impact?.data_quality.mode === 'offline_timetable_preview' && (
+          <div className="mb-6 rounded-2xl border border-amber-300 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-400/10 p-4 text-sm text-amber-800 dark:text-amber-200">
+            <div className="font-semibold">Offline timetable preview</div>
+            <p className="mt-1 text-xs leading-relaxed">
+              No authorised live-status provider is configured. The route is shown from the local timetable only; live delay, speed, station boards, occupancy, and affected-train correlation are unavailable.
+            </p>
+          </div>
+        )}
 
         {/* Error notification */}
         {error && (
@@ -330,7 +312,7 @@ export default function OperatorPage() {
                       <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-1.5 font-mono">
                         <span className="font-bold text-slate-900 dark:text-slate-200">{incident.current_station}</span>
                         <span>➔</span>
-                        <span>{incident.next_station || 'Terminal'}</span>
+                        <span>{incident.next_station || t('op_terminal', 'Terminal')}</span>
                       </div>
                     </div>
 
@@ -479,14 +461,20 @@ export default function OperatorPage() {
 
                     {impact.affected_trains.length === 0 && (
                       <div className="py-10 text-center text-slate-500 text-xs font-mono">
-                        {t('op_no_trains', 'No other trains were returned by the live boards in this lookahead corridor window.')}
+                        {impact.data_quality.mode === 'offline_timetable_preview'
+                          ? 'Live station boards are unavailable in offline preview mode.'
+                          : t('op_no_trains', 'No other trains were returned by the live boards in this lookahead corridor window.')}
                       </div>
                     )}
                   </div>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-[11px] font-mono text-slate-500 dark:text-slate-400 flex flex-wrap items-center justify-between gap-2">
-                  <span>{t('op_correlates_note', 'Note: Correlates live arrivals within downstream windows. Does not assume rigid physical interlock blockage.')}</span>
+                  <span>
+                    {impact.data_quality.mode === 'offline_timetable_preview'
+                      ? 'Offline preview: no live arrivals or track occupancy are being inferred.'
+                      : t('op_correlates_note', 'Note: Correlates live arrivals within downstream windows. Does not assume rigid physical interlock blockage.')}
+                  </span>
                 </div>
               </div>
 
@@ -505,9 +493,11 @@ export default function OperatorPage() {
                   <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-200">
                     <span className={`w-2 h-2 rounded-full ${impact.data_quality.network_signals_available ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                     <span>
-                      {impact.data_quality.network_signals_available
-                        ? `${t('op_active', 'Active')} (${impact.data_quality.network_signal_provider || 'Provider'})`
-                        : t('op_standby', 'Simulated / Standby')}
+                        {impact.data_quality.network_signals_available
+                          ? `${t('op_active', 'Active')} (${impact.data_quality.network_signal_provider || 'Provider'})`
+                          : impact.data_quality.mode === 'offline_timetable_preview'
+                            ? 'Unavailable (offline)'
+                            : t('op_standby', 'Simulated / Standby')}
                     </span>
                   </div>
                 </div>

@@ -158,49 +158,6 @@ export default function Home() {
                       </button>
                     </div>
 
-                    {/* Popular Route Shortcuts */}
-                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                      <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mb-2 font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                        <span>{t('quick_corridors_title')}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          {
-                            no: '12951',
-                            name: 'Mumbai Rajdhani',
-                            tag: t('popular_tag_fast'),
-                            badgeClass: 'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60',
-                          },
-                          {
-                            no: '12002',
-                            name: 'Bhopal Shatabdi',
-                            tag: t('popular_tag_express'),
-                            badgeClass: 'bg-blue-50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60',
-                          },
-                          {
-                            no: '22436',
-                            name: 'Vande Bharat',
-                            tag: t('popular_tag_superfast'),
-                            badgeClass: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60',
-                          },
-                        ].map((item) => (
-                          <button
-                            key={item.no}
-                            type="button"
-                            onClick={() => {
-                              setSearchQuery(item.no);
-                              handleSelectTrain(item.no);
-                            }}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-colors cursor-pointer group"
-                          >
-                            <span className="font-bold text-blue-600 dark:text-blue-400">{item.no}</span>
-                            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-sans font-medium">{item.name}</span>
-                            <span className={`px-1.5 py-0.5 text-[9px] rounded font-bold tracking-tight ${item.badgeClass}`}>{item.tag}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
                     {showSuggestions && (
                       <div role="listbox" aria-label="Train suggestions" className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-72 overflow-y-auto overscroll-contain divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1527] shadow-xl">
                         {searchResults.map((train) => (
@@ -236,7 +193,7 @@ export default function Home() {
 
                     {searchError && (
                       <div className="mt-3 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/50 px-3 py-2 text-xs text-rose-700 dark:text-rose-300">
-                        {searchError} Make sure the FastAPI service is running on port 8000.
+                        {searchError} Check that the backend service is running and configured.
                       </div>
                     )}
                   </form>

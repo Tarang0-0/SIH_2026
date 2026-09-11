@@ -422,6 +422,7 @@ def get_train_eta(train_number: str, date: Optional[str] = None, current_station
             "predicted_arrival_datetime": next_detail.predicted_arrival_datetime,
             "scheduled_minutes_to_next": scheduled_minutes_to_next,
             "predicted_minutes_to_next": predicted_minutes,
+            "distance_km": gps_distance if gps_distance is not None else max(0.0, distances[current_index + 1] - distances[current_index]),
             "predicted_delay_minutes": next_detail.delay_minutes,
             "p10_delay_minutes": next_detail.p10_delay_minutes,
             "p90_delay_minutes": next_detail.p90_delay_minutes,
